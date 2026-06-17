@@ -5,7 +5,7 @@ import { LucideRefresh } from '@/components/training/LucideRefresh'
 import { TemplateStorefront, type TemplateItem, type StoreFilters } from '@/components/training/TemplateStorefront'
 
 // ISR: CMS edits surface within 60s without a redeploy.
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const payload = await getPayloadClient()

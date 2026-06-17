@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { getPayloadClient } from '@/lib/payload'
 import { Hero, Closing } from '@/components/company/parts'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const payload = await getPayloadClient()

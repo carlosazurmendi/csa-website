@@ -6,6 +6,8 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Self-contained server bundle for the Docker runtime image.
+  output: 'standalone',
   // Pin the workspace root to this project (a stray lockfile in the home dir
   // otherwise confuses Turbopack's root inference).
   turbopack: {

@@ -5,7 +5,7 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import { getPayloadClient } from '@/lib/payload'
 
 // ISR: CMS edits surface within 60s without a redeploy.
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 const mediaUrl = (m: unknown): string | undefined =>
   m && typeof m === 'object' && 'url' in m ? ((m as { url?: string }).url ?? undefined) : undefined
@@ -24,16 +24,6 @@ async function getArticle(slug: string) {
   return (res.docs[0] as any) || null
 }
 
-export async function generateStaticParams() {
-  const payload = await getPayloadClient()
-  const res = await payload.find({
-    collection: 'articles',
-    limit: 200,
-    depth: 0,
-    where: { _status: { equals: 'published' } },
-  })
-  return res.docs.map((a: any) => ({ slug: a.slug as string }))
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params

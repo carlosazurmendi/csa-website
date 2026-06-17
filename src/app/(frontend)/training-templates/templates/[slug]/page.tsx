@@ -5,7 +5,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { LucideRefresh } from '@/components/training/LucideRefresh'
 
 // ISR: CMS edits surface within 60s without a redeploy.
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 const CAT_LABEL: Record<string, string> = {
   'compliance-bundle': 'Compliance Bundle',
@@ -30,12 +30,6 @@ async function getTemplate(slug: string) {
     depth: 1,
   })
   return res.docs[0] as any | undefined
-}
-
-export async function generateStaticParams() {
-  const payload = await getPayloadClient()
-  const res = await payload.find({ collection: 'templates', limit: 200, depth: 0 })
-  return res.docs.map((t: any) => ({ slug: t.slug as string }))
 }
 
 export async function generateMetadata({

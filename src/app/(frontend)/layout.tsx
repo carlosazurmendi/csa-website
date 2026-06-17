@@ -7,6 +7,11 @@ import { Nav, type NavItem } from '@/components/layout/Nav'
 import { Footer } from '@/components/layout/Footer'
 import { CsaScripts } from '@/components/layout/CsaScripts'
 
+// Rendered dynamically — the nav/footer come from the CMS via the Local API,
+// and the whole frontend renders per-request (no build-time DB dependency, so
+// the Docker image builds without a database).
+export const dynamic = 'force-dynamic'
+
 const mediaUrl = (m: unknown): string | undefined =>
   m && typeof m === 'object' && 'url' in m ? ((m as { url?: string }).url ?? undefined) : undefined
 

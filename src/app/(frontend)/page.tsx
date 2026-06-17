@@ -11,9 +11,9 @@ import { StandingApart } from '@/components/home/StandingApart'
 import { About } from '@/components/home/About'
 import { News } from '@/components/home/News'
 
-// ISR: CMS edits surface within 60s without a redeploy. (On-demand
-// revalidation hooks are a Phase-1 follow-up.)
-export const revalidate = 60
+// Rendered per request via the Local API, so CMS edits are always live and the
+// Docker image builds without a database connection.
+export const dynamic = 'force-dynamic'
 
 const mediaUrl = (m: unknown): string | undefined =>
   m && typeof m === 'object' && 'url' in m ? ((m as { url?: string }).url ?? undefined) : undefined

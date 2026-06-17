@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env*.local
+/media
+/public/media
+_*.log
+npm-debug.log*
+.claude
+.vscode
+.idea
+Dockerfile
+.dockerignore
+docker-compose.yml
+*.tsbuildinfo

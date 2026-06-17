@@ -7,7 +7,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { IndustryReveal } from '@/components/consulting/IndustryReveal'
 
 // ISR: CMS edits surface within 60s without a redeploy.
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 async function findIndustry(slug: string) {
   const payload = await getPayloadClient()
@@ -18,12 +18,6 @@ async function findIndustry(slug: string) {
     depth: 1,
   })
   return res.docs[0] as any
-}
-
-export async function generateStaticParams() {
-  const payload = await getPayloadClient()
-  const res = await payload.find({ collection: 'industries', limit: 100, depth: 0 })
-  return res.docs.map((d: any) => ({ slug: d.slug as string }))
 }
 
 export async function generateMetadata({

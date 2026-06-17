@@ -4,7 +4,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { Hero, Closing } from '@/components/company/parts'
 import { RolesScrollLink } from '@/components/company/RolesScrollLink'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const payload = await getPayloadClient()

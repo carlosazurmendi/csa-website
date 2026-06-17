@@ -4,7 +4,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { ResourceListing, type ListingCard } from '@/components/resources/ResourceListing'
 
 // ISR: CMS edits surface within 60s without a redeploy.
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Downloadable Functional Safety Resources',

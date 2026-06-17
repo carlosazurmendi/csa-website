@@ -4,7 +4,7 @@ import { getPayloadClient } from '@/lib/payload'
 import { StandardsIdentifier } from '@/components/resources/StandardsIdentifier'
 
 // ISR: CMS edits surface within 60s without a redeploy.
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const payload = await getPayloadClient()

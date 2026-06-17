@@ -85,14 +85,46 @@ abstracted in `src/lib/storage.ts`, so both are swappable without code changes.
   and `csa-shaders.js` material system) in `public/assets/`. Section components in
   `src/components/` preserve the original markup/classes and are fed by Payload data.
 
-## Deployment (Vercel)
+## Deployment (Docker on a VPS, behind Traefik)
 
-- Set `DATABASE_URI` (Supabase Postgres), `PAYLOAD_SECRET`, `NEXT_PUBLIC_SERVER_URL`, and
-  the `S3_*` / `NEXT_PUBLIC_S3_PUBLIC_URL` vars in the Vercel project.
-- **Media must use Supabase Storage on Vercel** — the serverless filesystem is ephemeral, so
-  local-disk uploads do not persist. Local disk is for local dev only.
-- Add the Supabase Storage public hostname to `images.remotePatterns` in `next.config.mjs`
-  before serving CMS images through `next/image`.
+The app ships as a single container (`Dockerfile`, Next.js standalone, Node 22) connecting to
+**Supabase** for Postgres and Storage. `docker-compose.yml` is wired for Traefik (TLS via the
+external `proxy` network, host `csa-website-staging.handistack.com`, app port 3000).
+
+**Rendering / build.** Pages render dynamically via Payload's Local API (`force-dynamic`), so
+the image builds with **no database connection** and CMS edits are always live. Schema is
+managed by **migrations** under `src/migrations/`; the Payload config runs them automatically
+on container boot (`prodMigrations`), so the container migrates the Supabase schema itself.
+After changing collections/globals: `npm run payload migrate:create <name>` and commit it.
+
+**Config (`.env`, host-side only — never committed or baked into the image):**
+- `DATABASE_URI` — Supabase **Session pooler** URI (port 5432; not the 6543 transaction pooler).
+- `PAYLOAD_SECRET` — long random string.
+- `NEXT_PUBLIC_SERVER_URL` — public site URL.
+- `S3_*` + `NEXT_PUBLIC_S3_PUBLIC_URL` — Supabase Storage (public `media` bucket + S3 access key).
+  If blank, media falls back to the `csa_media` Docker volume.
+
+**Deploy:**
+```bash
+# on the VPS, with .env present next to docker-compose.yml:
+docker compose up -d --build
+```
+The container boots, applies migrations to Supabase, and serves on the `proxy` network for
+Traefik. The DB was seeded once during setup (below), so content is live immediately.
+
+**Seeding (one-time, already done for staging).** Against a migrated Supabase DB, seed in
+**production mode** so it inserts without dev-pushing the schema (a dev-mode seed makes the
+production container detect a schema mismatch and stall on a prompt):
+```bash
+npm run migrate      # apply migrations to Supabase (DATABASE_URI in .env)
+npm run seed:prod    # NODE_ENV=production — insert content + upload media to Supabase Storage
+```
+⚠️ The seed **clears and recreates** content collections — run it ONCE on initial setup, never
+after the client has started editing. `npm run payload migrate:fresh --force-accept-warning`
+drops + re-migrates if you need a clean reset.
+
+If you later serve CMS images via `next/image` directly from the bucket URL, add the Supabase
+Storage hostname to `images.remotePatterns` in `next.config.mjs`.
 
 ## Phase 2 (out of scope here)
 

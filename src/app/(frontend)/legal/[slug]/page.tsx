@@ -5,12 +5,7 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import { getPayloadClient } from '@/lib/payload'
 
 // ISR: CMS edits to legal copy surface within 60s without a redeploy.
-export const revalidate = 60
-
-// Pre-render the three known legal slugs at build time.
-export function generateStaticParams() {
-  return [{ slug: 'terms' }, { slug: 'privacy' }, { slug: 'refund-policy' }]
-}
+export const dynamic = 'force-dynamic'
 
 const getLegalPage = async (slug: string) => {
   const payload = await getPayloadClient()
