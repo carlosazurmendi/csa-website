@@ -11,9 +11,9 @@ export const LegalPages: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug'],
+    // Grouped under "Pages"; reached via the custom Pages sidebar tree
+    // (Legal → each page). The auto "Pages" nav group is hidden by PagesNav.
     group: 'Pages',
-    // Reached via the custom "Pages" sidebar tree (Legal → each page).
-    hidden: true,
   },
   access: { read: () => true },
   fields: [

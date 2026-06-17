@@ -10,7 +10,7 @@ import type { GlobalConfig } from 'payload'
 export const HomePage: GlobalConfig = {
   slug: 'homePage',
   label: 'Home Page',
-  admin: { group: 'Pages', hidden: true },
+  admin: { group: 'Pages' },
   access: { read: () => true },
   fields: [
     {

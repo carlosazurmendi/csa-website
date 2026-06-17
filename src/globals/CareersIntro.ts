@@ -9,7 +9,7 @@ import type { GlobalConfig } from 'payload'
 export const CareersIntro: GlobalConfig = {
   slug: 'careersIntro',
   label: 'Company — Careers',
-  admin: { group: 'Company', hidden: true },
+  admin: { group: 'Pages' },
   access: { read: () => true },
   fields: [
     {

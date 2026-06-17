@@ -16,7 +16,7 @@ import type { GlobalConfig } from 'payload'
 export const TrainingTemplatesOverview: GlobalConfig = {
   slug: 'trainingTemplatesOverview',
   label: 'Training & Templates',
-  admin: { group: 'Pages', hidden: true },
+  admin: { group: 'Pages' },
   access: { read: () => true },
   fields: [
     {

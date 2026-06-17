@@ -9,9 +9,14 @@ import config from '@payload-config'
  *   - industry/legal    -> /admin/collections/<slug>/<id>  (one per entry)
  *   - listing pages     -> /admin/collections/<slug>       (the content list)
  *
- * The page singletons + the industries/legalPages collections are hidden from
- * the default nav (admin.hidden) so this tree is the single place to reach them;
- * each collapsible group also includes a "Manage…" link to add/remove entries.
+ * The page singletons + the industries/legalPages collections are all assigned
+ * to admin.group 'Pages'. They must stay VISIBLE (not admin.hidden) — a hidden
+ * entity is dropped from `visibleEntities`, which makes both its nav link AND
+ * its edit route 404 (see @payloadcms/next Document view). So instead of hiding
+ * them, we let Payload render its auto "Pages" group and then hide just that one
+ * group via injected CSS (#nav-group-Pages), leaving this custom collapsible
+ * tree as the single, working entry point. Each group also includes a "Manage…"
+ * link to add/remove entries.
  */
 type Leaf = { label: string; href: string; muted?: boolean }
 type Group = { label: string; href?: string; children: Leaf[] }
@@ -96,6 +101,14 @@ export async function PagesNav() {
 
   return (
     <div style={{ marginBottom: '24px' }}>
+      {/* Hide Payload's auto-generated "Pages" nav group; this custom tree
+          replaces it. The entities stay visible (routable) — only the duplicate
+          flat group is suppressed. */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: '#nav-group-Pages{display:none!important}',
+        }}
+      />
       <p
         style={{
           margin: '0 0 6px',

@@ -10,7 +10,7 @@ import type { GlobalConfig } from 'payload'
 export const CompanyExperience: GlobalConfig = {
   slug: 'companyExperience',
   label: 'Company — Experience',
-  admin: { group: 'Company', hidden: true },
+  admin: { group: 'Pages' },
   access: { read: () => true },
   fields: [
     {

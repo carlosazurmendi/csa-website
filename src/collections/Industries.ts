@@ -14,9 +14,10 @@ export const Industries: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'order'],
-    group: 'Consulting',
-    // Reached via the custom "Pages" sidebar tree (Consulting → each industry).
-    hidden: true,
+    // Grouped under "Pages"; reached via the custom Pages sidebar tree
+    // (Consulting → each industry). The auto "Pages" nav group is hidden by
+    // PagesNav so only the custom tree shows.
+    group: 'Pages',
   },
   access: { read: () => true },
   defaultSort: 'order',
