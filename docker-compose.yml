@@ -1,19 +1,34 @@
 # CSA website — production container, fronted by Traefik.
-# Runtime config comes from .env (DATABASE_URI, PAYLOAD_SECRET,
-# NEXT_PUBLIC_SERVER_URL, and the S3_* vars if using Supabase Storage).
-# `.env` is host-side only — never baked into the image.
+#
+# Config comes from environment variables, NOT a committed .env file (secrets
+# never live in the repo). Compose fills the ${VARS} below from:
+#   - DockHand/Portainer/Dockge: the stack "Environment" you set in the UI, or
+#   - plain `docker compose`: an .env file you place next to this file (Compose
+#     loads it automatically for interpolation).
+# Set: DATABASE_URI, PAYLOAD_SECRET, NEXT_PUBLIC_SERVER_URL, and (for Supabase
+# Storage) S3_BUCKET, S3_REGION, S3_ENDPOINT, S3_ACCESS_KEY_ID,
+# S3_SECRET_ACCESS_KEY, NEXT_PUBLIC_S3_PUBLIC_URL. Leave the S3_* blank to use
+# the local-disk media volume instead.
 services:
   web:
     build: .
     image: csa-website
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      DATABASE_URI: ${DATABASE_URI}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      NEXT_PUBLIC_S3_PUBLIC_URL: ${NEXT_PUBLIC_S3_PUBLIC_URL:-}
     networks:
       - proxy
     volumes:
-      # Persists local-disk uploads across restarts. Unused once the S3_* env
-      # vars are set (then media lives in Supabase Storage).
+      # Persists local-disk uploads across restarts. Unused once the S3_* vars
+      # are set (then media lives in Supabase Storage).
       - csa_media:/app/media
     labels:
       - "traefik.enable=true"
