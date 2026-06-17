@@ -74,7 +74,14 @@ export async function seedTraining(payload: Payload): Promise<void> {
     },
   ]
   for (let i = 0; i < courses.length; i++) {
-    await payload.create({ collection: 'courses', data: { ...courses[i], order: i } })
+    await payload.create({
+      collection: 'courses',
+      data: {
+        ...courses[i],
+        order: i,
+        meta: { title: `${courses[i].title} | CSA Training`, description: courses[i].summary },
+      },
+    })
   }
 
   // ==========================================================================
@@ -300,6 +307,7 @@ export async function seedTraining(payload: Payload): Promise<void> {
         price: '$—',
         whatsIncluded: b.incl.map((text) => ({ text })),
         isBundle: true,
+        meta: { title: `${b.title} | CSA Templates`, description: b.description },
       },
     })
   }
@@ -317,6 +325,7 @@ export async function seedTraining(payload: Payload): Promise<void> {
         documentType: t.documentType,
         price: '$—',
         isBundle: false,
+        meta: { title: `${t.title} | CSA Templates`, description: t.description },
       },
     })
   }
@@ -334,6 +343,7 @@ export async function seedTraining(payload: Payload): Promise<void> {
         documentType: t.documentType,
         price: '$—',
         isBundle: false,
+        meta: { title: `${t.title} | CSA Templates`, description: t.description },
       },
     })
   }
@@ -521,6 +531,11 @@ export async function seedTraining(payload: Payload): Promise<void> {
         primaryHref: '#store',
         secondaryLabel: 'Scope a custom bundle',
         secondaryHref: '#',
+      },
+      meta: {
+        title: 'Functional Safety Training & Templates | CSA',
+        description:
+          'Practical functional safety training and field-proven Word & Excel documentation templates — built for engineers who design real machines. IEC 61508, ISO 13849, ISO 26262.',
       },
     },
   })

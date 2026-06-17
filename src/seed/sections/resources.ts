@@ -233,6 +233,11 @@ export async function seedResources(payload: Payload): Promise<void> {
         ctaLabel: 'Book a Consultation',
         ctaHref: '#',
       },
+      meta: {
+        title: 'Functional Safety Resources | Tools, Articles & Training | CSA',
+        description:
+          'Engineer-reviewed functional safety tools and knowledge — an AI standards identifier, checklists, templates, articles, and on-demand training across the safety lifecycle.',
+      },
     },
   })
 
@@ -354,6 +359,11 @@ export async function seedResources(payload: Payload): Promise<void> {
         ctaLabel: 'Try the Standards Identifier',
         ctaHref: '#tool',
       },
+      meta: {
+        title: 'Standards Identifier | Which Safety Standard Applies? | CSA',
+        description:
+          'Identify the functional safety standards for your project. Map your industry, mobility configuration, and operational environment to exact compliance targets across IEC 61508, ISO 13849, ISO 26262, and more.',
+      },
     },
   })
 
@@ -409,6 +419,11 @@ export async function seedResources(payload: Payload): Promise<void> {
           'Sign in to ask quick functional safety questions and get immediate, high-level engineering insight — then escalate the hard ones to a principal engineer.',
         ctaLabel: 'Ask Safety Chat',
         ctaHref: '#',
+      },
+      meta: {
+        title: 'Safety Chat | Immediate Functional Safety Insight | CSA',
+        description:
+          'Ask quick questions about a Safety Integrity Level, Performance Level, or a requirement buried in a standard, and get immediate, high-level engineering insight. AI-augmented, engineer-reviewed.',
       },
     },
   })

@@ -208,6 +208,10 @@ for (let i = 0; i < industries.length; i++) {
       highlights: ind.highlights.map((text) => ({ text })),
       standards: arr(ind.standards),
       hero: { headline: ind.title, intro: ind.shortDescription },
+      meta: {
+        title: `${ind.title} Functional Safety Consulting | CSA`,
+        description: ind.shortDescription,
+      },
     },
   })
 }
@@ -355,6 +359,7 @@ for (const a of articles) {
       category: a.category,
       publishedDate: a.publishedDate,
       excerpt: a.excerpt,
+      meta: { title: `${a.title} | CSA`, description: a.excerpt },
       _status: 'published',
     },
   })
@@ -441,6 +446,7 @@ for (let i = 0; i < caseStudies.length; i++) {
       standards: arr(c.standards),
       coverImage: coverIds[i] ?? undefined,
       testimonial: { quote: c.quote, author: c.author, affiliation: c.affiliation },
+      meta: { title: `${c.name} — Case Study | CSA`, description: c.description },
     },
   })
 }
@@ -844,6 +850,11 @@ await payload.updateGlobal({
       lead: 'Field notes, standards updates, and what we’re learning at the frontier of functional safety.',
       ctaLabel: 'Visit the Resource Center',
       ctaHref: '/resources',
+    },
+    meta: {
+      title: 'Functional Safety Engineering Consulting | CSA',
+      description:
+        'Principal-led functional safety engineering for autonomous rail, robotics, machinery & automotive. HARA, FMEA, ISO 26262 & IEC 61508 — faster, defensible certification.',
     },
   },
 })

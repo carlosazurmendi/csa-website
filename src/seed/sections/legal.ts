@@ -229,7 +229,11 @@ export async function seedLegal(payload: Payload): Promise<void> {
         slug: page.slug,
         lastUpdated: LAST_UPDATED,
         body: richText(page.intro, page.blocks) as never,
-      },
+        meta: {
+          title: `${page.title} | Critical Systems Analysis`,
+          description: page.intro,
+        },
+      } as never,
     })
   }
 

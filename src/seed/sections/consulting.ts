@@ -242,6 +242,11 @@ export async function seedConsulting(payload: Payload): Promise<void> {
         ctaLabel: 'Book a Consultation',
         ctaHref: '#',
       },
+      meta: {
+        title: 'Safety-Critical Systems Engineering & Consulting | CSA',
+        description:
+          'Independent functional safety consulting from concept to certification — HARA, FMEA, FTA, and V-model traceability across rail, robotics, machinery, automotive, defense, and process.',
+      },
     },
   })
 
