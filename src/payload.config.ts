@@ -104,8 +104,14 @@ export default buildConfig({
     },
     // In production (the Docker container) Payload applies these on init, so the
     // schema is migrated automatically on boot — no CLI needed in the image.
-    // Local dev still uses `push` (auto-sync) instead.
     prodMigrations: migrations,
+    // Disable dev schema "push" entirely. This repo is migration-managed, and
+    // .env points at the PRODUCTION database — a stray `npm run dev`/`seed`
+    // (dev mode) would otherwise push schema and write a `dev` row into
+    // payload_migrations, which makes the prod container HALT on boot at the
+    // interactive "you've run in dev mode" prompt (site hangs, never loads).
+    // For schema changes use `payload migrate:create` + `payload migrate`.
+    push: false,
   }),
   sharp,
   plugins: [
