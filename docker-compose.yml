@@ -32,13 +32,13 @@ services:
       - csa_media:/app/media
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.handistack.rule=Host(`csa-website-staging.handistack.com`)"
-      - "traefik.http.routers.handistack.entrypoints=websecure"
-      - "traefik.http.routers.handistack.tls=true"
-      - "traefik.http.routers.handistack.tls.certresolver=myresolver"
+      - "traefik.http.routers.csa-staging.rule=Host(`csa-website-staging.handistack.com`)"
+      - "traefik.http.routers.csa-staging.entrypoints=websecure"
+      - "traefik.http.routers.csa-staging.tls=true"
+      - "traefik.http.routers.csa-staging.tls.certresolver=myresolver"
       - "traefik.docker.network=proxy"
       # App listens on 3000 (see Dockerfile PORT/HOSTNAME), so Traefik targets 3000.
-      - "traefik.http.services.handistack.loadbalancer.server.port=3000"
+      - "traefik.http.services.csa-staging.loadbalancer.server.port=3000"
       - "dev.quenary.handistack.protected=true"
 
 networks:
