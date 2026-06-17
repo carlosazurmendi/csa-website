@@ -1,43 +1,40 @@
 import { s3Storage } from '@payloadcms/storage-s3'
 
 /**
- * Storage adapter abstraction.
+ * Storage adapter.
  *
- * Phase 1: if the S3_* env vars are present we use Supabase Storage via its
- * S3-compatible endpoint (Vercel-safe). If they're blank, Payload falls back
- * to local-disk uploads (./media) so `npm run dev` works with zero config.
+ * IMPORTANT: the plugin is ALWAYS included in the Payload config (never
+ * env-conditional). If it were only added when the S3_* env vars are present,
+ * a build with no env would omit its admin client component
+ * (`@payloadcms/storage-s3/client#S3ClientUploadHandler`) from the importMap —
+ * then at runtime, with S3 env set, the media collection references a component
+ * the importMap doesn't have, and Payload aborts the admin render (blank panel).
  *
- * Phase 2: point S3_* at the production Supabase bucket + CDN. No code change.
+ * Instead we always register it and toggle activation with `enabled`:
+ *  - S3_* fully set  → enabled: media is stored in Supabase Storage.
+ *  - S3_* blank      → disabled: media falls back to local-disk uploads (./media).
  *
- * Returns the storage plugin, or `null` to signal "use the local-disk default".
+ * Placeholder config values keep the plugin valid when disabled.
  */
-export const buildStoragePlugin = () => {
-  const {
-    S3_BUCKET,
-    S3_REGION,
-    S3_ENDPOINT,
-    S3_ACCESS_KEY_ID,
-    S3_SECRET_ACCESS_KEY,
-  } = process.env
+export const storagePlugin = () => {
+  const { S3_BUCKET, S3_REGION, S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env
 
-  const configured =
-    S3_BUCKET && S3_REGION && S3_ENDPOINT && S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY
-
-  if (!configured) return null
+  const configured = Boolean(
+    S3_BUCKET && S3_REGION && S3_ENDPOINT && S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY,
+  )
 
   return s3Storage({
-    collections: {
-      media: true,
-    },
-    bucket: S3_BUCKET!,
+    enabled: configured,
+    collections: { media: true },
+    bucket: S3_BUCKET || 'media',
     config: {
-      region: S3_REGION,
-      endpoint: S3_ENDPOINT,
+      region: S3_REGION || 'us-east-1',
+      endpoint: S3_ENDPOINT || 'https://example.com',
       // Supabase Storage requires path-style addressing.
       forcePathStyle: true,
       credentials: {
-        accessKeyId: S3_ACCESS_KEY_ID!,
-        secretAccessKey: S3_SECRET_ACCESS_KEY!,
+        accessKeyId: S3_ACCESS_KEY_ID || 'placeholder',
+        secretAccessKey: S3_SECRET_ACCESS_KEY || 'placeholder',
       },
     },
   })

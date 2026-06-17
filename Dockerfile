@@ -20,7 +20,17 @@ COPY . .
 # Payload config still instantiates the adapter, so provide harmless placeholders.
 ENV DATABASE_URI="postgresql://build:build@localhost:5432/build"
 ENV PAYLOAD_SECRET="build-only-secret-not-used-at-runtime"
-RUN npm run build
+# Placeholder S3 env so the storage plugin is "enabled" at build time and its
+# admin client component is baked into the importMap (real creds come at runtime).
+# Without this, a build with no S3 env omits the component and the admin renders
+# blank once S3 is enabled in production.
+ENV S3_BUCKET="build" \
+    S3_REGION="us-east-1" \
+    S3_ENDPOINT="https://build.example.com" \
+    S3_ACCESS_KEY_ID="build" \
+    S3_SECRET_ACCESS_KEY="build"
+# Regenerate the importMap from the config (so it always matches), then build.
+RUN npm run generate:importmap && npm run build
 
 # ---- runner: minimal runtime ----
 FROM node:22-slim AS runner

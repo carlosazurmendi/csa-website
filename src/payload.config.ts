@@ -38,13 +38,11 @@ import { ResourcesOverview } from './globals/ResourcesOverview'
 import { StandardsIdentifierPage } from './globals/StandardsIdentifierPage'
 import { SafetyChatPage } from './globals/SafetyChatPage'
 
-import { buildStoragePlugin } from './lib/storage'
+import { storagePlugin } from './lib/storage'
 import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
-
-const storagePlugin = buildStoragePlugin()
 
 export default buildConfig({
   admin: {
@@ -123,6 +121,8 @@ export default buildConfig({
       generateDescription: ({ doc }: { doc: { excerpt?: string; shortDescription?: string } }) =>
         doc?.excerpt || doc?.shortDescription || '',
     }),
-    ...(storagePlugin ? [storagePlugin] : []),
+    // Always included (gated by its own `enabled` flag) so its admin client
+    // component is always in the importMap — see src/lib/storage.ts.
+    storagePlugin(),
   ],
 })
