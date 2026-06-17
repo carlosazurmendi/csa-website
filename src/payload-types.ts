@@ -75,6 +75,14 @@ export interface Config {
     articles: Article;
     caseStudies: CaseStudy;
     testimonials: Testimonial;
+    templates: Template;
+    courses: Course;
+    resources: Resource;
+    events: Event;
+    freeTrainings: FreeTraining;
+    teamMembers: TeamMember;
+    jobPostings: JobPosting;
+    legalPages: LegalPage;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -90,6 +98,14 @@ export interface Config {
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     caseStudies: CaseStudiesSelect<false> | CaseStudiesSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
+    templates: TemplatesSelect<false> | TemplatesSelect<true>;
+    courses: CoursesSelect<false> | CoursesSelect<true>;
+    resources: ResourcesSelect<false> | ResourcesSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
+    freeTrainings: FreeTrainingsSelect<false> | FreeTrainingsSelect<true>;
+    teamMembers: TeamMembersSelect<false> | TeamMembersSelect<true>;
+    jobPostings: JobPostingsSelect<false> | JobPostingsSelect<true>;
+    legalPages: LegalPagesSelect<false> | LegalPagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -104,12 +120,30 @@ export interface Config {
     header: Header;
     footer: Footer;
     homePage: HomePage;
+    consultingOverview: ConsultingOverview;
+    trainingTemplatesOverview: TrainingTemplatesOverview;
+    companyAbout: CompanyAbout;
+    companyServices: CompanyService;
+    companyExperience: CompanyExperience;
+    careersIntro: CareersIntro;
+    resourcesOverview: ResourcesOverview;
+    standardsIdentifierPage: StandardsIdentifierPage;
+    safetyChatPage: SafetyChatPage;
   };
   globalsSelect: {
     siteSettings: SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     homePage: HomePageSelect<false> | HomePageSelect<true>;
+    consultingOverview: ConsultingOverviewSelect<false> | ConsultingOverviewSelect<true>;
+    trainingTemplatesOverview: TrainingTemplatesOverviewSelect<false> | TrainingTemplatesOverviewSelect<true>;
+    companyAbout: CompanyAboutSelect<false> | CompanyAboutSelect<true>;
+    companyServices: CompanyServicesSelect<false> | CompanyServicesSelect<true>;
+    companyExperience: CompanyExperienceSelect<false> | CompanyExperienceSelect<true>;
+    careersIntro: CareersIntroSelect<false> | CareersIntroSelect<true>;
+    resourcesOverview: ResourcesOverviewSelect<false> | ResourcesOverviewSelect<true>;
+    standardsIdentifierPage: StandardsIdentifierPageSelect<false> | StandardsIdentifierPageSelect<true>;
+    safetyChatPage: SafetyChatPageSelect<false> | SafetyChatPageSelect<true>;
   };
   locale: null;
   widgets: {
@@ -405,6 +439,226 @@ export interface Testimonial {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "templates".
+ */
+export interface Template {
+  id: number;
+  title: string;
+  order?: number | null;
+  /**
+   * URL segment. Lowercase, hyphenated. Derived from "title" if left blank.
+   */
+  slug: string;
+  description: string;
+  category: 'compliance-bundle' | 'qms' | 'fs';
+  format?: ('word' | 'excel') | null;
+  /**
+   * e.g. "ISO 26262", "IEC 61508".
+   */
+  standardFocus?: string | null;
+  /**
+   * e.g. "Plan", "Checklist", "Report template".
+   */
+  documentType?: string | null;
+  /**
+   * Placeholder price (no checkout in Phase 1), e.g. "$149".
+   */
+  price?: string | null;
+  thumbnail?: (number | null) | Media;
+  whatsIncluded?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Mark bundles so the storefront can group them.
+   */
+  isBundle?: boolean | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "courses".
+ */
+export interface Course {
+  id: number;
+  title: string;
+  order?: number | null;
+  /**
+   * URL segment. Lowercase, hyphenated. Derived from "title" if left blank.
+   */
+  slug: string;
+  summary: string;
+  /**
+   * Track or industry, e.g. "Rail", "Robotics".
+   */
+  track?: string | null;
+  format?: ('online' | 'in-person' | 'hybrid' | 'self-paced') | null;
+  /**
+   * e.g. "Certificate of completion".
+   */
+  credential?: string | null;
+  /**
+   * Placeholder price (no checkout in Phase 1).
+   */
+  price?: string | null;
+  instructor?: string | null;
+  media?: (number | null) | Media;
+  modules?:
+    | {
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resources".
+ */
+export interface Resource {
+  id: number;
+  title: string;
+  category: 'checklist' | 'guidebook' | 'free-template' | 'standards-guide';
+  order?: number | null;
+  description: string;
+  /**
+   * The downloadable file (PDF, Word, Excel).
+   */
+  file?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: number;
+  title: string;
+  type: 'upcoming' | 'past-keynote' | 'webinar';
+  date?: string | null;
+  description?: string | null;
+  /**
+   * Registration or recording link.
+   */
+  link?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "freeTrainings".
+ */
+export interface FreeTraining {
+  id: number;
+  title: string;
+  category: 'video-overview' | 'whitepaper' | 'core-intro';
+  order?: number | null;
+  description: string;
+  media?: (number | null) | Media;
+  /**
+   * External video/whitepaper link, if any.
+   */
+  link?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teamMembers".
+ */
+export interface TeamMember {
+  id: number;
+  name: string;
+  role: string;
+  order?: number | null;
+  photo?: (number | null) | Media;
+  bio?: string | null;
+  credentials?:
+    | {
+        label: string;
+        id?: string | null;
+      }[]
+    | null;
+  location?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "jobPostings".
+ */
+export interface JobPosting {
+  id: number;
+  title: string;
+  location?: string | null;
+  order?: number | null;
+  summary: string;
+  applyLink?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legalPages".
+ */
+export interface LegalPage {
+  id: number;
+  title: string;
+  /**
+   * URL segment. Lowercase, hyphenated. Derived from "title" if left blank.
+   */
+  slug: string;
+  lastUpdated?: string | null;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -458,6 +712,38 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'testimonials';
         value: number | Testimonial;
+      } | null)
+    | ({
+        relationTo: 'templates';
+        value: number | Template;
+      } | null)
+    | ({
+        relationTo: 'courses';
+        value: number | Course;
+      } | null)
+    | ({
+        relationTo: 'resources';
+        value: number | Resource;
+      } | null)
+    | ({
+        relationTo: 'events';
+        value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'freeTrainings';
+        value: number | FreeTraining;
+      } | null)
+    | ({
+        relationTo: 'teamMembers';
+        value: number | TeamMember;
+      } | null)
+    | ({
+        relationTo: 'jobPostings';
+        value: number | JobPosting;
+      } | null)
+    | ({
+        relationTo: 'legalPages';
+        value: number | LegalPage;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -694,6 +980,162 @@ export interface TestimonialsSelect<T extends boolean = true> {
   attribution?: T;
   company?: T;
   order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "templates_select".
+ */
+export interface TemplatesSelect<T extends boolean = true> {
+  title?: T;
+  order?: T;
+  slug?: T;
+  description?: T;
+  category?: T;
+  format?: T;
+  standardFocus?: T;
+  documentType?: T;
+  price?: T;
+  thumbnail?: T;
+  whatsIncluded?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  isBundle?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "courses_select".
+ */
+export interface CoursesSelect<T extends boolean = true> {
+  title?: T;
+  order?: T;
+  slug?: T;
+  summary?: T;
+  track?: T;
+  format?: T;
+  credential?: T;
+  price?: T;
+  instructor?: T;
+  media?: T;
+  modules?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resources_select".
+ */
+export interface ResourcesSelect<T extends boolean = true> {
+  title?: T;
+  category?: T;
+  order?: T;
+  description?: T;
+  file?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events_select".
+ */
+export interface EventsSelect<T extends boolean = true> {
+  title?: T;
+  type?: T;
+  date?: T;
+  description?: T;
+  link?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "freeTrainings_select".
+ */
+export interface FreeTrainingsSelect<T extends boolean = true> {
+  title?: T;
+  category?: T;
+  order?: T;
+  description?: T;
+  media?: T;
+  link?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teamMembers_select".
+ */
+export interface TeamMembersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  order?: T;
+  photo?: T;
+  bio?: T;
+  credentials?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  location?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "jobPostings_select".
+ */
+export interface JobPostingsSelect<T extends boolean = true> {
+  title?: T;
+  location?: T;
+  order?: T;
+  summary?: T;
+  applyLink?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legalPages_select".
+ */
+export interface LegalPagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  lastUpdated?: T;
+  body?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1022,6 +1464,951 @@ export interface HomePage {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consultingOverview".
+ */
+export interface ConsultingOverview {
+  id: number;
+  hero?: {
+    eyebrow?: string | null;
+    /**
+     * Large background watermark word.
+     */
+    ghost?: string | null;
+    /**
+     * Supports a line break (\n) for the two-line display.
+     */
+    title?: string | null;
+    sub?: string | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+    standards?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+    hud?: {
+      tag?: string | null;
+      badge?: string | null;
+      foot?: string | null;
+      steps?:
+        | {
+            title: string;
+            description: string;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
+  facts?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          kicker: string;
+          title: string;
+          description: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  about?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * Lead paragraph (supports bold).
+     */
+    prose?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    quote?: string | null;
+    credsLabel?: string | null;
+    creds?:
+      | {
+          icon: string;
+          title: string;
+          description: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  options?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          /**
+           * e.g. "Option 01".
+           */
+          number: string;
+          icon: string;
+          title: string;
+          description: string;
+          bestFor?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  capabilities?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          code: string;
+          title: string;
+          description: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Cards come from the Industries collection.
+   */
+  industriesSection?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+  };
+  faq?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    items?:
+      | {
+          question: string;
+          answer: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    ctaLabel?: string | null;
+    ctaHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "trainingTemplatesOverview".
+ */
+export interface TrainingTemplatesOverview {
+  id: number;
+  overviewHero?: {
+    /**
+     * Breadcrumb current-page label.
+     */
+    crumb?: string | null;
+    /**
+     * Large background watermark word.
+     */
+    ghost?: string | null;
+    /**
+     * Supports a line break (\n) for the two-line display.
+     */
+    title?: string | null;
+    lead?: string | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+    standards?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  ways?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          /**
+           * e.g. "01".
+           */
+          num: string;
+          icon: string;
+          title: string;
+          description: string;
+          meta?:
+            | {
+                label: string;
+                id?: string | null;
+              }[]
+            | null;
+          ctaLabel: string;
+          ctaHref: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  coursesHero?: {
+    crumb?: string | null;
+    ghost?: string | null;
+    /**
+     * Supports a line break (\n).
+     */
+    title?: string | null;
+    lead?: string | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+  };
+  why?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    items?:
+      | {
+          icon: string;
+          title: string;
+          body: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Course cards come from the Courses collection.
+   */
+  catalog?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+  };
+  offerings?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    items?:
+      | {
+          num: string;
+          title: string;
+          body: string;
+          badge: string;
+          meta: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  coursesPrivate?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    primaryLabel?: string | null;
+    primaryHref?: string | null;
+    secondaryLabel?: string | null;
+    secondaryHref?: string | null;
+  };
+  templatesHero?: {
+    crumb?: string | null;
+    ghost?: string | null;
+    /**
+     * Supports a line break (\n).
+     */
+    title?: string | null;
+    lead?: string | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+    standards?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  featured?: {
+    badge?: string | null;
+    icon?: string | null;
+    tag?: string | null;
+    title?: string | null;
+    description?: string | null;
+    chips?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+    priceMeta?: string | null;
+    primaryLabel?: string | null;
+    secondaryLabel?: string | null;
+  };
+  /**
+   * Template products & bundles come from the Templates collection.
+   */
+  store?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    pricingNote?: string | null;
+  };
+  templatesClosing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    stats?:
+      | {
+          /**
+           * Bold figure, e.g. "4". Leave blank for a plain label.
+           */
+          value?: string | null;
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+    primaryLabel?: string | null;
+    primaryHref?: string | null;
+    secondaryLabel?: string | null;
+    secondaryHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companyAbout".
+ */
+export interface CompanyAbout {
+  id: number;
+  hero?: {
+    ghost?: string | null;
+    icon?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    tagline?: string | null;
+    intro?: string | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+    hud?: {
+      tag?: string | null;
+      badge?: string | null;
+      foot?: string | null;
+      rows?:
+        | {
+            icon: string;
+            t: string;
+            d?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
+  mission?: {
+    num?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * Mission prose (supports bold/italic).
+     */
+    body?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+  };
+  philosophy?: {
+    num?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    /**
+     * Philosophy prose (supports bold).
+     */
+    body?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    boundary?: {
+      icon?: string | null;
+      title?: string | null;
+      /**
+       * Boundary detail (supports bold).
+       */
+      body?: {
+        root: {
+          type: string;
+          children: {
+            type: any;
+            version: number;
+            [k: string]: unknown;
+          }[];
+          direction: ('ltr' | 'rtl') | null;
+          format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+          indent: number;
+          version: number;
+        };
+        [k: string]: unknown;
+      } | null;
+    };
+  };
+  values?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          t: string;
+          d: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  iso?: {
+    icon?: string | null;
+    eyebrow?: string | null;
+    /**
+     * ISO panel prose (supports bold).
+     */
+    body?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    primaryLabel?: string | null;
+    primaryHref?: string | null;
+    secondaryLabel?: string | null;
+    secondaryHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companyServices".
+ */
+export interface CompanyService {
+  id: number;
+  hero?: {
+    ghost?: string | null;
+    icon?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    tagline?: string | null;
+    intro?: string | null;
+    standards?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+    hud?: {
+      tag?: string | null;
+      badge?: string | null;
+      foot?: string | null;
+      rows?:
+        | {
+            icon: string;
+            t: string;
+            d?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
+  models?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          t: string;
+          d: string;
+          best: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    primaryLabel?: string | null;
+    primaryHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companyExperience".
+ */
+export interface CompanyExperience {
+  id: number;
+  hero?: {
+    ghost?: string | null;
+    icon?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    tagline?: string | null;
+    intro?: string | null;
+    standards?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+    hud?: {
+      tag?: string | null;
+      badge?: string | null;
+      foot?: string | null;
+      rows?:
+        | {
+            icon: string;
+            t: string;
+            d?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
+  delivered?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          code: string;
+          t: string;
+          d: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Cards come from the Case Studies collection.
+   */
+  cases?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    note?: {
+      icon?: string | null;
+      bold?: string | null;
+      text?: string | null;
+    };
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    primaryLabel?: string | null;
+    primaryHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "careersIntro".
+ */
+export interface CareersIntro {
+  id: number;
+  hero?: {
+    ghost?: string | null;
+    icon?: string | null;
+    eyebrow?: string | null;
+    title?: string | null;
+    tagline?: string | null;
+    intro?: string | null;
+    primaryCtaLabel?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+    hud?: {
+      tag?: string | null;
+      badge?: string | null;
+      foot?: string | null;
+      rows?:
+        | {
+            icon: string;
+            t: string;
+            d?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
+  why?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          code: string;
+          t: string;
+          d: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Role cards come from the Job Postings collection.
+   */
+  roles?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    note?: {
+      icon?: string | null;
+      bold?: string | null;
+      text?: string | null;
+    };
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    primaryLabel?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resourcesOverview".
+ */
+export interface ResourcesOverview {
+  id: number;
+  hero?: {
+    eyebrow?: string | null;
+    eyebrowIcon?: string | null;
+    /**
+     * Large background watermark word.
+     */
+    ghost?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    jump?:
+      | {
+          icon: string;
+          label: string;
+          href: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  tools?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          tag: string;
+          title: string;
+          description: string;
+          href: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  library?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          title: string;
+          description: string;
+          href: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    ctaLabel?: string | null;
+    ctaHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "standardsIdentifierPage".
+ */
+export interface StandardsIdentifierPage {
+  id: number;
+  hero?: {
+    eyebrow?: string | null;
+    eyebrowIcon?: string | null;
+    /**
+     * Large background watermark word.
+     */
+    ghost?: string | null;
+    title?: string | null;
+    sub1?: string | null;
+    sub2?: string | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+  };
+  /**
+   * Phase 1: visual selection only — no live AI mapping.
+   */
+  tool?: {
+    name?: string | null;
+    sub?: string | null;
+    badge?: string | null;
+    selectors?:
+      | {
+          /**
+           * e.g. "01".
+           */
+          step: string;
+          label: string;
+          options?:
+            | {
+                label: string;
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+    submitLabel?: string | null;
+    submitNote?: string | null;
+    resultLabel?: string | null;
+    resultPreviewLabel?: string | null;
+    roadmap?:
+      | {
+          code: string;
+          pill: string;
+          meta: string;
+          id?: string | null;
+        }[]
+      | null;
+    veilText?: string | null;
+  };
+  frameworks?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          icon: string;
+          title: string;
+          codes?:
+            | {
+                label: string;
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  howItWorks?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    steps?:
+      | {
+          number: string;
+          title: string;
+          description: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    ctaLabel?: string | null;
+    ctaHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "safetyChatPage".
+ */
+export interface SafetyChatPage {
+  id: number;
+  hero?: {
+    eyebrow?: string | null;
+    eyebrowIcon?: string | null;
+    /**
+     * Large background watermark word.
+     */
+    ghost?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    note?: string | null;
+    primaryCtaLabel?: string | null;
+    primaryCtaHref?: string | null;
+    secondaryCtaLabel?: string | null;
+    secondaryCtaHref?: string | null;
+  };
+  /**
+   * Phase 1: inert composer, no live model. Sample thread only.
+   */
+  panel?: {
+    name?: string | null;
+    status?: string | null;
+    tag?: string | null;
+    thread?:
+      | {
+          who: 'bot' | 'user';
+          text: string;
+          id?: string | null;
+        }[]
+      | null;
+    suggestions?:
+      | {
+          label: string;
+          id?: string | null;
+        }[]
+      | null;
+    placeholder?: string | null;
+    lockText?: string | null;
+    lockCtaLabel?: string | null;
+    lockCtaHref?: string | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    title?: string | null;
+    sub?: string | null;
+    ctaLabel?: string | null;
+    ctaHref?: string | null;
+  };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "siteSettings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
@@ -1271,6 +2658,918 @@ export interface HomePageSelect<T extends boolean = true> {
         eyebrow?: T;
         title?: T;
         lead?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consultingOverview_select".
+ */
+export interface ConsultingOverviewSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        ghost?: T;
+        title?: T;
+        sub?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        standards?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        hud?:
+          | T
+          | {
+              tag?: T;
+              badge?: T;
+              foot?: T;
+              steps?:
+                | T
+                | {
+                    title?: T;
+                    description?: T;
+                    id?: T;
+                  };
+            };
+      };
+  facts?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              kicker?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  about?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        prose?: T;
+        quote?: T;
+        credsLabel?: T;
+        creds?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  options?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              number?: T;
+              icon?: T;
+              title?: T;
+              description?: T;
+              bestFor?: T;
+              id?: T;
+            };
+      };
+  capabilities?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              code?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  industriesSection?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+      };
+  faq?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        items?:
+          | T
+          | {
+              question?: T;
+              answer?: T;
+              id?: T;
+            };
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "trainingTemplatesOverview_select".
+ */
+export interface TrainingTemplatesOverviewSelect<T extends boolean = true> {
+  overviewHero?:
+    | T
+    | {
+        crumb?: T;
+        ghost?: T;
+        title?: T;
+        lead?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        standards?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+      };
+  ways?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              num?: T;
+              icon?: T;
+              title?: T;
+              description?: T;
+              meta?:
+                | T
+                | {
+                    label?: T;
+                    id?: T;
+                  };
+              ctaLabel?: T;
+              ctaHref?: T;
+              id?: T;
+            };
+      };
+  coursesHero?:
+    | T
+    | {
+        crumb?: T;
+        ghost?: T;
+        title?: T;
+        lead?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+      };
+  why?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+      };
+  catalog?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+      };
+  offerings?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        items?:
+          | T
+          | {
+              num?: T;
+              title?: T;
+              body?: T;
+              badge?: T;
+              meta?: T;
+              id?: T;
+            };
+      };
+  coursesPrivate?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        primaryLabel?: T;
+        primaryHref?: T;
+        secondaryLabel?: T;
+        secondaryHref?: T;
+      };
+  templatesHero?:
+    | T
+    | {
+        crumb?: T;
+        ghost?: T;
+        title?: T;
+        lead?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        standards?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+      };
+  featured?:
+    | T
+    | {
+        badge?: T;
+        icon?: T;
+        tag?: T;
+        title?: T;
+        description?: T;
+        chips?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        priceMeta?: T;
+        primaryLabel?: T;
+        secondaryLabel?: T;
+      };
+  store?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        pricingNote?: T;
+      };
+  templatesClosing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        stats?:
+          | T
+          | {
+              value?: T;
+              label?: T;
+              id?: T;
+            };
+        primaryLabel?: T;
+        primaryHref?: T;
+        secondaryLabel?: T;
+        secondaryHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companyAbout_select".
+ */
+export interface CompanyAboutSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        ghost?: T;
+        icon?: T;
+        eyebrow?: T;
+        title?: T;
+        tagline?: T;
+        intro?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        hud?:
+          | T
+          | {
+              tag?: T;
+              badge?: T;
+              foot?: T;
+              rows?:
+                | T
+                | {
+                    icon?: T;
+                    t?: T;
+                    d?: T;
+                    id?: T;
+                  };
+            };
+      };
+  mission?:
+    | T
+    | {
+        num?: T;
+        eyebrow?: T;
+        title?: T;
+        body?: T;
+      };
+  philosophy?:
+    | T
+    | {
+        num?: T;
+        eyebrow?: T;
+        title?: T;
+        body?: T;
+        boundary?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              body?: T;
+            };
+      };
+  values?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              t?: T;
+              d?: T;
+              id?: T;
+            };
+      };
+  iso?:
+    | T
+    | {
+        icon?: T;
+        eyebrow?: T;
+        body?: T;
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        primaryLabel?: T;
+        primaryHref?: T;
+        secondaryLabel?: T;
+        secondaryHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companyServices_select".
+ */
+export interface CompanyServicesSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        ghost?: T;
+        icon?: T;
+        eyebrow?: T;
+        title?: T;
+        tagline?: T;
+        intro?: T;
+        standards?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        hud?:
+          | T
+          | {
+              tag?: T;
+              badge?: T;
+              foot?: T;
+              rows?:
+                | T
+                | {
+                    icon?: T;
+                    t?: T;
+                    d?: T;
+                    id?: T;
+                  };
+            };
+      };
+  models?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              t?: T;
+              d?: T;
+              best?: T;
+              id?: T;
+            };
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        primaryLabel?: T;
+        primaryHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "companyExperience_select".
+ */
+export interface CompanyExperienceSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        ghost?: T;
+        icon?: T;
+        eyebrow?: T;
+        title?: T;
+        tagline?: T;
+        intro?: T;
+        standards?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        hud?:
+          | T
+          | {
+              tag?: T;
+              badge?: T;
+              foot?: T;
+              rows?:
+                | T
+                | {
+                    icon?: T;
+                    t?: T;
+                    d?: T;
+                    id?: T;
+                  };
+            };
+      };
+  delivered?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              code?: T;
+              t?: T;
+              d?: T;
+              id?: T;
+            };
+      };
+  cases?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        note?:
+          | T
+          | {
+              icon?: T;
+              bold?: T;
+              text?: T;
+            };
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        primaryLabel?: T;
+        primaryHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "careersIntro_select".
+ */
+export interface CareersIntroSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        ghost?: T;
+        icon?: T;
+        eyebrow?: T;
+        title?: T;
+        tagline?: T;
+        intro?: T;
+        primaryCtaLabel?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+        hud?:
+          | T
+          | {
+              tag?: T;
+              badge?: T;
+              foot?: T;
+              rows?:
+                | T
+                | {
+                    icon?: T;
+                    t?: T;
+                    d?: T;
+                    id?: T;
+                  };
+            };
+      };
+  why?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              code?: T;
+              t?: T;
+              d?: T;
+              id?: T;
+            };
+      };
+  roles?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        note?:
+          | T
+          | {
+              icon?: T;
+              bold?: T;
+              text?: T;
+            };
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        primaryLabel?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resourcesOverview_select".
+ */
+export interface ResourcesOverviewSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        eyebrowIcon?: T;
+        ghost?: T;
+        title?: T;
+        sub?: T;
+        jump?:
+          | T
+          | {
+              icon?: T;
+              label?: T;
+              href?: T;
+              id?: T;
+            };
+      };
+  tools?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              tag?: T;
+              title?: T;
+              description?: T;
+              href?: T;
+              id?: T;
+            };
+      };
+  library?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              description?: T;
+              href?: T;
+              id?: T;
+            };
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "standardsIdentifierPage_select".
+ */
+export interface StandardsIdentifierPageSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        eyebrowIcon?: T;
+        ghost?: T;
+        title?: T;
+        sub1?: T;
+        sub2?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+      };
+  tool?:
+    | T
+    | {
+        name?: T;
+        sub?: T;
+        badge?: T;
+        selectors?:
+          | T
+          | {
+              step?: T;
+              label?: T;
+              options?:
+                | T
+                | {
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        submitLabel?: T;
+        submitNote?: T;
+        resultLabel?: T;
+        resultPreviewLabel?: T;
+        roadmap?:
+          | T
+          | {
+              code?: T;
+              pill?: T;
+              meta?: T;
+              id?: T;
+            };
+        veilText?: T;
+      };
+  frameworks?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              icon?: T;
+              title?: T;
+              codes?:
+                | T
+                | {
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+      };
+  howItWorks?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        steps?:
+          | T
+          | {
+              number?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
+        ctaLabel?: T;
+        ctaHref?: T;
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "safetyChatPage_select".
+ */
+export interface SafetyChatPageSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        eyebrowIcon?: T;
+        ghost?: T;
+        title?: T;
+        sub?: T;
+        note?: T;
+        primaryCtaLabel?: T;
+        primaryCtaHref?: T;
+        secondaryCtaLabel?: T;
+        secondaryCtaHref?: T;
+      };
+  panel?:
+    | T
+    | {
+        name?: T;
+        status?: T;
+        tag?: T;
+        thread?:
+          | T
+          | {
+              who?: T;
+              text?: T;
+              id?: T;
+            };
+        suggestions?:
+          | T
+          | {
+              label?: T;
+              id?: T;
+            };
+        placeholder?: T;
+        lockText?: T;
+        lockCtaLabel?: T;
+        lockCtaHref?: T;
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        sub?: T;
         ctaLabel?: T;
         ctaHref?: T;
       };

@@ -12,6 +12,12 @@ import { fileURLToPath } from 'url'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+import { seedConsulting } from './sections/consulting'
+import { seedCompany } from './sections/company'
+import { seedResources } from './sections/resources'
+import { seedTraining } from './sections/training'
+import { seedLegal } from './sections/legal'
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const projectRoot = path.resolve(dirname, '..', '..')
@@ -841,6 +847,14 @@ await payload.updateGlobal({
     },
   },
 })
+
+// ---- Section pages (globals + their collections) ----------------------------
+await seedConsulting(payload)
+await seedCompany(payload)
+await seedResources(payload)
+await seedTraining(payload)
+await seedLegal(payload)
+payload.logger.info('Seeded section pages: consulting, company, resources, training, legal')
 
 payload.logger.info('— CSA seed complete —')
 process.exit(0)

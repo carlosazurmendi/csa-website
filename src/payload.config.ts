@@ -15,11 +15,28 @@ import { Partners } from './collections/Partners'
 import { Articles } from './collections/Articles'
 import { CaseStudies } from './collections/CaseStudies'
 import { Testimonials } from './collections/Testimonials'
+import { Templates } from './collections/Templates'
+import { Courses } from './collections/Courses'
+import { Resources } from './collections/Resources'
+import { Events } from './collections/Events'
+import { FreeTrainings } from './collections/FreeTrainings'
+import { TeamMembers } from './collections/TeamMembers'
+import { JobPostings } from './collections/JobPostings'
+import { LegalPages } from './collections/LegalPages'
 
 import { SiteSettings } from './globals/SiteSettings'
 import { Header } from './globals/Header'
 import { Footer } from './globals/Footer'
 import { HomePage } from './globals/HomePage'
+import { ConsultingOverview } from './globals/ConsultingOverview'
+import { TrainingTemplatesOverview } from './globals/TrainingTemplatesOverview'
+import { CompanyAbout } from './globals/CompanyAbout'
+import { CompanyServices } from './globals/CompanyServices'
+import { CompanyExperience } from './globals/CompanyExperience'
+import { CareersIntro } from './globals/CareersIntro'
+import { ResourcesOverview } from './globals/ResourcesOverview'
+import { StandardsIdentifierPage } from './globals/StandardsIdentifierPage'
+import { SafetyChatPage } from './globals/SafetyChatPage'
 
 import { buildStoragePlugin } from './lib/storage'
 
@@ -44,8 +61,30 @@ export default buildConfig({
     Articles,
     CaseStudies,
     Testimonials,
+    Templates,
+    Courses,
+    Resources,
+    Events,
+    FreeTrainings,
+    TeamMembers,
+    JobPostings,
+    LegalPages,
   ],
-  globals: [SiteSettings, Header, Footer, HomePage],
+  globals: [
+    SiteSettings,
+    Header,
+    Footer,
+    HomePage,
+    ConsultingOverview,
+    TrainingTemplatesOverview,
+    CompanyAbout,
+    CompanyServices,
+    CompanyExperience,
+    CareersIntro,
+    ResourcesOverview,
+    StandardsIdentifierPage,
+    SafetyChatPage,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -59,8 +98,18 @@ export default buildConfig({
   sharp,
   plugins: [
     seoPlugin({
-      collections: ['articles', 'industries', 'caseStudies'],
-      globals: ['homePage'],
+      collections: ['articles', 'industries', 'caseStudies', 'templates', 'courses', 'legalPages'],
+      // NB: the Company globals (companyAbout/Services/Experience/careersIntro)
+      // define their own `meta` group, so they're intentionally NOT listed here
+      // (the plugin would add a duplicate `meta` field).
+      globals: [
+        'homePage',
+        'consultingOverview',
+        'trainingTemplatesOverview',
+        'resourcesOverview',
+        'standardsIdentifierPage',
+        'safetyChatPage',
+      ],
       uploadsCollection: 'media',
       generateTitle: ({ doc }: { doc: { title?: string; name?: string } }) => {
         const t = doc?.title || doc?.name
