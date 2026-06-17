@@ -1,0 +1,260 @@
+/* ============================================================
+   CSA — About / Founder profile
+   Tokens from colors_and_type.css. Portrait uses .csa-glass + .csa-tilt.
+   ============================================================ */
+
+.ab {
+  position: relative;
+  background: var(--bg-base);
+  padding: 108px 40px 120px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.ab__haze {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(46% 50% at 22% 30%, rgba(52,70,94,0.24) 0%, rgba(10,14,20,0) 60%);
+}
+
+.ab__head {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 60px;
+}
+.ab__head .csa-eyebrow { margin: 0 0 16px; display: inline-block; }
+.ab__title { margin: 0; }
+
+/* ---------- Body grid ---------- */
+.ab__body {
+  position: relative;
+  z-index: 1;
+  max-width: 1680px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 52px;
+  align-items: start;
+}
+
+/* ---------- Left: portrait + credentials ---------- */
+.ab__left { position: sticky; top: 40px; }
+/* The data-reveal="right" system leaves clip-path: inset(0 0 0 0) on the column
+   after the entrance finishes, which clips the cert cards' 3px hover shift.
+   The slide-in animates transform (not clip-path), so clearing it once revealed
+   is safe and lets the cards overflow freely on hover. */
+.ab__left[data-reveal].is-in { clip-path: none; }
+.ab-portrait-scene { perspective: 1200px; }
+.ab-portrait {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  border: 1px solid var(--border-1);
+  box-shadow: var(--shadow-pop);
+  transform: rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.4s var(--ease-out);
+  will-change: transform;
+}
+.ab-portrait image-slot { width: 100%; height: 100%; display: block; }
+.ab-portrait image-slot::part(frame) {
+  background:
+    radial-gradient(120% 90% at 70% 16%, rgba(70,92,120,0.34) 0%, rgba(13,18,26,0) 58%),
+    linear-gradient(150deg, #131923 0%, #0b0f16 100%);
+}
+.ab-portrait image-slot::part(empty) { color: var(--fg-3); }
+.ab-portrait image-slot::part(ring) { border-color: rgba(255,255,255,0.12); }
+.ab-portrait__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10,14,20,0) 42%, rgba(10,14,20,0.34) 66%, rgba(10,14,20,0.92) 100%);
+}
+.ab-portrait__plate {
+  position: absolute;
+  left: 24px; right: 24px; bottom: 22px;
+  z-index: 3;
+}
+.ab-portrait__name {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 26px;
+  letter-spacing: -0.015em;
+  color: var(--fg-1);
+}
+.ab-portrait__role {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--gold-400);
+}
+.ab-portrait__role .sep { width: 4px; height: 4px; border-radius: 50%; background: var(--fg-4); flex: none; }
+.ab-portrait__loc { color: var(--fg-3); }
+/* Specular highlight following cursor (premium gloss) */
+.ab-portrait__gloss {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.14), rgba(255,255,255,0) 60%);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+}
+.ab-portrait:hover .ab-portrait__gloss { opacity: 1; }
+/* Engineering callout tag (signature leader-line motif) */
+.ab-callout {
+  position: absolute;
+  z-index: 5;
+  top: 18px; left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 13px 7px 11px;
+  border-radius: var(--r-pill);
+  background: rgba(10,14,20,0.6);
+  border: 1px solid var(--border-gold);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+}
+.ab-callout__node {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-500);
+  position: relative;
+  flex: none;
+}
+.ab-callout__node::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: var(--gold-500); }
+
+.ab-certs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+.ab-cert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  transition: border-color 0.4s var(--ease-out), background 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+.ab-cert:hover { border-color: var(--border-gold); background: var(--bg-glass-hover); transform: translateX(3px); }
+.ab-cert__icon {
+  width: 32px; height: 32px;
+  flex: none;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.06);
+  color: var(--gold-400);
+}
+.ab-cert__icon i { width: 17px; height: 17px; }
+.ab-cert__t { font-family: var(--font-body); font-weight: 600; font-size: 13.5px; color: var(--fg-1); line-height: 1.25; }
+.ab-cert__s { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; color: var(--fg-3); }
+
+/* ---------- Right: bio + blocks ---------- */
+.ab__bio { margin: 0 0 36px; }
+.ab__bio p {
+  margin: 0 0 18px;
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: var(--fg-2);
+  text-wrap: pretty;
+}
+.ab__bio p:last-child { margin-bottom: 0; }
+.ab__bio strong { color: var(--fg-1); font-weight: 600; }
+
+.ab-block { margin-top: 34px; }
+.ab__cta { margin-top: 36px; }
+.ab-block__label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+}
+.ab-block__label .tick { width: 26px; height: 1px; background: var(--gold-500); flex: none; }
+
+.ab-tags { display: flex; flex-wrap: wrap; gap: 9px; }
+.ab-tag {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--fg-2);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-pill);
+  padding: 8px 15px;
+  cursor: default;
+  transition: color 0.3s var(--ease-out), border-color 0.3s var(--ease-out), background 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+}
+.ab-tag:hover {
+  color: var(--gold-300);
+  border-color: var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.06);
+  transform: translateY(-2px);
+}
+
+.ab-field__note {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--fg-2);
+}
+.ab-confs { display: flex; flex-wrap: wrap; gap: 12px; }
+.ab-conf {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--fg-1);
+  transition: border-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+.ab-conf:hover { border-color: var(--border-gold); box-shadow: 0 0 22px rgba(var(--gold-rgb), 0.15); transform: translateY(-3px); }
+.ab-conf i { width: 16px; height: 16px; color: var(--gold-400); flex: none; }
+
+/* ---------- Entrance ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .ab__left, .ab__right > * { opacity: 0; animation: ab-rise 0.6s var(--ease-out) forwards; }
+  .ab__left { animation-delay: 0.05s; }
+  .ab__bio { animation-delay: 0.12s; }
+  .ab-block:nth-of-type(1) { animation-delay: 0.2s; }
+  .ab-block:nth-of-type(2) { animation-delay: 0.28s; }
+}
+@keyframes ab-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .ab__body { grid-template-columns: 1fr; gap: 36px; }
+  .ab__left { position: static; max-width: 360px; margin: 0 auto; }
+}

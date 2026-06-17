@@ -1,0 +1,262 @@
+/* ============================================================
+   CSA — Global primary navigation
+   Fixed translucent top bar, glass mega-dropdowns, gold accents.
+   Tokens from colors_and_type.css. Overlays the hero transparently
+   at page top, settles into a blurred solid bar on scroll.
+   ============================================================ */
+
+.navx {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  padding: 16px 40px;
+  transition: padding var(--dur) var(--ease-out),
+              background var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out);
+  border-bottom: 1px solid transparent;
+}
+.navx.is-solid {
+  padding: 11px 40px;
+  background: rgba(10, 14, 20, 0.82);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  border-bottom: 1px solid var(--border-2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.38);
+}
+
+.navx__inner {
+  max-width: 1680px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.navx__logo { display: inline-flex; align-items: center; flex: none; }
+.navx__logo img { height: 26px; width: auto; }
+
+/* ---------- Primary links ---------- */
+.navx__primary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 auto 0 18px;
+}
+.navx-item { position: relative; }
+.navx-item__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  color: var(--fg-2);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.navx-item__link:hover { color: var(--fg-1); }
+.navx-item__link .chev {
+  width: 14px; height: 14px;
+  opacity: 0.66;
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur-fast);
+}
+.navx-item:hover .navx-item__link { color: var(--fg-1); }
+.navx-item:hover .navx-item__link .chev { transform: rotate(180deg); opacity: 1; }
+.navx-item__link.is-active { color: var(--gold-300); }
+.navx-item__link.is-active::after {
+  content: "";
+  position: absolute;
+  left: 13px; right: 13px; bottom: 2px;
+  height: 1.5px;
+  background: var(--gold-foil);
+  background-size: 200% 100%;
+  border-radius: 2px;
+}
+
+/* ---------- Dropdown panel ---------- */
+.navx-drop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 248px;
+  padding: 9px;
+  border-radius: var(--r-lg);
+  background: rgba(15, 20, 28, 0.92);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-pop), inset 0 1px 0 var(--inset-hairline);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity var(--dur) var(--ease-out),
+              transform var(--dur) var(--ease-out),
+              visibility var(--dur);
+  pointer-events: none;
+}
+/* hover bridge so the cursor can travel from link to panel */
+.navx-drop::before {
+  content: "";
+  position: absolute;
+  top: -10px; left: 0; right: 0; height: 10px;
+}
+.navx-item:hover .navx-drop,
+.navx-item:focus-within .navx-drop {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.navx-drop.navx-drop--wide {
+  min-width: 480px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 6px;
+}
+
+.navx-drop__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 13px;
+  border-radius: var(--r-sm);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--fg-3);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.navx-drop__link .dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--gold-500);
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+  flex: none;
+}
+.navx-drop__link:hover { color: var(--fg-1); background: var(--bg-glass-hover); }
+.navx-drop__link:hover .dot { opacity: 1; }
+.navx-drop__link.is-active { color: var(--gold-300); }
+.navx-drop__link.is-active .dot { opacity: 1; }
+
+/* CTA inside a dropdown (e.g. Request a Private Course) */
+.navx-drop__cta {
+  grid-column: 1 / -1;
+  margin: 8px 4px 2px;
+  justify-content: center;
+}
+
+/* ---------- Right cluster ---------- */
+.navx__right { display: flex; align-items: center; gap: 8px; flex: none; }
+.navx__login {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--fg-2);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.navx__login i { width: 16px; height: 16px; }
+.navx__login:hover { color: var(--fg-1); }
+
+.navx__cart {
+  position: relative;
+  width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  color: var(--fg-2);
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+.navx__cart i { width: 18px; height: 18px; }
+.navx__cart:hover { color: var(--gold-300); border-color: var(--border-gold); box-shadow: 0 0 18px rgba(var(--gold-rgb), 0.18); }
+.navx__cart-badge {
+  position: absolute;
+  top: -2px; right: -2px;
+  min-width: 17px; height: 17px;
+  padding: 0 4px;
+  border-radius: var(--r-pill);
+  background: var(--gold-500);
+  color: var(--fg-on-gold);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+  border: 2px solid var(--bg-base);
+}
+.navx__cta { margin-left: 4px; }
+
+/* ---------- Mobile toggle ---------- */
+.navx__burger {
+  display: none;
+  width: 42px; height: 42px;
+  align-items: center; justify-content: center;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  color: var(--fg-1);
+}
+.navx__burger i { width: 20px; height: 20px; }
+
+/* ---------- Mobile drawer ---------- */
+.navx-mobile {
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: rgba(8, 11, 16, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 92px 24px 40px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur) var(--ease-out), visibility var(--dur);
+}
+.navx-mobile.is-open { opacity: 1; visibility: visible; }
+.navx-macc { border-bottom: 1px solid var(--border-2); }
+.navx-macc__head {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 6px;
+  background: none; border: none;
+  font-family: var(--font-body);
+  font-size: 18px; font-weight: 600;
+  color: var(--fg-1);
+  text-align: left;
+}
+.navx-macc__head i { width: 20px; height: 20px; color: var(--gold-400); transition: transform var(--dur) var(--ease-out); }
+.navx-macc.is-open .navx-macc__head i { transform: rotate(180deg); }
+.navx-macc__body { display: none; padding: 0 6px 16px; flex-direction: column; gap: 2px; }
+.navx-macc.is-open .navx-macc__body { display: flex; }
+.navx-macc__body a {
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  color: var(--fg-3);
+}
+.navx-macc__body a:hover, .navx-macc__body a.is-active { color: var(--gold-300); background: var(--bg-glass-hover); }
+.navx-mobile__actions { margin-top: 28px; display: flex; flex-direction: column; gap: 14px; }
+.navx-mobile__row { display: flex; align-items: center; gap: 14px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) {
+  .navx__primary, .navx__login { display: none; }
+  .navx__burger { display: inline-flex; }
+  .navx__cta { display: none; }
+}
+@media (max-width: 560px) {
+  .navx { padding: 12px 20px; }
+  .navx.is-solid { padding: 10px 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navx, .navx-drop, .navx-item__link .chev, .navx-mobile { transition: none; }
+}

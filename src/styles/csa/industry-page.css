@@ -1,0 +1,184 @@
+/* ============================================================
+   CSA — Industry sub-page template styles
+   Reusable layout shared by every Consulting industry page:
+   Rail, Robotics, Machinery, Physical AI, Construction & Mining,
+   Automotive, Defense, Process.
+
+   Structure (locked):
+     Hero  →  Core Capabilities / Deliverables  →
+     Primary Standards We Navigate  →  optional Feature
+     (Hands-On Experience | Case Study Highlight)  →  Closing CTA.
+
+   Tokens + helpers from colors_and_type.css; buttons from kit.css.
+   Prefix: .ip-
+   ============================================================ */
+
+.ip { background: var(--bg-base); }
+
+/* Section reveal (fades up once in view; off under reduced motion) */
+.ip-reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s var(--ease-out), transform .6s var(--ease-out); }
+.ip-reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ip-reveal { opacity: 1 !important; transform: none !important; transition: none; }
+}
+
+/* Shared section frame */
+.ip-sec { position: relative; max-width: 1680px; margin: 0 auto; padding: 104px 40px; }
+.ip-sec--alt { background: var(--bg-base-2); max-width: none; }
+.ip-sec--alt .ip-sec__inner { max-width: 1680px; margin: 0 auto; }
+.ip-band-top { border-top: 1px solid var(--border-2); }
+
+.ip-head { max-width: 760px; margin: 0 0 52px; }
+.ip-head .csa-eyebrow { display: block; margin: 0 0 16px; }
+.ip-head__title { margin: 0 0 18px; }
+.ip-head__lead { margin: 0; color: var(--fg-2); }
+
+/* ============================================================
+   1 · Hero
+   ============================================================ */
+.ip-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 176px 40px 100px;
+  background:
+    radial-gradient(56% 70% at 70% 28%, rgba(52,70,94,0.42) 0%, rgba(10,14,20,0) 62%),
+    var(--bg-base);
+}
+.ip-hero__ghost {
+  position: absolute; left: 0; right: 0; bottom: -3.4vw;
+  text-align: center; font-family: var(--font-display); font-weight: 900;
+  font-size: 21vw; line-height: 0.8; letter-spacing: -0.045em; text-transform: uppercase;
+  color: rgba(255,255,255,0.022); z-index: 0; pointer-events: none; user-select: none; white-space: nowrap;
+}
+.ip-hero__inner {
+  position: relative; z-index: 2;
+  max-width: 1680px; margin: 0 auto;
+  display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 64px; align-items: center;
+}
+.ip-hero__eyebrow { display: inline-flex; align-items: center; gap: 11px; margin: 0; }
+.ip-hero__eyebrow .ip-hero__ico {
+  width: 30px; height: 30px; flex: none; border-radius: var(--r-sm);
+  border: 1px solid var(--border-gold); background: rgba(var(--gold-rgb), 0.08);
+  display: flex; align-items: center; justify-content: center; color: var(--gold-400);
+}
+.ip-hero__eyebrow .ip-hero__ico i { width: 16px; height: 16px; }
+.ip-hero__title { margin: 22px 0 0; font-size: clamp(36px, 4.4vw, 60px); line-height: 1.0; }
+.ip-hero__tagline { margin: 22px 0 0; max-width: 560px; color: var(--fg-1); font-weight: 500; }
+.ip-hero__intro { margin: 20px 0 0; max-width: 580px; color: var(--fg-2); font-size: 16px; line-height: 1.7; }
+.ip-hero__cta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin: 34px 0 0; }
+.ip-hero__standards { display: flex; align-items: center; gap: 16px; margin: 36px 0 0; }
+.ip-hero__tick { width: 30px; height: 1px; background: var(--gold-500); flex: none; }
+.ip-hero__std-list { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--fg-3); font-size: 13px; }
+.ip-hero__std-list .dot { color: var(--gold-500); }
+
+/* Hero HUD — engagement scope card */
+.ip-hud { position: relative; padding: 30px 30px 26px; justify-self: end; width: 100%; max-width: 440px; }
+.ip-hud__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+.ip-hud__tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-3); }
+.ip-hud__badge {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--gold-300); border: 1px solid var(--border-gold); border-radius: var(--r-pill); padding: 5px 11px;
+}
+.ip-hud__badge .d { width: 6px; height: 6px; border-radius: 50%; background: var(--status-safe); box-shadow: 0 0 9px var(--status-safe); }
+.ip-scope { display: flex; flex-direction: column; gap: 2px; }
+.ip-scope__row { display: flex; align-items: flex-start; gap: 14px; padding: 13px 0; border-top: 1px solid var(--border-2); }
+.ip-scope__row:first-child { border-top: none; padding-top: 2px; }
+.ip-scope__mark { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; border: 1px solid var(--border-gold); background: rgba(var(--gold-rgb), 0.07); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.ip-scope__mark i { width: 13px; height: 13px; }
+.ip-scope__t { font-size: 14px; font-weight: 600; color: var(--fg-1); margin: 0; line-height: 1.4; }
+.ip-hud__foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-2);
+  font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); letter-spacing: 0.04em; }
+.ip-hud__foot .sep { color: var(--gold-500); margin: 0 8px; }
+
+/* ============================================================
+   2 · Core Capabilities / Deliverables
+   ============================================================ */
+.ip-cap__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 272px), 1fr)); gap: 18px; }
+.ip-cap {
+  display: flex; flex-direction: column;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 30px 28px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+.ip-cap:hover { border-color: var(--border-gold); transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.ip-cap__icon {
+  width: 46px; height: 46px; border-radius: var(--r-md);
+  background: rgba(var(--gold-rgb), 0.08); border: 1px solid var(--border-gold);
+  display: flex; align-items: center; justify-content: center; color: var(--gold-400); margin-bottom: 20px;
+}
+.ip-cap__icon i { width: 22px; height: 22px; }
+.ip-cap__code { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-400); margin: 0 0 9px; }
+.ip-cap__t { font-family: var(--font-display); font-weight: 500; font-size: 21px; color: var(--fg-1); margin: 0 0 11px; line-height: 1.15; }
+.ip-cap__d { font-size: 14px; color: var(--fg-3); line-height: 1.62; margin: 0; }
+
+/* ============================================================
+   3 · Primary Standards We Navigate
+   ============================================================ */
+.ip-std__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 246px), 1fr)); gap: 16px; }
+.ip-std {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 26px 26px 28px; overflow: hidden;
+  transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.ip-std::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, var(--gold-500), transparent 78%); opacity: .55; }
+.ip-std:hover { border-color: var(--border-gold); transform: translateY(-2px); }
+.ip-std__n { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; color: var(--fg-4); margin: 0 0 14px; }
+.ip-std__code { font-family: var(--font-mono); font-weight: 500; font-size: 19px; letter-spacing: -0.01em; color: var(--gold-300); margin: 0 0 12px; line-height: 1.2; }
+.ip-std__d { font-size: 14px; color: var(--fg-2); line-height: 1.6; margin: 0; }
+
+/* ============================================================
+   4 · Feature — Hands-On Experience (numbered rows)
+   ============================================================ */
+.ip-feat__grid { display: grid; grid-template-columns: 0.82fr 1.18fr; gap: 60px; align-items: start; }
+.ip-feat__head { position: sticky; top: 110px; }
+.ip-feat__head .csa-eyebrow { display: block; margin: 0 0 16px; }
+.ip-feat__head .ip-feat__title { margin: 0 0 18px; }
+.ip-feat__note { margin: 0; color: var(--fg-3); font-size: 14.5px; line-height: 1.65; }
+.ip-exp { display: flex; flex-direction: column; }
+.ip-exp__row { display: grid; grid-template-columns: 54px 1fr; gap: 26px; padding: 28px 0; border-top: 1px solid var(--border-2); }
+.ip-exp__row:first-child { border-top: none; padding-top: 0; }
+.ip-exp__n { font-family: var(--font-mono); font-size: 13px; color: var(--gold-400); letter-spacing: 0.04em; padding-top: 4px; }
+.ip-exp__t { font-family: var(--font-display); font-weight: 500; font-size: 21px; color: var(--fg-1); margin: 0 0 10px; line-height: 1.2; }
+.ip-exp__d { font-size: 14.5px; color: var(--fg-2); line-height: 1.66; margin: 0; }
+
+/* 4b · Feature — Case Study Highlight */
+.ip-case { position: relative; overflow: hidden; padding: 44px 46px; }
+.ip-case__tag { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-300); border: 1px solid var(--border-gold); border-radius: var(--r-pill); padding: 6px 13px; margin-bottom: 26px; }
+.ip-case__grid { display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; }
+.ip-case__title { font-family: var(--font-display); font-weight: 500; font-size: clamp(24px, 2.4vw, 32px); color: var(--fg-1); margin: 0 0 16px; line-height: 1.18; }
+.ip-case__d { font-size: 16px; color: var(--fg-2); line-height: 1.7; margin: 0; max-width: 640px; }
+.ip-case__stat { flex: none; text-align: center; padding: 0 8px; border-left: 1px solid var(--border-2); padding-left: 44px; }
+.ip-case__stat-n { font-family: var(--font-display); font-weight: 600; font-size: clamp(44px, 5vw, 64px); line-height: 1; background-image: var(--gold-foil); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: csa-gold-sheen 5.5s linear infinite; }
+.ip-case__stat-l { font-size: 12.5px; color: var(--fg-3); margin-top: 14px; max-width: 180px; line-height: 1.45; }
+@media (prefers-reduced-motion: reduce) { .ip-case__stat-n { animation: none; } }
+
+/* ============================================================
+   5 · Closing CTA
+   ============================================================ */
+.ip-close { position: relative; overflow: hidden; text-align: center; padding: 96px 40px; background: var(--bg-base-2); border-top: 1px solid var(--border-2); }
+.ip-close__haze { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(50% 110% at 50% 0%, rgba(52,70,94,0.30) 0%, rgba(13,18,26,0) 64%); }
+.ip-close__inner { position: relative; z-index: 2; max-width: 680px; margin: 0 auto; }
+.ip-close .csa-eyebrow { display: block; margin: 0 0 16px; }
+.ip-close__title { margin: 0 0 16px; font-size: clamp(30px, 3.4vw, 44px); }
+.ip-close__sub { margin: 0 0 30px; color: var(--fg-2); }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 960px) {
+  .ip-hero { padding-top: 140px; }
+  .ip-hero__inner { grid-template-columns: 1fr; gap: 48px; }
+  .ip-hud { max-width: 520px; justify-self: stretch; }
+  .ip-feat__grid { grid-template-columns: 1fr; gap: 36px; }
+  .ip-feat__head { position: static; }
+  .ip-case__grid { grid-template-columns: 1fr; gap: 30px; }
+  .ip-case__stat { border-left: none; border-top: 1px solid var(--border-2); padding-left: 0; padding-top: 26px; text-align: left; }
+}
+@media (max-width: 560px) {
+  .ip-sec { padding: 72px 22px; }
+  .ip-hero { padding: 128px 22px 72px; }
+  .ip-case { padding: 32px 24px; }
+  .ip-exp__row { grid-template-columns: 1fr; gap: 8px; }
+  .ip-exp__n { padding-top: 0; }
+}

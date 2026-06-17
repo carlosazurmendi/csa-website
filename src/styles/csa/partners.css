@@ -1,0 +1,279 @@
+/* ============================================================
+   CSA — Partners / accreditations trust wall
+   Tokens from colors_and_type.css. Brand marks are sourced live
+   (greyscale at rest → full colour on hover).
+   ============================================================ */
+
+.pt {
+  position: relative;
+  background: var(--bg-base-2);
+  padding: 104px 40px 112px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.pt__haze {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(52% 60% at 50% 0%, rgba(52,70,94,0.22) 0%, rgba(10,14,20,0) 62%);
+}
+
+.pt__head {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 52px;
+}
+.pt__head .csa-eyebrow { margin: 0 0 16px; display: inline-block; }
+.pt__title { margin: 0 0 16px; }
+.pt__sub { margin: 0; color: var(--fg-2); font-size: 16px; line-height: 1.6; }
+
+/* ---------- Section shell (ONE card wrapping a whole logo group) ---------- */
+.pt-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 30px;
+  border-radius: var(--r-xl);
+  background: var(--bg-glass);
+  border: 1px solid transparent;
+  box-shadow: var(--shadow-card), var(--inset-hairline);
+  isolation: isolate;
+}
+/* Metallic gold-foil outline (continuous slow brushed-metal shimmer) */
+.pt-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background-image: var(--gold-foil);
+  background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: csa-gold-sheen 6s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-shell::after { animation: none; }
+}
+
+/* Carlos: the customer wall is a BARE logo grid — no card chrome. Strip the
+   glass fill, hairline, shadow, padding and the gold-foil frame (and the
+   data-metal liquid-metal ring is removed in the markup). The grid + the
+   grayscale-until-hover logos are untouched. */
+.pt-shell--bare {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+.pt-shell--bare::after { display: none; }
+
+/* ---------- Customer logo grid (bare tiles inside the shell) ---------- */
+.pt-logos {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.pt-logo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 110px;
+  padding: 18px 14px;
+  text-align: center;
+  border-radius: var(--r-md);
+  background: transparent;
+  transition: background 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+.pt-logo:hover {
+  transform: translateY(-3px);
+  background: var(--bg-glass-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-logo:hover { transform: none; }
+}
+/* ---------- Customer logo (icon mark + name caption) ---------- */
+.pt-logo__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  width: 100%;
+}
+.pt-logo__img {
+  max-height: 40px;
+  max-width: 80%;
+  width: auto;
+  object-fit: contain;
+  border-radius: var(--r-sm);
+  filter: grayscale(1) opacity(0.85);
+  transition: filter 0.4s var(--ease-out);
+}
+.pt-logo:hover .pt-logo__img { filter: grayscale(0) opacity(1); }
+.pt-logo__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  color: var(--fg-2);
+  transition: color 0.4s var(--ease-out);
+}
+.pt-logo:hover .pt-logo__mark { color: var(--gold-400); }
+.pt-logo__name {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+/* ---------- Partners sub-block ---------- */
+.pt__partners {
+  position: relative;
+  z-index: 1;
+  max-width: 1680px;
+  margin: 76px auto 0;
+}
+.pt__partners-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+}
+.pt__partners-tick { width: 26px; height: 1px; background: var(--gold-500); flex: none; }
+.pt__partners-intro {
+  margin: 0 0 30px;
+  color: var(--fg-2);
+  font-size: 15.5px;
+  line-height: 1.6;
+  max-width: 560px;
+}
+
+/* ---------- Logo wall (pills) ---------- */
+.pt-wall {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.pt-card {
+  position: relative;
+  flex: 0 0 282px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: var(--r-md);
+  background: transparent;
+  transition:
+    transform 0.4s var(--ease-out),
+    background 0.4s var(--ease-out);
+}
+.pt-card:hover {
+  transform: translateY(-3px);
+  background: var(--bg-glass-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-card:hover { transform: none; }
+}
+
+.pt-card__logo {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.pt-card__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Greyscale at rest, full colour on hover */
+  filter: grayscale(1) opacity(0.72);
+  transition: filter 0.45s var(--ease-out), transform 0.45s var(--ease-out);
+}
+.pt-card:hover .pt-card__logo img { filter: grayscale(0) opacity(1); transform: scale(1.04); }
+.pt-card__mono {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: var(--gold-400);
+  transition: color 0.4s var(--ease-out);
+}
+.pt-card:hover .pt-card__mono { color: var(--gold-300); }
+
+.pt-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
+}
+.pt-card__name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14.5px;
+  letter-spacing: -0.005em;
+  color: var(--fg-1);
+  line-height: 1.15;
+}
+.pt-card__role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  transition: color 0.4s var(--ease-out);
+}
+.pt-card:hover .pt-card__role { color: var(--gold-400); }
+
+/* ---------- Entrance (opacity-only so it never blocks the hover lift) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .pt-card { animation: pt-fade 0.6s var(--ease-out) both; }
+  .pt-card:nth-child(1) { animation-delay: 0.04s; }
+  .pt-card:nth-child(2) { animation-delay: 0.10s; }
+  .pt-card:nth-child(3) { animation-delay: 0.16s; }
+  .pt-card:nth-child(4) { animation-delay: 0.22s; }
+  .pt-card:nth-child(5) { animation-delay: 0.28s; }
+}
+@keyframes pt-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .pt-logos { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 560px) {
+  .pt-logos { grid-template-columns: repeat(2, 1fr); }
+  .pt-card { width: 100%; max-width: 320px; }
+}

@@ -1,0 +1,237 @@
+/* ============================================================
+   CSA — Consulting · Overview page styles
+   Page-specific layout for Consulting/Overview.html.
+   Tokens + helpers from colors_and_type.css; buttons from kit.css.
+   Prefix: .co-
+   ============================================================ */
+
+.co { background: var(--bg-base); }
+
+/* Section reveal (fades up once in view; off under reduced motion) */
+.co-reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s var(--ease-out), transform .6s var(--ease-out); }
+.co-reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .co-reveal { opacity: 1 !important; transform: none !important; transition: none; }
+}
+
+/* Shared section frame */
+.co-sec { position: relative; max-width: 1680px; margin: 0 auto; padding: 104px 40px; }
+.co-sec--alt { background: var(--bg-base-2); max-width: none; }
+.co-sec--alt .co-sec__inner { max-width: 1680px; margin: 0 auto; }
+.co-band-top { border-top: 1px solid var(--border-2); }
+
+.co-head { max-width: 720px; margin: 0 0 52px; }
+.co-head .csa-eyebrow { display: block; margin: 0 0 16px; }
+.co-head__title { margin: 0 0 18px; }
+.co-head__lead { margin: 0; color: var(--fg-2); }
+
+/* ============================================================
+   1 · Hero
+   ============================================================ */
+.co-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 176px 40px 104px;
+  background:
+    radial-gradient(58% 72% at 68% 30%, rgba(52,70,94,0.40) 0%, rgba(10,14,20,0) 62%),
+    var(--bg-base);
+}
+.co-hero__ghost {
+  position: absolute; left: 0; right: 0; bottom: -3.2vw;
+  text-align: center; font-family: var(--font-display); font-weight: 900;
+  font-size: 20vw; line-height: 0.8; letter-spacing: -0.04em; text-transform: uppercase;
+  color: rgba(255,255,255,0.022); z-index: 0; pointer-events: none; user-select: none; white-space: nowrap;
+}
+.co-hero__inner {
+  position: relative; z-index: 2;
+  max-width: 1680px; margin: 0 auto;
+  display: grid; grid-template-columns: 1.06fr 0.94fr; gap: 64px; align-items: center;
+}
+.co-hero__title { margin: 18px 0 0; font-size: clamp(40px, 5vw, 70px); }
+.co-hero__sub { margin: 24px 0 0; max-width: 540px; color: var(--fg-2); }
+.co-hero__cta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin: 34px 0 0; }
+.co-hero__standards { display: flex; align-items: center; gap: 16px; margin: 38px 0 0; }
+.co-hero__tick { width: 30px; height: 1px; background: var(--gold-500); flex: none; }
+.co-hero__std-list { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--fg-3); font-size: 13px; }
+.co-hero__std-list .dot { color: var(--gold-500); }
+
+/* Hero HUD — concept-to-certification lifecycle */
+.co-hud { position: relative; padding: 30px 30px 26px; justify-self: end; width: 100%; max-width: 440px; }
+.co-hud__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.co-hud__tag { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-3); }
+.co-hud__badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--gold-300); border: 1px solid var(--border-gold); border-radius: var(--r-pill); padding: 5px 11px;
+}
+.co-hud__badge .d { width: 6px; height: 6px; border-radius: 50%; background: var(--status-safe); box-shadow: 0 0 9px var(--status-safe); }
+.co-steps { position: relative; display: flex; flex-direction: column; gap: 4px; }
+.co-step { position: relative; display: flex; align-items: flex-start; gap: 16px; padding: 11px 0; }
+.co-step__rail { position: relative; flex: none; width: 26px; display: flex; justify-content: center; }
+.co-step__node {
+  position: relative; z-index: 2; width: 13px; height: 13px; border-radius: 50%;
+  border: 1px solid var(--gold-500); background: var(--bg-base); margin-top: 3px;
+  display: flex; align-items: center; justify-content: center;
+}
+.co-step__node::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-500); }
+.co-step:not(:last-child) .co-step__rail::before {
+  content: ""; position: absolute; top: 14px; bottom: -18px; left: 50%; transform: translateX(-50%);
+  width: 1px; background: linear-gradient(var(--gold-600), var(--border-strong));
+}
+.co-step__n { font-family: var(--font-mono); font-size: 10.5px; color: var(--gold-400); margin: 0 0 3px; letter-spacing: 0.08em; }
+.co-step__t { font-size: 14.5px; font-weight: 600; color: var(--fg-1); margin: 0 0 3px; line-height: 1.3; }
+.co-step__d { font-size: 12px; color: var(--fg-3); margin: 0; line-height: 1.5; }
+.co-hud__foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-2);
+  font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); letter-spacing: 0.04em; }
+.co-hud__foot .sep { color: var(--gold-500); margin: 0 8px; }
+
+/* ============================================================
+   2 · Technical Authority — quick facts
+   ============================================================ */
+.co-facts { padding-top: 76px; padding-bottom: 76px; }
+.co-facts__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.co-fact {
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 28px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.co-fact:hover { border-color: var(--border-gold); transform: translateY(-3px); }
+.co-fact__icon {
+  width: 44px; height: 44px; border-radius: var(--r-md);
+  background: rgba(var(--gold-rgb), 0.08); border: 1px solid var(--border-gold);
+  display: flex; align-items: center; justify-content: center; color: var(--gold-400); margin-bottom: 20px;
+}
+.co-fact__icon i { width: 21px; height: 21px; }
+.co-fact__k { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-400); margin: 0 0 9px; }
+.co-fact__t { font-family: var(--font-display); font-weight: 500; font-size: 22px; color: var(--fg-1); margin: 0 0 11px; line-height: 1.1; }
+.co-fact__d { font-size: 14px; color: var(--fg-3); line-height: 1.6; margin: 0; }
+
+/* ============================================================
+   3 · About CSA
+   ============================================================ */
+.co-about__grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 60px; align-items: start; }
+.co-about__prose p { font-size: 17px; line-height: 1.72; color: var(--fg-2); margin: 0 0 20px; }
+.co-about__prose p:last-child { margin-bottom: 0; }
+.co-about__prose strong { color: var(--fg-1); font-weight: 600; }
+.co-about__quote {
+  margin: 0; padding: 22px 0 0 24px; border-left: 2px solid var(--gold-500);
+  font-family: var(--font-display); font-weight: 500; font-size: 21px; line-height: 1.4; color: var(--fg-1);
+}
+.co-creds { padding: 30px; }
+.co-creds__label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 20px; }
+.co-cred { display: flex; align-items: flex-start; gap: 14px; padding: 16px 0; border-top: 1px solid var(--border-2); }
+.co-cred:first-of-type { border-top: none; padding-top: 0; }
+.co-cred__icon { flex: none; width: 36px; height: 36px; border-radius: var(--r-sm); border: 1px solid var(--border-1); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.co-cred__icon i { width: 18px; height: 18px; }
+.co-cred__t { font-size: 14.5px; font-weight: 600; color: var(--fg-1); margin: 2px 0 3px; }
+.co-cred__d { font-size: 12.5px; color: var(--fg-3); line-height: 1.5; margin: 0; }
+
+/* ============================================================
+   4 · How We Provide Consulting — options
+   ============================================================ */
+.co-opts__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 8px; }
+.co-opt {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 30px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
+}
+.co-opt:hover { border-color: var(--border-gold); transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.co-opt__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.co-opt__n { font-family: var(--font-mono); font-size: 12px; color: var(--gold-400); letter-spacing: 0.1em; }
+.co-opt__icon { width: 40px; height: 40px; border-radius: var(--r-md); border: 1px solid var(--border-1); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.co-opt__icon i { width: 20px; height: 20px; }
+.co-opt__t { font-family: var(--font-display); font-weight: 500; font-size: 23px; color: var(--fg-1); margin: 0 0 13px; line-height: 1.12; }
+.co-opt__d { font-size: 14.5px; line-height: 1.62; color: var(--fg-2); margin: 0 0 22px; }
+.co-opt__meta { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--border-2); }
+.co-opt__meta-l { display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-400); margin-bottom: 7px; }
+.co-opt__meta-t { font-size: 13.5px; color: var(--fg-3); line-height: 1.55; }
+
+/* ============================================================
+   5 · Expert Contract Engineering Capabilities
+   ============================================================ */
+.co-cap__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 8px; }
+.co-cap {
+  display: flex; gap: 20px; align-items: flex-start;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 26px 28px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+}
+.co-cap:hover { border-color: var(--border-gold); transform: translateY(-2px); }
+.co-cap__icon { flex: none; width: 46px; height: 46px; border-radius: var(--r-md); background: rgba(var(--gold-rgb), 0.08); border: 1px solid var(--border-gold); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.co-cap__icon i { width: 22px; height: 22px; }
+.co-cap__code { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--gold-400); margin: 0 0 8px; }
+.co-cap__t { font-size: 16.5px; font-weight: 600; color: var(--fg-1); margin: 0 0 6px; line-height: 1.3; }
+.co-cap__d { font-size: 13.5px; color: var(--fg-3); line-height: 1.55; margin: 0; }
+
+/* ============================================================
+   6 · Industries We Serve — link grid
+   ============================================================ */
+.co-ind__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.co-ind {
+  display: flex; flex-direction: column; min-height: 168px;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 24px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.co-ind:hover { border-color: var(--border-gold); transform: translateY(-3px); background: var(--bg-elevated-2); }
+.co-ind__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.co-ind__icon { width: 42px; height: 42px; border-radius: var(--r-md); border: 1px solid var(--border-1); display: flex; align-items: center; justify-content: center; color: var(--gold-400); transition: border-color var(--dur) var(--ease-out); }
+.co-ind:hover .co-ind__icon { border-color: var(--border-gold); }
+.co-ind__icon i { width: 21px; height: 21px; }
+.co-ind__arrow { color: var(--fg-4); transition: color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out); }
+.co-ind__arrow i { width: 18px; height: 18px; }
+.co-ind:hover .co-ind__arrow { color: var(--gold-400); transform: translate(3px, -3px); }
+.co-ind__t { font-size: 16px; font-weight: 600; color: var(--fg-1); margin: auto 0 6px; line-height: 1.25; }
+.co-ind__d { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--fg-3); margin: 0; }
+
+/* ============================================================
+   7 · Common Questions — accordion
+   ============================================================ */
+.co-faq__list { display: flex; flex-direction: column; gap: 14px; max-width: 940px; }
+.co-q { border: 1px solid var(--border-1); border-radius: var(--r-lg); background: var(--bg-elevated); overflow: hidden; transition: border-color var(--dur) var(--ease-out); }
+.co-q.is-open { border-color: var(--border-gold); }
+.co-q__head {
+  width: 100%; display: flex; align-items: center; gap: 18px; text-align: left;
+  background: none; border: none; padding: 24px 28px; color: var(--fg-1);
+  font-family: var(--font-display); font-weight: 500; font-size: 20px; line-height: 1.3;
+}
+.co-q__head .csa-mono { color: var(--gold-400); font-size: 12px; flex: none; }
+.co-q__q { flex: 1; }
+.co-q__toggle { flex: none; width: 30px; height: 30px; border-radius: var(--r-sm); border: 1px solid var(--border-1); display: flex; align-items: center; justify-content: center; color: var(--fg-2); transition: all var(--dur) var(--ease-out); }
+.co-q__toggle i { width: 17px; height: 17px; transition: transform var(--dur) var(--ease-out); }
+.co-q.is-open .co-q__toggle { border-color: var(--border-gold); color: var(--gold-400); }
+.co-q.is-open .co-q__toggle i { transform: rotate(180deg); }
+.co-q__body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-slow) var(--ease-out); }
+.co-q.is-open .co-q__body { grid-template-rows: 1fr; }
+.co-q__bodywrap { overflow: hidden; }
+.co-q__a { padding: 0 28px 26px 70px; margin: 0; font-size: 15.5px; line-height: 1.7; color: var(--fg-2); }
+
+/* ============================================================
+   8 · Closing CTA
+   ============================================================ */
+.co-close { position: relative; overflow: hidden; text-align: center; padding: 96px 40px; background: var(--bg-base-2); border-top: 1px solid var(--border-2); }
+.co-close__haze { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(50% 110% at 50% 0%, rgba(52,70,94,0.30) 0%, rgba(13,18,26,0) 64%); }
+.co-close__inner { position: relative; z-index: 2; max-width: 660px; margin: 0 auto; }
+.co-close .csa-eyebrow { display: block; margin: 0 0 16px; }
+.co-close__title { margin: 0 0 16px; font-size: clamp(30px, 3.4vw, 44px); }
+.co-close__sub { margin: 0 0 30px; color: var(--fg-2); }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1080px) {
+  .co-ind__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 920px) {
+  .co-hero { padding-top: 140px; }
+  .co-hero__inner { grid-template-columns: 1fr; gap: 48px; }
+  .co-hud { max-width: 480px; justify-self: stretch; }
+  .co-facts__grid { grid-template-columns: 1fr; }
+  .co-about__grid { grid-template-columns: 1fr; gap: 40px; }
+  .co-opts__grid { grid-template-columns: 1fr; }
+  .co-cap__grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .co-sec { padding: 72px 22px; }
+  .co-hero { padding: 128px 22px 76px; }
+  .co-ind__grid { grid-template-columns: 1fr; }
+  .co-q__head { font-size: 17px; padding: 20px; gap: 12px; }
+  .co-q__a { padding: 0 20px 22px 20px; }
+}

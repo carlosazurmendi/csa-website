@@ -1,0 +1,14 @@
+/* Frontend-only base overrides (mirrors the inline rules from the prototype's
+   Home.html). Loaded after the CSA design-system stylesheets so tokens resolve. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+}
+/* Trim decorative bleed (shader glow) without creating a scroll container, so
+   the sticky nav keeps working. */
+html,
+body {
+  overflow-x: clip;
+}

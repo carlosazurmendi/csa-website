@@ -1,0 +1,502 @@
+/* ============================================================
+   CSA — Critical Systems Analysis
+   Design System · Foundations: Color + Type + Space
+   ------------------------------------------------------------
+   v2 — REFINED DARK BRUTALISM
+   Engineering-brutalist evolution of the cinematic CSA system:
+   the same dark navy-charcoal base and single muted-gold accent,
+   now structured with exposed blueprint grids, raw border
+   contrast, hard offset shadows, monospace data-labels, and
+   registration-mark detailing. Metal is a real material here —
+   Paper "liquid-metal" outlines (csa-shaders.js) sit alongside
+   the CSS gold-foil sheen as the premium framing system.
+   Token + class NAMES are preserved for backward compatibility.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ---------- Surfaces (dark-first) ---------- */
+  --bg-base:      #0A0E14;  /* page background, deepest */
+  --bg-base-2:    #0D121A;  /* secondary panels */
+  --bg-elevated:  #12171F;  /* raised surface */
+  --bg-elevated-2:#171D27;  /* raised surface, hover */
+  --bg-ink:       #05070B;  /* darkest — brutalist blocks, intro */
+  --bg-glass:        rgba(255, 255, 255, 0.035);
+  --bg-glass-hover:  rgba(255, 255, 255, 0.06);
+
+  /* Atmospheric haze used in radial glows / shader colours */
+  --haze-blue:  #243246;
+  --haze-steel: #34465E;
+
+  /* ---------- Brand accent: muted gold ---------- */
+  --gold-300: #EACD6A;
+  --gold-400: #DDBB6B;
+  --gold-500: #C6A256;  /* PRIMARY brand accent */
+  --gold-600: #A8853F;
+  --gold-700: #7E6330;
+  --gold-rgb: 198, 162, 86; /* @kind color */
+
+  /* Chrome / silver — the second material (liquid metal kin) */
+  --silver-300: #E6EBF2;
+  --silver-500: #AEB7C4;
+  --silver-700: #6E7886;
+
+  /* ---------- Foreground / text ---------- */
+  --fg-1: #F4F6F8;
+  --fg-2: #A6ADB8;
+  --fg-3: #6E7682;
+  --fg-4: #4A515C;
+  --fg-on-gold: #0A0E14;
+
+  /* ---------- Borders / hairlines ---------- */
+  --border-1: rgba(255, 255, 255, 0.10);
+  --border-2: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-gold: rgba(var(--gold-rgb), 0.50);
+  /* Brutalist border weights — raw, exposed structure */
+  --bw-hair: 1px;
+  --bw-bold: 2px;
+  --bw-heavy: 3px;
+  --rule: 1px solid var(--border-1);
+  --rule-bold: var(--bw-bold) solid var(--border-strong);
+
+  /* ---------- Semantic / safety status ---------- */
+  --status-safe:     #5DB088;
+  --status-warn:     #D9A441;
+  --status-critical: #CB5B4E;
+  --status-info:     #5E8FCB;
+  --status-safe-bg:     rgba(93, 176, 136, 0.12);
+  --status-warn-bg:     rgba(217, 164, 65, 0.12);
+  --status-critical-bg: rgba(203, 91, 78, 0.12);
+  --status-info-bg:     rgba(94, 143, 203, 0.12);
+
+  /* ---------- Radii (brutalist: crisp, near-square) ---------- */
+  --r-xs: 1px;
+  --r-sm: 2px;
+  --r-md: 3px;
+  --r-lg: 4px;
+  --r-xl: 8px;
+  --r-2xl: 12px;
+  --r-pill: 999px;
+
+  /* ---------- Spacing scale (4px base) ---------- */
+  --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;  --sp-4: 16px;  --sp-5: 24px;
+  --sp-6: 32px;  --sp-7: 48px;  --sp-8: 64px;  --sp-9: 96px;  --sp-10: 128px;
+
+  /* ---------- Elevation / shadow ---------- */
+  --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.42);
+  --shadow-pop:  0 18px 50px rgba(0, 0, 0, 0.55);
+  /* Brutalist HARD offset shadows — no blur, structural */
+  --shadow-hard:      6px 6px 0 var(--bg-ink);
+  --shadow-hard-gold: 5px 5px 0 rgba(var(--gold-rgb), 0.85);
+  --shadow-hard-sm:   3px 3px 0 var(--bg-ink);
+  --glow-gold:   0 0 24px rgba(var(--gold-rgb), 0.18);
+  --ring-gold:   0 0 0 var(--bw-bold) rgba(var(--gold-rgb), 0.55);
+  --inset-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* ---------- Blueprint grid (exposed structure) ---------- */
+  --grid-line: rgba(255, 255, 255, 0.035); /* @kind color */
+  --grid-size: 56px; /* @kind spacing */
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);          /* @kind other */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);      /* @kind other */
+  --ease-brute: cubic-bezier(0.7, 0, 0.2, 1); /* @kind other */
+  --dur-fast: 140ms; /* @kind other */
+  --dur: 260ms;      /* @kind other */
+  --dur-slow: 520ms; /* @kind other */
+
+  /* ---------- Type families ---------- */
+  --font-display: 'Archivo', 'Helvetica Neue', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* ---------- Type scale (fluid) ---------- */
+  --t-mega: clamp(64px, 12vw, 184px); /* @kind font */
+  --t-display: clamp(48px, 7vw, 96px); /* @kind font */
+  --t-h1: clamp(40px, 5vw, 66px);   /* @kind font */
+  --t-h2: clamp(30px, 3.4vw, 46px); /* @kind font */
+  --t-h3: 28px;   /* @kind font */
+  --t-h4: 21px;   /* @kind font */
+  --t-lead: clamp(18px, 1.5vw, 21px); /* @kind font */
+  --t-body: 17px;  /* @kind font */
+  --t-small: 14px; /* @kind font */
+  --t-xs: 12px;    /* @kind font */
+  --t-eyebrow: 13px; /* @kind font */
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+.csa, .csa-root {
+  background: var(--bg-base);
+  color: var(--fg-2);
+  font-family: var(--font-body);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Headings / display (heavier, brutalist) ---------- */
+.csa-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--t-display);
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--fg-1);
+  text-wrap: balance;
+}
+.csa-mega {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--t-mega);
+  line-height: 0.84;
+  letter-spacing: -0.04em;
+  color: var(--fg-1);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.csa-h1 { font-family: var(--font-display); font-weight: 800; font-size: var(--t-h1); line-height: 0.98; letter-spacing: -0.025em; color: var(--fg-1); text-wrap: balance; }
+.csa-h2 { font-family: var(--font-display); font-weight: 700; font-size: var(--t-h2); line-height: 1.02; letter-spacing: -0.02em; color: var(--fg-1); text-wrap: balance; }
+.csa-h3 { font-family: var(--font-display); font-weight: 700; font-size: var(--t-h3); line-height: 1.12; letter-spacing: -0.015em; color: var(--fg-1); }
+.csa-h4 { font-family: var(--font-body); font-weight: 600; font-size: var(--t-h4); line-height: 1.3; color: var(--fg-1); }
+
+/* Outlined / stroked display — raw brutalist headline variant */
+.csa-stroke {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--fg-2);
+  text-stroke: 1.5px var(--fg-2);
+}
+.csa-stroke-gold { -webkit-text-stroke-color: var(--gold-500); text-stroke-color: var(--gold-500); }
+
+/* ---------- Eyebrow / kicker (metallic gold) ---------- */
+.csa-eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--t-eyebrow);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-500);
+}
+
+/* ---------- Mono data-label / registration tag ---------- */
+/* The signature brutalist metadata chip: 01 / SAFETY · square,
+   mono, wide-tracked, hairline-boxed. */
+.csa-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-weight: 500;
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--fg-3); border: var(--bw-hair) solid var(--border-1);
+  border-radius: var(--r-sm); padding: 5px 9px; background: var(--bg-base-2);
+}
+.csa-tag--gold { color: var(--gold-400); border-color: var(--border-gold); }
+.csa-tag__idx { color: var(--gold-500); font-weight: 600; }
+
+/* ============================================================
+   Metallic gold — animated sheen (CSS material).
+   Pairs with the WebGL liquid-metal outlines from csa-shaders.js;
+   used standalone where a shader canvas is overkill.
+   ============================================================ */
+:root {
+  --gold-foil: linear-gradient(100deg,
+    #8C6C32 0%, #C6A256 22%, #F4E4A6 48%, #C6A256 74%, #8C6C32 100%); /* @kind other */
+  --silver-foil: linear-gradient(100deg,
+    rgba(150,160,176,0.30) 0%, rgba(214,222,232,0.55) 20%, rgba(255,255,255,0.92) 38%,
+    rgba(190,200,214,0.45) 52%, rgba(255,255,255,0.85) 70%, rgba(150,160,176,0.30) 100%); /* @kind other */
+}
+@keyframes csa-gold-sheen { 0% { background-position: 0% 50%; } 100% { background-position: -200% 50%; } }
+.csa-gold-shimmer {
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: csa-gold-sheen 5.5s linear infinite;
+}
+.csa-gold-foil { background-image: var(--gold-foil); background-size: 200% 100%; animation: csa-gold-sheen 5.5s linear infinite; }
+.csa-eyebrow {
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: csa-gold-sheen 5.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) :is(.csa-gold-shimmer, .csa-gold-foil, .csa-eyebrow) { animation: none; } }
+
+@keyframes csa-gold-glow-pulse {
+  0%, 100% { box-shadow: 0 0 14px rgba(var(--gold-rgb), 0.12); }
+  50%      { box-shadow: 0 0 30px rgba(var(--gold-rgb), 0.30); }
+}
+.csa-gold-ring { position: relative; animation: csa-gold-glow-pulse 4s var(--ease-in-out) infinite; }
+.csa-gold-ring::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  animation: csa-gold-sheen 5.5s linear infinite; pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-csa-motion]) :is(.csa-gold-ring, .csa-gold-ring::before) { animation: none; }
+  html:not([data-csa-motion]) .csa-gold-ring { box-shadow: var(--ring-gold), var(--glow-gold); }
+}
+
+/* ============================================================
+   Buttons — ROUNDED pills, metallic sheen + glow. No cursor-
+   magnetic pull. Gold/silver edges can be upgraded from the CSS
+   foil to the live liquid-metal shader with data-metal="gold|silver".
+   ============================================================ */
+.csa-btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--font-body); font-weight: 700; font-size: 14px;
+  letter-spacing: 0.01em;
+  border-radius: var(--r-pill); border: 1px solid transparent; cursor: pointer;
+  white-space: nowrap; padding: 13px 26px;
+  transition: box-shadow var(--dur) var(--ease-out), transform var(--dur-fast) var(--ease-out),
+              background var(--dur) var(--ease-out), color var(--dur) var(--ease-out), filter var(--dur) var(--ease-out);
+}
+.csa-btn svg, .csa-btn i { width: 16px; height: 16px; }
+
+/* Primary — gold edge (CSS foil by default; liquid-metal with data-metal),
+   soft gold glow, travelling sheen. */
+.csa-btn-pill {
+  position: relative; background: var(--bg-base); color: var(--gold-400);
+  border-color: var(--border-gold); box-shadow: var(--glow-gold);
+}
+.csa-btn-pill::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  animation: csa-gold-sheen 5.5s linear infinite; pointer-events: none; z-index: 1;
+}
+.csa-btn-pill > * { position: relative; z-index: 2; }
+.csa-btn-pill:hover { color: var(--gold-300); box-shadow: 0 0 34px rgba(var(--gold-rgb), 0.4); }
+.csa-btn-pill:hover::before { animation: csa-gold-sheen 0.7s linear 1 forwards; }
+.csa-btn-pill:active { transform: scale(0.97); }
+/* The classic metallic OUTLINES bracket the liquid-metal ring (applied once the
+   shader paints, via .csa-metal-on): a 1px border just OUTSIDE the ring (here) +
+   a 1px hairline just INSIDE it (.csa-metal-on::before, below). The animated CSS
+   foil is the no-WebGL fallback, shown only while .csa-metal-on is absent. */
+.csa-btn.csa-metal-on { border-color: var(--gold-500); }
+.csa-btn[data-metal="silver"].csa-metal-on { border-color: var(--silver-500); }
+
+/* Solid — gold-foil fill, travelling sheen + cursor-tracked shine, soft glow */
+.csa-btn-fill {
+  position: relative; overflow: hidden; isolation: isolate; color: var(--fg-on-gold);
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  animation: csa-gold-sheen 5.5s linear infinite; border-color: var(--gold-600);
+  box-shadow: var(--glow-gold);
+}
+.csa-btn-fill > * { position: relative; z-index: 2; }
+.csa-btn-fill::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: radial-gradient(150px circle at var(--mx, 50%) var(--my, 50%), rgba(255,247,219,0.6), rgba(255,247,219,0) 62%);
+  opacity: 0; transition: opacity 0.25s var(--ease-out);
+}
+.csa-btn-fill:hover::after { opacity: 1; }
+.csa-btn-fill:hover { box-shadow: 0 0 30px rgba(var(--gold-rgb), 0.42); filter: brightness(1.06); }
+.csa-btn-fill:active { filter: brightness(0.94); transform: scale(0.97); }
+
+/* Ghost — glass pill, light glint on hover */
+.csa-btn-ghost {
+  position: relative; overflow: hidden; background: var(--bg-glass);
+  border: 1px solid var(--border-1); color: var(--fg-1);
+}
+.csa-btn-ghost:hover { border-color: var(--border-strong); background: var(--bg-glass-hover); }
+.csa-btn-ghost:active { transform: scale(0.97); }
+.csa-btn-ghost::before {
+  content: ""; position: absolute; top: 0; left: -70%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.20), transparent);
+  transform: skewX(-20deg); pointer-events: none;
+}
+.csa-btn-ghost:hover::before { animation: csa-glint 0.7s var(--ease-out) 1; }
+@keyframes csa-glint { from { left: -70%; } to { left: 130%; } }
+
+/* Text link + arrow */
+.csa-btn-link {
+  background: none; border: none; color: var(--fg-1); padding: 10px 2px;
+  font-family: var(--font-body); font-weight: 700; font-size: 14px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.csa-btn-link:hover { color: var(--gold-400); }
+.csa-btn-link i, .csa-btn-link svg { width: 16px; height: 16px; transition: transform var(--dur) var(--ease-out); }
+.csa-btn-link:hover i, .csa-btn-link:hover svg { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) :is(.csa-btn-pill::before, .csa-btn-fill) { animation: none; } }
+
+/* ============================================================
+   Frosted glass card + brushed-silver sheen outline + 3D tilt
+   (kept; corners crisped to the brutalist radius)
+   ============================================================ */
+.csa-tilt-scene { perspective: 1100px; }
+.csa-glass {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 24px rgba(255,255,255,0.02);
+}
+.csa-glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background-image: var(--silver-foil); background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  animation: csa-gold-sheen 8s linear infinite; pointer-events: none; z-index: 1;
+}
+.csa-tilt {
+  transform: rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg));
+  transform-style: preserve-3d; transition: transform 0.3s var(--ease-out); will-change: transform;
+}
+.csa-tilt::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.16), rgba(255,255,255,0) 60%);
+  opacity: 0; transition: opacity 0.3s var(--ease-out);
+}
+.csa-tilt:hover::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .csa-glass::before { animation: none; } html:not([data-csa-motion]) .csa-tilt { transition: none; } }
+
+/* ============================================================
+   Brutalist structure — frames, brackets, grid, dividers
+   ============================================================ */
+/* Raw bordered card with hard offset shadow */
+.csa-block {
+  position: relative; background: var(--bg-elevated);
+  border: var(--bw-bold) solid var(--border-strong); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-hard); transition: transform var(--dur) var(--ease-brute), box-shadow var(--dur) var(--ease-brute), border-color var(--dur) var(--ease-out);
+}
+.csa-block--gold { border-color: var(--border-gold); box-shadow: var(--shadow-hard-gold); }
+.csa-block.csa-block--hover:hover { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--bg-ink); border-color: var(--gold-600); }
+
+/* Corner registration brackets — engineering frame motif */
+.csa-bracket { position: relative; }
+.csa-bracket::before, .csa-bracket::after {
+  content: ""; position: absolute; width: 14px; height: 14px; pointer-events: none;
+  border: var(--bw-bold) solid var(--gold-500);
+}
+.csa-bracket::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+.csa-bracket::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+/* Exposed blueprint grid background */
+.csa-grid-bg {
+  background-image:
+    linear-gradient(var(--grid-line) var(--bw-hair), transparent var(--bw-hair)),
+    linear-gradient(90deg, var(--grid-line) var(--bw-hair), transparent var(--bw-hair));
+  background-size: var(--grid-size) var(--grid-size);
+}
+
+/* Structural divider with a mono label notch */
+.csa-divider { display: flex; align-items: center; gap: 16px; color: var(--fg-3); }
+.csa-divider::before, .csa-divider::after { content: ""; height: var(--bw-hair); background: var(--border-1); flex: 1; }
+.csa-divider__label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-3); white-space: nowrap; }
+
+/* ---------- Metal / pulse helper wrappers (csa-shaders.js) ---------- */
+/* Host for a masked liquid-metal ring outline; the canvas sits
+   absolutely inside via <csa-liquid-metal ring>. */
+.csa-metal-frame { position: relative; border-radius: var(--r-lg); }
+.csa-metal-frame > csa-liquid-metal { position: absolute; inset: 0; border-radius: inherit; z-index: 1; }
+.csa-metal-frame > :not(csa-liquid-metal) { position: relative; z-index: 2; }
+/* Host for a pulsing-border shader behind content */
+.csa-pulse-frame { position: relative; }
+.csa-pulse-frame > csa-pulsing-border { position: absolute; inset: -10%; z-index: 0; }
+.csa-pulse-frame > :not(csa-pulsing-border) { position: relative; z-index: 1; }
+
+/* ---------- data-metal : live liquid-metal edge on any element ----------
+   Add data-metal="gold" or data-metal="silver" and csa-shaders.js injects
+   a masked <csa-liquid-metal ring> as the element's animated metallic
+   border (replacing/over the CSS foil). Optional data-metal-thickness.
+   GPU note: each instance is one WebGL context — use on hero/feature
+   elements & primary controls, not on every item in a dense list. */
+[data-metal] { position: relative; }
+[data-metal] > csa-liquid-metal { position: absolute; inset: 0; border-radius: inherit; z-index: 0; pointer-events: none; }
+[data-metal] > :not(csa-liquid-metal) { position: relative; z-index: 1; }
+/* When the liquid-metal ring paints (.csa-metal-on), the element's ::before is
+   re-cast as its RESPECTIVE foil HAIRLINE — the outer outline — for buttons AND
+   cards AND any other host alike. It sits just above the ring (z-index:2 > ring
+   z-index:0) and is masked to a 1px border band, so the foil reads as the
+   outermost line with the liquid metal directly inside it. Gold hosts get
+   gold-foil; silver/glass hosts get silver-foil. (When .csa-metal-on is absent —
+   no WebGL — each element's own ::before foil remains the fallback edge.) */
+.csa-metal-on::before {
+  content: ""; display: block; position: absolute; inset: 0; z-index: 4;
+  border-radius: inherit; padding: 1px;
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  animation: csa-gold-sheen 8s linear infinite; pointer-events: none;
+}
+/* Silver / frosted-glass hosts → silver foil. */
+.csa-glass.csa-metal-on::before,
+[data-metal="silver"].csa-metal-on::before,
+.btn--silver-pill.csa-metal-on::before {
+  background-image: var(--silver-foil);
+}
+/* …but an explicitly GOLD host wins even when it is also .csa-glass
+   (e.g. the Services accordion item open with a gold ring). */
+[data-metal="gold"].csa-metal-on::before {
+  background-image: var(--gold-foil);
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-csa-motion]) .csa-metal-on::before { animation: none; }
+}
+
+/* Some hosts carry a JSX-declared liquid-metal ring that never receives the
+   .csa-metal-on class (data-no-lazy, React-owned) AND place that ring at a high
+   z-index (e.g. carousel cards put it at z-index:3 to clear cover art) — which
+   would bury the foil. Detect the ring as a direct child and lift the host's
+   foil hairline above it, so the foil reads as the outer outline regardless of
+   the class. Gold-tinted rings get the gold foil; the rest keep their own. */
+.csa-glass:has(> csa-liquid-metal[ring])::before,
+[data-metal]:has(> csa-liquid-metal[ring])::before { display: block; z-index: 6; }
+:has(> csa-liquid-metal[ring][tint="#F4D585"])::before { background-image: var(--gold-foil); }
+
+/* ============================================================
+   Marquee / ticker strip (brutalist standards crawl)
+   ============================================================ */
+.csa-marquee {
+  border-top: var(--rule); border-bottom: var(--rule);
+  background: var(--bg-base-2); overflow: hidden; display: flex; align-items: center;
+}
+.csa-marquee__track { display: flex; align-items: center; flex: none; animation: csa-marquee 30s linear infinite; }
+.csa-marquee:hover .csa-marquee__track { animation-play-state: paused; }
+.csa-marquee__item { display: inline-flex; align-items: center; gap: 22px; padding: 16px 22px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.04em; color: var(--fg-2); }
+.csa-marquee__item .dot { color: var(--gold-500); }
+@keyframes csa-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .csa-marquee__track { animation: none; } }
+
+/* ============================================================
+   Motion utilities (wired by interactions.js)
+   ============================================================ */
+/* Scroll reveal — base hidden state; .is-in flips to visible */
+[data-reveal] { opacity: 0; transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out), clip-path var(--dur-slow) var(--ease-out); will-change: opacity, transform; }
+[data-reveal="up"]    { transform: translateY(28px); }
+[data-reveal="down"]  { transform: translateY(-28px); }
+[data-reveal="left"]  { transform: translateX(34px); }
+[data-reveal="right"] { transform: translateX(-34px); }
+[data-reveal="scale"] { transform: scale(0.94); }
+[data-reveal="clip"]  { clip-path: inset(0 100% 0 0); opacity: 1; }
+[data-reveal].is-in { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-csa-motion]) [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
+}
+
+/* Magnetic + parallax read transforms from JS vars */
+[data-magnetic] { transition: transform 0.18s var(--ease-out); will-change: transform; }
+
+/* ---------- Body copy ---------- */
+.csa-lead { font-size: var(--t-lead); line-height: 1.5; color: var(--fg-2); }
+.csa-body { font-size: var(--t-body); line-height: 1.6; color: var(--fg-2); }
+.csa-small { font-size: var(--t-small); line-height: 1.5; color: var(--fg-3); }
+
+/* ---------- Mono / technical ---------- */
+.csa-mono { font-family: var(--font-mono); font-weight: 500; font-size: var(--t-small); letter-spacing: 0.01em; color: var(--fg-2); }
+.csa-code {
+  font-family: var(--font-mono); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--gold-400);
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  animation: csa-gold-sheen 5.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .csa-code { animation: none; } }

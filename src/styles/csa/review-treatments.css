@@ -1,0 +1,320 @@
+/* ============================================================
+   CSA — teammate review treatments (Carlos pass)
+   Layered over the section CSS (loaded LAST so these win). Live
+   WebGL shaders — liquid metal (data-metal), grain (<csa-grain>),
+   neon glow — are applied in the components; this sheet covers the
+   CSS-side treatments: frosted-glass button faces, hover neon glow,
+   the partners grid + soft glows, the 3D-tilt fix, the hero word
+   treatment, and colour swaps.
+   ============================================================ */
+
+/* ---- Hero "Innovation": gold-foil outline + frosted-glass fill ---- */
+.vhero__title .csa-gold-shimmer {
+  background: none !important;
+  -webkit-text-fill-color: rgba(236, 240, 245, 0.13) !important;
+  color: rgba(236, 240, 245, 0.13) !important;
+  -webkit-text-stroke: 1.6px var(--gold-500);
+  text-stroke: 1.6px var(--gold-500);
+  paint-order: stroke fill;
+  filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.4));
+  animation: none !important;
+}
+
+/* ---- Frosted-glass button face (edge = data-metal="gold" liquid metal) ---- */
+.rv-glass-btn {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  color: var(--gold-300) !important;
+  border: 1px solid var(--border-gold);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+.rv-glass-btn:hover { color: #fff !important; }
+
+/* Services "See All Services": gold glow on hover, no text-color change. */
+.sv__cta-row .rv-glass-btn { transition: box-shadow 0.4s var(--ease-out); }
+.sv__cta-row .rv-glass-btn:hover {
+  color: var(--gold-300) !important;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 24px rgba(var(--gold-rgb), 0.45) !important;
+}
+
+/* ---- Neon glow border on hover (high-tech pulsing affordance) ----
+   The Problem solution items get the REAL neon pulsing-border WebGL shader
+   mounted on hover (problem.jsx) with their own border dropped, so they are
+   excluded here. The CSS box-shadow glow below stays for the other targets.
+   NOTE: the Standing-apart "How we work" cards (.sa-cell) are intentionally
+   NOT here — they use the silver-foil → liquid-metal treatment below, with a
+   plain brighten on hover and NO coloured glow. */
+.pt-card:hover,
+.rv-neon:hover {
+  border-color: rgba(19, 224, 255, 0.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(45, 108, 255, 0.60),
+    0 0 16px rgba(19, 224, 255, 0.45),
+    0 0 30px rgba(155, 92, 255, 0.30) !important;
+}
+
+/* Services: classic thin silver outline on accordion-item hover (no glow).
+   Tabs get no hover treatment at all. */
+.sv-item:not(.is-open):hover {
+  border-color: rgba(174, 183, 196, 0.55) !important;
+}
+
+/* The active Problem panel gets the real neon pulsing-border MATERIAL (the
+   csa-pulsing-border WebGL shader) mounted ON HOVER by problem.jsx — not a
+   persistent CSS box-shadow glow. At rest it keeps the plain design-system
+   border. */
+
+/* ---- Standing-apart: silver badge edge + gold ring on hover ---- */
+.sa-badge:hover {
+  border-color: var(--border-gold) !important;
+  box-shadow: 0 0 0 1px var(--gold-500), 0 0 22px rgba(var(--gold-rgb), 0.40) !important;
+  transform: translateY(-3px);
+}
+
+/* ---- Standing-apart "How we work" cards (both columns): frosted-glass face
+   with a SILVER-FOIL hairline at rest (.csa-glass::before). On hover they
+   simply BRIGHTEN and a live silver liquid-metal ring mounts (SaCell renders
+   <csa-liquid-metal> only while hovered). No lift, no coloured glow. */
+.sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(10,14,20,0.58) !important;
+  border-color: rgba(174,183,196,0.20) !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+  transition: background 0.4s var(--ease-out), border-color 0.4s var(--ease-out) !important;
+}
+/* Neutralise the new column's old row-hover lift + gold glow (from
+   standing-apart.css). */
+.sa-row:hover .sa-cell.new.csa-glass {
+  transform: none !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+/* Hover ANYWHERE in the row → brighten BOTH cells together (whole-row
+   highlight), no transform, no coloured glow. SaRow mounts the silver
+   liquid-metal ring on both cells while the row is hovered. */
+.sa-row:hover .sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.11), rgba(255,255,255,0.04)), rgba(10,14,20,0.50) !important;
+  border-color: rgba(214,222,232,0.50) !important;
+  transform: none !important;
+}
+/* Keep card content above the injected ring + foil hairline. */
+.sa-cell.csa-glass > .sa-cell__mark,
+.sa-cell.csa-glass > div { position: relative; z-index: 2; }
+/* Old cards used dimmer text (--fg-2/--fg-4); match the new cards so both read
+   light against the darkened frosted glass. */
+.sa-cell.old .sa-cell__t { color: var(--fg-1) !important; }
+.sa-cell.old .sa-cell__d { color: var(--fg-2) !important; }
+
+/* ---- Services: accordion item in focus mounts a SILVER liquid-metal ring
+   (services.jsx, only while open). Its default .csa-glass silver foil is the
+   correct hairline, lifted above the ring by the :has() rule in the tokens
+   sheet — no override needed here. ---- */
+.sv-item.is-open {
+  position: relative;
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* ---- About: callout should read silver, not gold ---- */
+.ab-callout { color: var(--silver-300) !important; border-color: rgba(174,183,196,0.40) !important; }
+.ab-callout__node { background: rgba(174,183,196,0.25) !important; }
+.ab-callout__node::after { background: var(--silver-500) !important; }
+
+/* ---- News: data-reveal / entrance animation pinned `transform`, killing the
+   JS-driven 3D tilt. Drop the entrance pin so the tilt transform owns it. ---- */
+.nw-card {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg)) !important;
+}
+
+/* ---- Partners: blueprint grid + minimal soft neon glows ----
+   The grid + neon spots live on a maskable ::before layer (not the flat .pt
+   background) so they can FADE IN from the top — letting the Case Studies grain
+   above dissolve into the grid here instead of meeting at a hard section seam.
+   The bottom edge mirrors the top: the steel bg-base-2 eases back to bg-base so
+   the Problem section below joins on a gradient, not a hard seam. */
+.pt {
+  background: linear-gradient(to bottom, var(--bg-base) 0%, var(--bg-base-2) 32%, var(--bg-base-2) 74%, var(--bg-base) 100%);
+}
+/* Remove the centered steel-blue glow at the top edge of Trusted By. */
+.pt__haze { display: none; }
+.pt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(440px circle at 16% 26%, rgba(45,108,255,0.07), transparent 60%),
+    radial-gradient(400px circle at 84% 72%, rgba(155,92,255,0.06), transparent 60%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: auto, auto, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+  /* Fade the grid in from the top (Case Studies) AND out toward the bottom so
+     the blueprint lines dissolve into the Problem section below. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
+}
+
+/* ---- Case-study cards: keep the silver liquid-metal edge above the cover
+   image (cover is z-index:1) so a real case-study photo shows in the card AND
+   the metal border stays visible (the ring is masked to the border band, so it
+   never covers the image itself). ---- */
+.cs-card__tilt > csa-liquid-metal { z-index: 3 !important; }
+
+/* ---- Gold/silver kit buttons: keep a crisp 1px metal hairline OUTSIDE the
+   liquid-metal ring once it paints. The kit's .btn--gold-pill misses the design
+   system's `.csa-btn.csa-metal-on` border promotion, so its edge stayed at the
+   dim translucent --border-gold — reading as a 1px "gap" between the element and
+   its metal ring. Promote it to solid gold-500 (silver-500) so the hairline is a
+   deliberate, dark-bg-legible outline with the metal sitting flush against it. */
+.btn--gold-pill.csa-metal-on,
+.btn--gold-solid.csa-metal-on { border-color: var(--gold-500) !important; }
+
+/* The design system's `[data-metal] > :not(csa-liquid-metal){position:relative}`
+   rule (it stacks a metal host's content above the injected ring) overrides the
+   card's absolutely-positioned layers \u2014 collapsing the cover, and the
+   image-slot inside it, to 0 height (no drop target, no image option). Restore
+   the card's intended absolute layering with higher specificity. */
+.cs-card__tilt[data-metal] > .cs-card__cover,
+.cs-card__tilt[data-metal] > .cs-card__scrim { position: absolute; inset: 0; }
+.cs-card__tilt[data-metal] > .cs-card__body { position: absolute; }
+
+/* Same DS rule collapses the About portrait's absolute overlays (cinematic
+   scrim, cursor gloss, name plate, engineering callout) over the photo \u2014
+   restore them so the portrait keeps its grade and badges with the silver edge. */
+.ab-portrait[data-metal] > .ab-portrait__scrim,
+.ab-portrait[data-metal] > .ab-portrait__gloss { position: absolute; inset: 0; }
+.ab-portrait[data-metal] > .ab-portrait__plate,
+.ab-portrait[data-metal] > .ab-callout { position: absolute; }
+
+/* ---- News pulsing-border glow: lazily mounted only while the card is hovered
+   (news.jsx), so it just needs to fade in when it appears. ---- */
+.nw__list csa-pulsing-border { animation: nw-glow-in 0.28s var(--ease-out) both; transition: transform 0.35s var(--ease-out); transform-style: preserve-3d; will-change: transform, opacity; }
+@keyframes nw-glow-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- Grain shader backgrounds sit behind section content ---- */
+.rv-grain { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+/* Fade the Case Studies grain out toward the bottom so it dissolves into the
+   Trusted By grid below instead of stopping at a hard section seam. */
+.cs csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
+}
+.nw > :not(.nw__haze):not(.rv-grain),
+.cs > :not(.cs__haze):not(.rv-grain):not(.cs__ghost),
+.sa > :not(.sa__haze):not(.rv-grain),
+.sv > :not(.sv__haze):not(.rv-grain) { position: relative; z-index: 1; }
+
+/* ---- Blend "What we do" (Services) into "Standing Apart" ----
+   The two sections sat on slightly different base surfaces (--bg-base vs
+   --bg-base-2), leaving a hard seam between them. Run the whole transition
+   THROUGH the bottom of Services so the surface has already eased into
+   --bg-base-2 by the time it reaches the seam — Standing Apart then just
+   continues that surface, so there's no cut at the boundary. Both grains are
+   feathered across the seam so the atmospheres flow together too. */
+.sv {
+  background: linear-gradient(to bottom, var(--bg-base) 0%, var(--bg-base) calc(100% - 300px), var(--bg-base-2) 100%) !important;
+}
+.sa {
+  background: var(--bg-base-2) !important;
+}
+.sv csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+}
+.sa csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
+}
+
+/* ---- Blend "About" into its neighbours (Standing Apart above, Latest News
+   below) ---- About sat on --bg-base while both neighbouring sections sit on
+   --bg-base-2, leaving a hard seam at the top AND bottom edges. Feather the
+   About surface back to --bg-base-2 at each edge so it eases into the same
+   surface its neighbours already carry — the boundaries become gradients,
+   not cuts. */
+.ab {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-base-2) 0%,
+    var(--bg-base) 220px,
+    var(--bg-base) calc(100% - 220px),
+    var(--bg-base-2) 100%
+  ) !important;
+}
+
+/* ---- Carlos: let the Services top glow bleed UP into the Problem section
+   above instead of being clipped at the Services top edge. The grain
+   (.rv-grain) and content are absolutely-positioned inset:0 / inside padding,
+   so they don't spill when .sv stops clipping. Extend the haze element above
+   the section and seat the radial at the seam so it feathers in both
+   directions. ---- */
+.sv { overflow: visible; }
+.sv__haze {
+  inset: -360px 0 0 0;
+  background: radial-gradient(720px 320px at 50% 360px,
+    rgba(52,70,94,0.22) 0%, rgba(10,14,20,0) 70%);
+}
+
+/* ---- Carlos: unify ALL button hovers on the Ghost glass-shimmer glint.
+   Glows are removed (the gold box-shadow glows + the gold-pill glow pulse); every
+   other property is kept — borders, the live liquid-metal rings, gold fills,
+   foil edges, travelling foil sheen, and labels. The glint rides on ::after
+   (::before is reserved for the metal/foil hairline on these buttons);
+   overflow:hidden clips the sweep to each button's shape. Outset card shadows
+   used purely for depth are kept. ---- */
+.btn--gold-pill,
+.btn--silver-pill,
+.btn--gold-solid,
+.rv-glass-btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn--gold-pill::after,
+.btn--silver-pill::after,
+.btn--gold-solid::after,
+.rv-glass-btn::after {
+  content: ""; position: absolute; top: 0; left: -70%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.20), transparent);
+  transform: skewX(-20deg); pointer-events: none; z-index: 2;
+}
+.btn--gold-pill:hover::after,
+.btn--silver-pill:hover::after,
+.btn--gold-solid:hover::after,
+.rv-glass-btn:hover::after { animation: csa-glint 0.7s var(--ease-out) 1; }
+
+/* Slight grow on hover (press-in scale kept below so click feedback survives). */
+.btn--gold-pill:hover,
+.btn--silver-pill:hover,
+.btn--gold-solid:hover,
+.rv-glass-btn:hover { transform: scale(1.035); color: #fff !important; }
+.btn--gold-pill:active,
+.btn--silver-pill:active,
+.btn--gold-solid:active,
+.rv-glass-btn:active { transform: scale(0.98); }
+
+/* Remove the glows (keep borders / liquid metal / fills / sheen). The gold pill
+   loses both its resting glow and its glow-pulse animation; the silver pill and
+   the Services glass button lose their gold hover glow (the glass button keeps
+   its depth + inset card shadow). */
+.btn--gold-pill { box-shadow: none !important; animation: none !important; }
+.btn--gold-pill:hover { box-shadow: none !important; }
+.btn--silver-pill:hover { box-shadow: none !important; }
+.sv__cta-row .rv-glass-btn:hover {
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+
+/* ---- Carlos: the hero headline accent word ("Innovation") italicises on
+   hover. font-style is a discrete swap (can't tween), so a small oblique skew
+   gives a genuinely SMOOTH animated italicisation that also reads as italic. ---- */
+.vhero__title .csa-gold-shimmer {
+  display: inline-block;
+  transform-origin: 0% 100%;
+  transition: transform 0.42s var(--ease-out);
+}
+.vhero__title .csa-gold-shimmer:hover { transform: skewX(-10deg); }
+

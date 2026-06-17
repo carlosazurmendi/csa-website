@@ -1,0 +1,540 @@
+/* ============================================================
+   CSA — Hero with video background + character-selector carousel
+   Tokens from colors_and_type.css; buttons/chips from kit.css.
+   This file owns the .vhero composition only (namespaced to
+   avoid clashing with kit.css's own .hero rules).
+   ============================================================ */
+
+.vhero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 820px;
+  overflow: hidden;
+  background: var(--bg-base);
+  isolation: isolate;
+}
+
+/* ---------- Background video + cinematic grade ---------- */
+.vhero__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: saturate(0.92) contrast(1.04) brightness(0.74);
+}
+/* Protection scrims to seat text + deepen the edges */
+.vhero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.vhero__scrim--v {
+  background:
+    linear-gradient(180deg, rgba(10,14,20,0.86) 0%, rgba(10,14,20,0.18) 26%, rgba(10,14,20,0.20) 64%, rgba(10,14,20,0.94) 100%);
+}
+.vhero__scrim--h {
+  background:
+    linear-gradient(90deg, rgba(10,14,20,0.80) 0%, rgba(10,14,20,0.10) 40%, rgba(10,14,20,0.10) 60%, rgba(10,14,20,0.74) 100%);
+}
+.vhero__scrim--haze {
+  background: radial-gradient(58% 64% at 50% 42%, rgba(52,70,94,0.42) 0%, rgba(13,18,26,0) 60%);
+  mix-blend-mode: screen;
+}
+
+/* Ghost wordmark behind everything — infinite scrolling marquee */
+.vhero__ghost {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.vhero__ghost-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+.vhero__ghost-track span {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: max(60vh, 480px);
+  line-height: 0.78;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.04);
+  white-space: nowrap;
+  padding-right: 0.4em;
+  transform: translateY(0.14em);
+}
+@keyframes vhero-ghost-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ---------- Inner container ---------- */
+.vhero__inner {
+  position: relative;
+  z-index: 5;
+  max-width: 1680px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* ============================================================
+   Left copy column
+   ============================================================ */
+.vhero__copy {
+  position: absolute;
+  top: 21%;
+  left: 48px;
+  width: 430px;
+  z-index: 8;
+}
+.vhero__eyebrow { margin: 0 0 20px; }
+.vhero__title {
+  margin: 0;
+  font-size: clamp(42px, 4.6vw, 70px);
+  text-shadow: 0 2px 30px rgba(0,0,0,0.5);
+}
+.vhero__subhead {
+  margin: 22px 0 0;
+  font-size: 19px;
+  line-height: 1.36;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: var(--fg-1);
+  max-width: 400px;
+}
+.vhero__sub {
+  margin: 16px 0 32px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--fg-2);
+  max-width: 400px;
+}
+.vhero__cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.vhero__standards { display: flex; align-items: center; gap: 14px; margin-top: 38px; }
+.vhero__tick { width: 30px; height: 1px; background: var(--gold-500); flex: none; }
+.vhero__standards-list {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--fg-3); font-size: 12px; flex-wrap: wrap;
+}
+.vhero__standards-list .dot { color: var(--gold-500); }
+
+/* ============================================================
+   Carousel stage
+   ============================================================ */
+.stage {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  perspective: 1700px;
+  perspective-origin: 50% 88%;
+  pointer-events: none;
+}
+.stage__floor {
+  position: absolute;
+  left: 50%; bottom: -34px;
+  width: 820px; height: 180px;
+  transform: translateX(-50%);
+  background: radial-gradient(50% 50% at 50% 50%, rgba(122,150,190,0.26) 0%, rgba(122,150,190,0) 70%);
+  filter: blur(7px);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.char {
+  position: absolute;
+  left: 50%; bottom: 0; top: auto;
+  width: 880px; height: 880px;
+  margin: 0;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+  transition:
+    transform 620ms var(--ease-out),
+    opacity 620ms var(--ease-out),
+    filter 620ms var(--ease-out);
+  will-change: transform, opacity;
+}
+.char__img {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  top: auto;
+  transform: translateX(-50%);
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 26px 50px rgba(0,0,0,0.55));
+  background: transparent;
+}
+
+/* ---------- Nav arrows: Ghost material (.csa-btn-ghost) — glass pill with a
+   white glint sweep on hover. We keep the circular shape, size, dark-glass
+   tint and backdrop blur here, and let .csa-btn-ghost supply the material +
+   shimmer. The old gold-glow hover is dropped (Carlos: use the Ghost hover);
+   only the subtle scale is kept. ---------- */
+.navarrow {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10,14,20,0.50);
+  border: 1px solid var(--border-1);
+  color: var(--fg-1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all var(--dur) var(--ease-out);
+  box-shadow: var(--shadow-card);
+  flex: none;
+}
+.navarrow:hover {
+  transform: scale(1.06);
+}
+.navarrow:active { transform: scale(0.95); }
+.navarrow i { width: 22px; height: 22px; position: relative; z-index: 1; }
+
+/* ============================================================
+   Right slider region — invisible positioning anchor only
+   (no visible container; videos + controls sit in the hero)
+   ============================================================ */
+.vhero__selector {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  overflow: hidden;
+  z-index: 4;
+}
+
+/* the carousel scene, scaled down a touch and lifted toward the region's
+   vertical centre so the full subject stays in view, with the controls below */
+.vhero__selector .stage {
+  inset: 0;
+  perspective-origin: 50% 80%;
+  transform: scale(1.0125) translateY(72px);
+  transform-origin: 50% 100%;
+}
+
+/* ============================================================
+   Bottom full-width standards ticker
+   ============================================================ */
+.vhero__ticker {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 6;
+}
+.vhero__ticker .csa-marquee {
+  background: rgba(10,14,20,0.55);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--border-2);
+  border-bottom: none;
+}
+.vhero__ticker .csa-marquee__item { color: var(--fg-2); font-size: 13px; letter-spacing: 0.04em; }
+.vhero__ticker .csa-marquee__item .dot { color: var(--gold-500); }
+
+/* ============================================================
+   Right dynamic HUD cards
+   ============================================================ */
+.vhud {
+  position: absolute;
+  top: 23%;
+  right: 56px;
+  width: 300px;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  pointer-events: auto;
+}
+.vhud__tag {
+  margin: 0 0 0 24px;
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.vhud__tag::after {
+  content: "";
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(var(--gold-rgb),0.55), rgba(var(--gold-rgb),0));
+}
+
+.vcard {
+  position: relative;
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-card), var(--inset-hairline);
+}
+/* Brushed-silver metallic sheen outline (animated hairline) */
+.vcard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background-image: var(--silver-foil);
+  background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: csa-gold-sheen 8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+/* Pulsing orange wave outer glow (sits behind the card) */
+.vcard__aura {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  animation: vcard-aura-pulse 3.4s var(--ease-in-out) infinite;
+}
+.vcard__aura::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(232, 132, 52, 0.5);
+  animation: vcard-aura-wave 3.4s var(--ease-out) infinite;
+}
+@keyframes vcard-aura-pulse {
+  0%, 100% { box-shadow: 0 0 20px 1px rgba(232,132,52,0.16), 0 0 54px 8px rgba(232,132,52,0.06); }
+  50%      { box-shadow: 0 0 38px 6px rgba(232,132,52,0.42), 0 0 90px 22px rgba(232,132,52,0.16); }
+}
+@keyframes vcard-aura-wave {
+  0%   { opacity: 0.55; transform: scale(1); }
+  70%  { opacity: 0; transform: scale(1.11); }
+  100% { opacity: 0; transform: scale(1.11); }
+}
+/* Engineering leader-line that ties the panel to the subject (signature motif) */
+.vcard__callout {
+  position: absolute;
+  right: 100%;
+  top: 30px;
+  width: 56px;
+  height: 1px;
+  background: linear-gradient(270deg, var(--gold-500), rgba(var(--gold-rgb),0));
+  pointer-events: none;
+}
+.vcard__callout::before {
+  content: "";
+  position: absolute;
+  left: -4px; top: 50%;
+  transform: translateY(-50%);
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-500);
+  background: rgba(10,14,20,0.65);
+  box-shadow: 0 0 8px rgba(var(--gold-rgb),0.4);
+}
+.vcard__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+.vcard__idx {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--gold-400);
+  flex: none;
+}
+.vcard__idx i { font-style: normal; color: var(--fg-4); }
+.vcard__cat {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+  margin: 0;
+}
+.vcard__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 25px;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--fg-1);
+  margin: 0 0 12px;
+}
+.vcard__blurb {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--fg-2);
+  margin: 0;
+  min-height: 4.6em;
+}
+/* Typewriter caret — steady while typing, blinks when finished */
+.vtype-caret {
+  display: inline-block;
+  width: 7px;
+  height: 1.02em;
+  margin-left: 3px;
+  vertical-align: -0.16em;
+  background: var(--gold-400);
+  box-shadow: 0 0 7px rgba(var(--gold-rgb), 0.65);
+  border-radius: 1px;
+}
+.vtype-caret.is-done { animation: vtype-blink 1.05s steps(1) infinite; }
+@keyframes vtype-blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+.vcard__divider { height: 1px; background: var(--border-2); margin: 16px 0; }
+
+.vcard__metric { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.vcard__metric-label { font-size: 12px; color: var(--fg-3); }
+.vcard__metric-val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  background-image: var(--gold-foil);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: csa-gold-sheen 5.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .vcard__metric-val { animation: none; } }
+
+.vcard__std-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin: 0 0 11px;
+}
+.vchips { display: flex; flex-wrap: wrap; gap: 7px; }
+.vchip {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--fg-1);
+  background: rgba(var(--gold-rgb),0.07);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-pill);
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+/* Swap animation keyed to selection index */
+@keyframes vswap {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.vswap { animation: vswap 480ms var(--ease-out) both; }
+@media (prefers-reduced-motion: reduce) { .vswap { animation: none; } }
+
+/* ============================================================
+   Bottom control bar (dots + counter + name)
+   ============================================================ */
+.selbar {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 70px;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  pointer-events: auto;
+}
+.selbar__name {
+  display: flex; align-items: baseline; gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  position: relative;
+  padding: 9px 20px;
+  border-radius: var(--r-pill);
+  background: var(--bg-glass);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-sm), var(--inset-hairline);
+}
+/* Animated brushed-silver metallic outline */
+.selbar__name::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background-image: var(--silver-foil);
+  background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: csa-gold-sheen 8s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) { .selbar__name::before { animation: none; } }
+.selbar__counter { color: var(--gold-400); }
+.selbar__sep { color: var(--fg-4); }
+.selbar__controls { display: flex; align-items: center; gap: 24px; }
+.selbar__dots { display: flex; align-items: center; gap: 10px; }
+.seldot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid var(--border-1);
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--dur) var(--ease-out);
+}
+.seldot:hover { background: rgba(255,255,255,0.30); }
+.seldot.is-on {
+  width: 30px;
+  border-radius: var(--r-pill);
+  background-image: var(--gold-foil);
+  background-size: 200% 100%;
+  border-color: transparent;
+  animation: csa-gold-sheen 5.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .seldot.is-on { animation: none; } }
+
+/* ---------- Entrance ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .vhero__reveal { opacity: 0; transform: translateY(16px); animation: vswap 700ms var(--ease-out) both; }
+  .vhero__reveal--1 { animation-delay: 120ms; }
+  .vhero__reveal--2 { animation-delay: 240ms; }
+  .vhero__reveal--3 { animation-delay: 360ms; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  .vhero__selector { right: 236px; width: 400px; }
+  .vhud { width: 282px; right: 40px; }
+  .vhero__copy { width: 348px; }
+}
+@media (max-width: 900px) {
+  .vhero { height: auto; min-height: 0; padding-bottom: 76px; }
+  .vhero__copy { position: static; width: auto; padding-top: 120px; }
+  .vhero__selector { position: static; width: auto; height: 420px; margin-top: 28px; }
+  .vhud { position: static; width: auto; margin-top: 24px; }
+  .vhero__inner { padding: 0 28px; }
+}

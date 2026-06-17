@@ -1,0 +1,16 @@
+/* ============================================================
+   CSA — post-export design overrides
+   Client-requested tweaks that intentionally deviate from the
+   exported design system. Loaded AFTER csa.bundle.css so these win.
+   Keep the export bundle pristine; put deviations here.
+   ============================================================ */
+
+/* Hero title: uppercase + wider copy column (requested 2026-06-16). */
+.vhero__title {
+  text-transform: uppercase;
+}
+@media (min-width: 1181px) {
+  .vhero__copy {
+    width: 520px;
+  }
+}

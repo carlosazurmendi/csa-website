@@ -1,0 +1,163 @@
+/* ============================================================
+   CSA — Company section styles
+   Pages: Overview (About CSA), Experience, Services, Careers.
+   Builds on industry-page.css (reuses .ip-hero, .ip-hud,
+   .ip-scope, .ip-cap, .ip-close) and adds the company-specific
+   blocks below. Tokens from colors_and_type.css; buttons kit.css.
+   Prefix: .co-
+   ============================================================ */
+
+/* HUD scope rows that carry a short description under the title */
+.co-scope__d { font-size: 12.5px; color: var(--fg-3); line-height: 1.5; margin: 5px 0 0; }
+.co-hero__cta--single { margin-top: 30px; }
+
+/* Hero CTA pair wrapping cleanly */
+.co-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+/* ============================================================
+   Editorial statement (Mission / Philosophy)
+   Sticky label on the left, large prose on the right.
+   ============================================================ */
+.co-statement__grid { display: grid; grid-template-columns: 0.78fr 1.22fr; gap: 64px; align-items: start; }
+.co-statement__head { position: sticky; top: 110px; }
+.co-statement__head .csa-eyebrow { display: block; margin: 0 0 18px; }
+.co-statement__num { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; color: var(--gold-400); margin: 0 0 16px; }
+.co-statement__title { margin: 0; font-size: clamp(26px, 2.6vw, 36px); }
+.co-prose { margin: 0; }
+.co-prose p { margin: 0 0 24px; font-size: clamp(18px, 1.5vw, 22px); line-height: 1.6; color: var(--fg-1); font-weight: 400; }
+.co-prose p:last-child { margin-bottom: 0; }
+.co-prose strong { color: var(--fg-1); font-weight: 600; }
+.co-prose em { font-style: normal; color: var(--gold-300); }
+
+/* Boundary callout — the "we do not write software or code" rule */
+.co-boundary { margin-top: 34px; display: grid; grid-template-columns: 48px 1fr; gap: 20px;
+  padding: 26px 28px; border-radius: var(--r-lg); border: 1px solid var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.05); }
+.co-boundary__icon { width: 48px; height: 48px; border-radius: var(--r-md); border: 1px solid var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.08); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.co-boundary__icon i { width: 22px; height: 22px; }
+.co-boundary__t { font-family: var(--font-display); font-weight: 500; font-size: 19px; color: var(--fg-1); margin: 2px 0 8px; }
+.co-boundary__d { font-size: 14.5px; line-height: 1.62; color: var(--fg-2); margin: 0; }
+
+/* ============================================================
+   Core Values — 2×2 grid
+   ============================================================ */
+.co-values { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.co-value { position: relative; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 32px 32px 34px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+.co-value::before { content: ""; position: absolute; left: 0; top: 28px; bottom: 28px; width: 2px;
+  background: linear-gradient(180deg, var(--gold-500), transparent); opacity: 0.6; }
+.co-value:hover { border-color: var(--border-gold); transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.co-value__top { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+.co-value__icon { width: 46px; height: 46px; flex: none; border-radius: var(--r-md);
+  background: rgba(var(--gold-rgb), 0.08); border: 1px solid var(--border-gold);
+  display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.co-value__icon i { width: 22px; height: 22px; }
+.co-value__n { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; color: var(--fg-4); margin-left: auto; }
+.co-value__t { font-family: var(--font-display); font-weight: 500; font-size: 22px; color: var(--fg-1); margin: 0 0 12px; line-height: 1.16; }
+.co-value__d { font-size: 14.5px; line-height: 1.64; color: var(--fg-2); margin: 0; }
+
+/* ISO 9001 intent note band */
+.co-iso { position: relative; max-width: 1680px; margin: 0 auto; padding: 0 40px 104px; }
+.co-iso__panel { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr; gap: 30px; align-items: center;
+  padding: 38px 42px; border-radius: var(--r-xl); }
+.co-iso__badge { flex: none; width: 78px; height: 78px; border-radius: var(--r-lg); border: 1px solid var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.07); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.co-iso__badge i { width: 34px; height: 34px; }
+.co-iso__eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-400); margin: 0 0 10px; }
+.co-iso__t { font-size: 15.5px; line-height: 1.68; color: var(--fg-2); margin: 0; max-width: 820px; }
+.co-iso__t strong { color: var(--fg-1); font-weight: 600; }
+
+/* ============================================================
+   Case studies — Problem / Solution
+   ============================================================ */
+.co-cases { display: flex; flex-direction: column; gap: 20px; }
+.co-case { position: relative; overflow: hidden; padding: 40px 44px; }
+.co-case__grid { display: grid; grid-template-columns: 64px 1fr; gap: 30px; align-items: start; }
+.co-case__n { font-family: var(--font-display); font-weight: 600; font-size: 40px; line-height: 1;
+  background-image: var(--gold-foil); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; animation: csa-gold-sheen 5.5s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .co-case__n { animation: none; } }
+.co-case__tag { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10.5px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-300); border: 1px solid var(--border-gold);
+  border-radius: var(--r-pill); padding: 6px 13px; margin-bottom: 18px; }
+.co-case__title { font-family: var(--font-display); font-weight: 500; font-size: clamp(22px, 2.2vw, 28px); color: var(--fg-1);
+  margin: 0 0 24px; line-height: 1.2; }
+.co-case__ps { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.co-ps__label { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 12px; }
+.co-ps__label .mark { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.co-ps__label .mark i { width: 12px; height: 12px; }
+.co-ps--problem .co-ps__label { color: var(--status-critical); }
+.co-ps--problem .mark { border: 1px solid var(--status-critical); background: var(--status-critical-bg); color: var(--status-critical); }
+.co-ps--solution .co-ps__label { color: var(--status-safe); }
+.co-ps--solution .mark { border: 1px solid var(--status-safe); background: var(--status-safe-bg); color: var(--status-safe); }
+.co-ps__d { font-size: 14.5px; line-height: 1.68; color: var(--fg-2); margin: 0; }
+
+/* Placeholder / CMS note */
+.co-note { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center;
+  margin-top: 20px; padding: 22px 26px; border-radius: var(--r-lg);
+  border: 1px dashed var(--border-strong); background: var(--bg-base-2); }
+.co-note__icon { width: 40px; height: 40px; flex: none; border-radius: var(--r-md); border: 1px solid var(--border-1);
+  display: flex; align-items: center; justify-content: center; color: var(--fg-3); }
+.co-note__icon i { width: 19px; height: 19px; }
+.co-note__t { font-size: 14px; line-height: 1.6; color: var(--fg-3); margin: 0; }
+.co-note__t b { color: var(--fg-2); font-weight: 600; }
+
+/* ============================================================
+   Engagement models — 2×2 richer cards
+   ============================================================ */
+.co-models { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.co-model { position: relative; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 34px 34px 32px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+.co-model:hover { border-color: var(--border-gold); transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.co-model__top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+.co-model__icon { width: 50px; height: 50px; border-radius: var(--r-md); background: rgba(var(--gold-rgb), 0.08);
+  border: 1px solid var(--border-gold); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.co-model__icon i { width: 24px; height: 24px; }
+.co-model__n { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: var(--fg-4); padding-top: 6px; }
+.co-model__t { font-family: var(--font-display); font-weight: 500; font-size: 23px; color: var(--fg-1); margin: 0 0 13px; line-height: 1.16; }
+.co-model__d { font-size: 14.5px; line-height: 1.66; color: var(--fg-2); margin: 0 0 22px; }
+.co-model__foot { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--border-2);
+  display: flex; align-items: center; gap: 10px; }
+.co-model__best { font-size: 13px; color: var(--fg-3); line-height: 1.5; }
+.co-model__best b { color: var(--fg-2); font-weight: 600; }
+
+/* ============================================================
+   Careers — reason cards reuse .ip-cap. Role cards below.
+   ============================================================ */
+.co-roles { display: flex; flex-direction: column; gap: 14px; }
+.co-role { display: grid; grid-template-columns: 1fr auto; gap: 30px; align-items: center;
+  background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 26px 30px; transition: border-color var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+.co-role:hover { border-color: var(--border-gold); transform: translateY(-2px); box-shadow: var(--shadow-card); }
+.co-role__meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.co-role__chip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.06em; color: var(--fg-3); border: 1px solid var(--border-1); border-radius: var(--r-pill); padding: 5px 12px; }
+.co-role__chip i { width: 13px; height: 13px; }
+.co-role__chip--dept { color: var(--gold-300); border-color: var(--border-gold); }
+.co-role__t { font-family: var(--font-display); font-weight: 500; font-size: 22px; color: var(--fg-1); margin: 0 0 10px; line-height: 1.2; }
+.co-role__d { font-size: 14.5px; line-height: 1.62; color: var(--fg-2); margin: 0; max-width: 640px; }
+.co-role__apply { flex: none; display: inline-flex; align-items: center; gap: 9px; white-space: nowrap; }
+.co-role__apply i { width: 15px; height: 15px; transition: transform var(--dur) var(--ease-out); }
+.co-role:hover .co-role__apply i { transform: translateX(3px); }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 960px) {
+  .co-statement__grid { grid-template-columns: 1fr; gap: 32px; }
+  .co-statement__head { position: static; }
+  .co-values, .co-models { grid-template-columns: 1fr; }
+  .co-case__ps { grid-template-columns: 1fr; gap: 22px; }
+  .co-iso__panel { grid-template-columns: 1fr; gap: 22px; text-align: left; }
+  .co-role { grid-template-columns: 1fr; gap: 22px; align-items: flex-start; }
+}
+@media (max-width: 560px) {
+  .co-iso { padding: 0 22px 72px; }
+  .co-case { padding: 30px 24px; }
+  .co-case__grid { grid-template-columns: 1fr; gap: 16px; }
+  .co-value, .co-model { padding: 26px 24px; }
+}
