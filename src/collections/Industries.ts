@@ -15,6 +15,8 @@ export const Industries: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'order'],
     group: 'Consulting',
+    // Reached via the custom "Pages" sidebar tree (Consulting → each industry).
+    hidden: true,
   },
   access: { read: () => true },
   defaultSort: 'order',

@@ -15,7 +15,7 @@ import type { GlobalConfig } from 'payload'
 export const ResourcesOverview: GlobalConfig = {
   slug: 'resourcesOverview',
   label: 'Resources Overview',
-  admin: { group: 'Pages' },
+  admin: { group: 'Pages', hidden: true },
   access: { read: () => true },
   fields: [
     {

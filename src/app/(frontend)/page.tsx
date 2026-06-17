@@ -35,10 +35,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const payload = await getPayloadClient()
 
-  const [home, industriesRes, servicesRes, partnersRes, articlesRes, caseStudiesRes] = await Promise.all([
+  const [home, industriesRes, servicesRes, customersRes, partnersRes, articlesRes, caseStudiesRes] =
+    await Promise.all([
     payload.findGlobal({ slug: 'homePage', depth: 2 }) as Promise<any>,
     payload.find({ collection: 'industries', sort: 'order', limit: 100, depth: 1 }),
     payload.find({ collection: 'services', sort: 'order', limit: 100, depth: 1 }),
+    payload.find({ collection: 'customers', sort: 'order', limit: 200, depth: 1 }),
     payload.find({ collection: 'partners', sort: 'order', limit: 200, depth: 1 }),
     payload.find({
       collection: 'articles',
@@ -76,13 +78,19 @@ export default async function HomePage() {
     bestFor: d.bestFor,
   }))
 
-  const partnerDocs = partnersRes.docs as any[]
-  const customers = partnerDocs
-    .filter((p) => p.type === 'customer')
-    .map((p) => ({ name: p.name, domain: p.domain, mono: p.mono, logoUrl: mediaUrl(p.logo) }))
-  const partners = partnerDocs
-    .filter((p) => p.type === 'partner')
-    .map((p) => ({ name: p.name, role: p.role, mono: p.mono, domain: p.domain, logoUrl: mediaUrl(p.logo) }))
+  const customers = (customersRes.docs as any[]).map((p) => ({
+    name: p.name,
+    domain: p.domain,
+    mono: p.mono,
+    logoUrl: mediaUrl(p.logo),
+  }))
+  const partners = (partnersRes.docs as any[]).map((p) => ({
+    name: p.name,
+    role: p.role,
+    mono: p.mono,
+    domain: p.domain,
+    logoUrl: mediaUrl(p.logo),
+  }))
 
   const articles = articlesRes.docs.map((a: any) => ({
     category: a.category,

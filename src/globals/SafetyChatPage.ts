@@ -14,7 +14,7 @@ import type { GlobalConfig } from 'payload'
 export const SafetyChatPage: GlobalConfig = {
   slug: 'safetyChatPage',
   label: 'Safety Chat Page',
-  admin: { group: 'Pages' },
+  admin: { group: 'Pages', hidden: true },
   access: { read: () => true },
   fields: [
     {

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { lexicalEditor, FixedToolbarFeature } from '@payloadcms/richtext-lexical'
 import { slugField } from '../fields/slug'
 
 /**
@@ -40,6 +41,15 @@ export const Articles: CollectionConfig = {
     },
     { name: 'excerpt', type: 'textarea' },
     { name: 'heroImage', type: 'upload', relationTo: 'media' },
-    { name: 'body', type: 'richText' },
+    {
+      name: 'body',
+      type: 'richText',
+      label: 'Article body',
+      // Full rich-text editor with a persistent (fixed) toolbar so it's clearly
+      // an editor: headings, lists, links, blockquote, bold/italic, etc.
+      editor: lexicalEditor({
+        features: ({ defaultFeatures }) => [...defaultFeatures, FixedToolbarFeature()],
+      }),
+    },
   ],
 }

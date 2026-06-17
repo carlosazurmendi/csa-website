@@ -95,7 +95,7 @@ const coverIds = [
 ]
 
 // ---- Clear content collections (idempotent) ---------------------------------
-const clearCollections = ['industries', 'services', 'partners', 'articles', 'caseStudies', 'testimonials'] as const
+const clearCollections = ['industries', 'services', 'customers', 'partners', 'articles', 'caseStudies', 'testimonials'] as const
 for (const collection of clearCollections) {
   await payload.delete({ collection, where: { id: { exists: true } } })
 }
@@ -309,15 +309,15 @@ const certPartners = [
 let order = 0
 for (const c of customers) {
   await payload.create({
-    collection: 'partners',
-    data: { name: c.name, type: 'customer', domain: c.domain, mono: c.mono, order: order++ },
+    collection: 'customers',
+    data: { name: c.name, domain: c.domain, mono: c.mono, order: order++ },
   })
 }
 order = 0
 for (const p of certPartners) {
   await payload.create({
     collection: 'partners',
-    data: { name: p.name, type: 'partner', domain: p.domain, mono: p.mono, role: p.role, order: order++ },
+    data: { name: p.name, domain: p.domain, mono: p.mono, role: p.role, order: order++ },
   })
 }
 

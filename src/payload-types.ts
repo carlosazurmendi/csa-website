@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     industries: Industry;
     services: Service;
+    customers: Customer;
     partners: Partner;
     articles: Article;
     caseStudies: CaseStudy;
@@ -94,6 +95,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     industries: IndustriesSelect<false> | IndustriesSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
     partners: PartnersSelect<false> | PartnersSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     caseStudies: CaseStudiesSelect<false> | CaseStudiesSelect<true>;
@@ -313,12 +315,11 @@ export interface Service {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "partners".
+ * via the `definition` "customers".
  */
-export interface Partner {
+export interface Customer {
   id: number;
   name: string;
-  type: 'customer' | 'partner';
   order?: number | null;
   /**
    * e.g. "deere.com" — used to fetch the brand icon.
@@ -329,9 +330,36 @@ export interface Partner {
    */
   mono?: string | null;
   /**
-   * Partner role, e.g. "Certification Partner". (Partners only.)
+   * Optional outbound link.
+   */
+  url?: string | null;
+  /**
+   * Optional uploaded logo (overrides the icon service).
+   */
+  logo?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "partners".
+ */
+export interface Partner {
+  id: number;
+  name: string;
+  order?: number | null;
+  /**
+   * e.g. "Certification Partner", "Technical Collaboration".
    */
   role?: string | null;
+  /**
+   * e.g. "tuv.com" — used to fetch the brand icon.
+   */
+  domain?: string | null;
+  /**
+   * Shown if the icon fails to load, e.g. "TÜV".
+   */
+  mono?: string | null;
   /**
    * Optional outbound link.
    */
@@ -698,6 +726,10 @@ export interface PayloadLockedDocument {
         value: number | Service;
       } | null)
     | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null)
+    | ({
         relationTo: 'partners';
         value: number | Partner;
       } | null)
@@ -898,15 +930,28 @@ export interface ServicesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  name?: T;
+  order?: T;
+  domain?: T;
+  mono?: T;
+  url?: T;
+  logo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "partners_select".
  */
 export interface PartnersSelect<T extends boolean = true> {
   name?: T;
-  type?: T;
   order?: T;
+  role?: T;
   domain?: T;
   mono?: T;
-  role?: T;
   url?: T;
   logo?: T;
   updatedAt?: T;

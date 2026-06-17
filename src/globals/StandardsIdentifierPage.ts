@@ -16,7 +16,7 @@ import type { GlobalConfig } from 'payload'
 export const StandardsIdentifierPage: GlobalConfig = {
   slug: 'standardsIdentifierPage',
   label: 'Standards Identifier Page',
-  admin: { group: 'Pages' },
+  admin: { group: 'Pages', hidden: true },
   access: { read: () => true },
   fields: [
     {

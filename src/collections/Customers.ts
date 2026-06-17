@@ -1,19 +1,18 @@
 import type { CollectionConfig } from 'payload'
 
 /**
- * Certification & technical partners (the Home "Partners" wall).
- * Customer logos live in the separate `customers` ("Trusted By") collection.
+ * "Trusted By" customer logos (the Home customer wall). Separate from the
+ * `partners` collection (certification/technical partners).
  *
- * Brand marks load from the DuckDuckGo icon service by `domain` (the prototype's
- * approach), falling back to the `mono` monogram. An optional uploaded `logo`
- * overrides the icon service when provided.
+ * Brand marks load from the DuckDuckGo icon service by `domain`, falling back to
+ * the `mono` monogram; an optional uploaded `logo` overrides the icon service.
  */
-export const Partners: CollectionConfig = {
-  slug: 'partners',
-  labels: { singular: 'Partner', plural: 'Partners' },
+export const Customers: CollectionConfig = {
+  slug: 'customers',
+  labels: { singular: 'Trusted-by logo', plural: 'Trusted By' },
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'role', 'order'],
+    defaultColumns: ['name', 'order'],
     group: 'Content',
   },
   access: { read: () => true },
@@ -27,23 +26,18 @@ export const Partners: CollectionConfig = {
       ],
     },
     {
-      name: 'role',
-      type: 'text',
-      admin: { description: 'e.g. "Certification Partner", "Technical Collaboration".' },
-    },
-    {
       type: 'row',
       fields: [
         {
           name: 'domain',
           type: 'text',
-          admin: { description: 'e.g. "tuv.com" — used to fetch the brand icon.' },
+          admin: { description: 'e.g. "deere.com" — used to fetch the brand icon.' },
         },
         {
           name: 'mono',
           type: 'text',
           label: 'Monogram fallback',
-          admin: { description: 'Shown if the icon fails to load, e.g. "TÜV".' },
+          admin: { description: 'Shown if the icon fails to load, e.g. "JD".' },
         },
       ],
     },

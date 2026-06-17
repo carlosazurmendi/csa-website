@@ -12,6 +12,8 @@ export const LegalPages: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug'],
     group: 'Pages',
+    // Reached via the custom "Pages" sidebar tree (Legal → each page).
+    hidden: true,
   },
   access: { read: () => true },
   fields: [

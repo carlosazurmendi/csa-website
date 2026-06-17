@@ -11,6 +11,7 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Industries } from './collections/Industries'
 import { Services } from './collections/Services'
+import { Customers } from './collections/Customers'
 import { Partners } from './collections/Partners'
 import { Articles } from './collections/Articles'
 import { CaseStudies } from './collections/CaseStudies'
@@ -50,12 +51,20 @@ export default buildConfig({
     meta: {
       titleSuffix: '— CSA Admin',
     },
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
+    components: {
+      // Custom "Pages" tree mirroring the site hierarchy (collapsible groups).
+      beforeNavLinks: ['/components/admin/PagesNav#PagesNav'],
+    },
   },
   collections: [
     Users,
     Media,
     Industries,
     Services,
+    Customers,
     Partners,
     Articles,
     CaseStudies,
