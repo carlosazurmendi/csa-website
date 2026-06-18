@@ -184,7 +184,7 @@ function Stage({ systems, index }: { systems: HeroSystem[]; index: number }) {
                 poster={sys.posterUrl || ''}
                 muted
                 playsInline
-                preload="auto"
+                preload="metadata"
                 aria-label={sys.name}
               ></video>
             )}
