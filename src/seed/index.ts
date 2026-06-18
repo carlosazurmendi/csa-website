@@ -616,9 +616,9 @@ await payload.updateGlobal({
           name: 'High-Speed Trainset',
           blurb:
             'Mainline and metro rolling stock — signalling, braking, and door control certified across the railway safety lifecycle.',
-          videoUrl: '/assets/sys-2.gif',
-          posterUrl: null,
-          isGif: true,
+          videoUrl: '/assets/sys-2.webm',
+          posterUrl: '/assets/sys-2-fit.png',
+          isGif: false,
           metricLabel: 'Safety Integrity',
           metricValue: 'SIL 4',
           standards: arr(['EN 50126', 'EN 50128', 'IEC 61508']),
