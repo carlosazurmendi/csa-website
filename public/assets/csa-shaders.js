@@ -89,9 +89,14 @@
   (async function loadShaders() {
     var React, createRoot, Paper, h;
     try {
-      React = (await import('https://esm.sh/react@18.3.1')).default;
-      createRoot = (await import('https://esm.sh/react-dom@18.3.1/client')).createRoot;
-      Paper = await import('https://esm.sh/@paper-design/shaders-react?deps=react@18.3.1,react-dom@18.3.1');
+      // Self-hosted bundle (React 18 + react-dom 18 + Paper shaders, prebuilt via
+      // esbuild → /public/assets/shaders-vendor.js). Replaces three cross-origin
+      // esm.sh fetches per load with one cacheable same-origin module, and keeps
+      // this second React fully isolated from the app's bundled React 19.
+      var vendor = await import('/assets/shaders-vendor.js');
+      React = vendor.React;
+      createRoot = vendor.createRoot;
+      Paper = vendor.Paper;
       h = React.createElement;
     } catch (e) {
       // CDN/WebGL unavailable — leave a CSS fallback on every shader host
