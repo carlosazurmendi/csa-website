@@ -8,6 +8,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
 import { Users } from './collections/Users'
+import { Profiles } from './collections/Profiles'
 import { Media } from './collections/Media'
 import { Industries } from './collections/Industries'
 import { Services } from './collections/Services'
@@ -61,6 +62,7 @@ export default buildConfig({
   },
   collections: [
     Users,
+    Profiles,
     Media,
     Industries,
     Services,

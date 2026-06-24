@@ -64,7 +64,7 @@ const userCount = await payload.count({ collection: 'users' })
 if (userCount.totalDocs === 0) {
   await payload.create({
     collection: 'users',
-    data: { email: 'admin@csa.test', password: 'changeme123', name: 'CSA Admin' },
+    data: { email: 'admin@csa.test', password: 'changeme123', name: 'CSA Admin', roles: ['admin'] },
   })
   payload.logger.info('Created admin user admin@csa.test / changeme123')
 } else {

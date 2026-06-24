@@ -126,12 +126,67 @@ drops + re-migrates if you need a clean reset.
 If you later serve CMS images via `next/image` directly from the bucket URL, add the Supabase
 Storage hostname to `images.remotePatterns` in `next.config.mjs`.
 
-## Phase 2 (out of scope here)
+## Phase 2 — Accounts, learning & portal
 
-Phase 2 plugs in where these seams already exist: **Supabase Storage** (flip the `S3_*`
-env vars — no code change), **Supabase Auth** + customer portal, **Stripe**/checkout/cart
-(the Login and Cart UI currently link to `#`), and the **course player / student
-dashboard / quizzes / certificates**. The `templates`, `courses`, `resources`, `events`,
-`freeTrainings`, `teamMembers`, and `jobPostings` collections are introduced as the
-corresponding pages are built out.
-```
+Phase 2 adds end-user accounts, the LMS (courses/lessons/assessments/certificates), and the
+customer portal (orders/entitlements/gated downloads). It is built in checkpoints; this
+section is the standing architecture reference.
+
+### Two separate auth populations (do not conflate)
+
+- **Payload admin** (`/admin`) — the content team. Email/password against Payload's `users`
+  collection. Unchanged. `users` now carries a `roles` field: `admin` (full control),
+  `editor` (content only), `instructor` (courses/lessons/assessments only).
+- **End users** (students/customers) — authenticate via **Supabase Auth**, the identity
+  source of truth. Sign-up / login / password reset / email verification + Google SSO live
+  under `/login`, `/signup`, `/forgot-password`, `/reset-password`; the OAuth/verification/
+  recovery landing is `/auth/callback`; sign-out is `POST /auth/signout`. Session refresh and
+  route-gating for `/dashboard`, `/portal`, `/account`, `/learn`, `/assessment` are handled in
+  `src/middleware.ts` (redirects to `/login?returnTo=…`).
+- Each Supabase user is mirrored into a Payload **`profiles`** row keyed by the Supabase
+  `auth.users.id` (`src/lib/auth.ts → ensureProfile`). All app data references that id.
+  (`profiles`, not `customers` — `customers` is the marketing "Trusted By" logo wall.)
+
+### The RLS ↔ Payload access-control boundary (important)
+
+- **Payload-managed tables** (everything Payload owns, incl. `profiles`, `enrollments`,
+  `lesson_progress`, `assessment_attempts`, `certificates`, `orders`, `entitlements`):
+  **do NOT enable Supabase RLS on these.** Payload's Local API connects with a privileged
+  role and RLS would break it. They are secured by **Payload access control** (API locked to
+  admins) **+ server-mediation**: end users have no Payload session, so every end-user read/
+  write goes through trusted server code (Server Components / route handlers / server actions)
+  that reads the Supabase session and filters strictly by the owning user id. A user can never
+  read another user's data.
+- **Supabase-native objects** — **Storage buckets/objects** (and the `auth` schema) — *do* get
+  **Supabase RLS** policies, as defense-in-depth alongside the server-side entitlement check.
+
+### Secrets
+
+`SUPABASE_SERVICE_ROLE_KEY` and `PAYLOAD_SECRET` are **server-only** and never reach the
+client bundle (the service-role client lives in `src/lib/supabase/admin.ts`, guarded by
+`import 'server-only'`). The browser uses only `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+### Media storage tiers (signed-URL flow)
+
+- **PUBLIC bucket** (`media`) — marketing imagery, thumbnails, partner logos. Public CDN read.
+- **PROTECTED bucket(s)** — course videos, purchased templates, gated resources. Never a
+  public/permanent URL. Server code verifies the requesting user's **entitlement** (enrollment
+  for course video; ownership/order for templates; access rule for gated resources) and only
+  then mints a **short-lived signed URL** via the service-role client. *(Wired in the storage
+  checkpoint.)*
+
+### Migrations
+
+Additive only — never destructive against real data. New collections/fields ship as Payload
+migrations in `src/migrations/` and apply automatically on container boot (`prodMigrations`).
+Locally: `npm run payload migrate` (run under Node 22). Existing rows are backfilled in the
+migration (e.g. `users.roles → ['admin']`, content `_status → 'published'`) so nothing is
+lost or hidden.
+
+### Where Stripe attaches (Phase-2 payment pass — not built yet)
+
+Orders/entitlements are modeled so the portal works and downloads gate **without** any charge
+logic. Cart / express-buy create the order + entitlement(s) server-side; the **Billing**
+section and checkout are a clearly-marked seam. Stripe attaches at: checkout (PaymentIntent),
+the order/entitlement creation point, and a **webhook with signature verification** (the seam
+to build later) that flips an order to paid and grants entitlements.

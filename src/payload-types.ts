@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    profiles: Profile;
     media: Media;
     industries: Industry;
     services: Service;
@@ -92,6 +93,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    profiles: ProfilesSelect<false> | ProfilesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     industries: IndustriesSelect<false> | IndustriesSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
@@ -182,6 +184,10 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name?: string | null;
+  /**
+   * Admin role(s). Controls access across the CMS.
+   */
+  roles: ('admin' | 'editor' | 'instructor')[];
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -200,6 +206,39 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * End-user account mirror (keyed by Supabase auth user id). Managed by server code; not edited by end users directly.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "profiles".
+ */
+export interface Profile {
+  id: number;
+  /**
+   * Supabase auth.users.id (owner key for all app data).
+   */
+  authUserId: string;
+  email?: string | null;
+  fullName?: string | null;
+  company?: string | null;
+  jobTitle?: string | null;
+  country?: string | null;
+  phone?: string | null;
+  /**
+   * Account tier label.
+   */
+  plan?: string | null;
+  /**
+   * First-run onboarding completed.
+   */
+  onboarded?: boolean | null;
+  /**
+   * Sector interests selected during onboarding (Robotics, Rail, …).
+   */
+  tracks?: string[] | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -714,6 +753,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'profiles';
+        value: number | Profile;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -825,6 +868,7 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
+  roles?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -841,6 +885,24 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "profiles_select".
+ */
+export interface ProfilesSelect<T extends boolean = true> {
+  authUserId?: T;
+  email?: T;
+  fullName?: T;
+  company?: T;
+  jobTitle?: T;
+  country?: T;
+  phone?: T;
+  plan?: T;
+  onboarded?: T;
+  tracks?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
