@@ -88,6 +88,25 @@
 
   (async function loadShaders() {
     var React, createRoot, Paper, h;
+
+    /* ---- Mobile: skip WebGL, use the CSS foil/gradient fallback ----
+       Each metal edge / grain / pulsing border is its own WebGL context. The
+       page wires 9+; real phones cap WebGL contexts (~8) on weak GPUs, so the
+       live shaders fail or render glitchy on mobile. The design system is built
+       to degrade to the CSS gold/silver-foil edges + gradient atmosphere, which
+       look metallic, cost nothing, and are reliable. So on phones we keep that
+       fallback instead of mounting WebGL. Buttons/glass keep their CSS foil
+       border (the `.csa-metal-on` class is simply never added); grain hosts get
+       the atmospheric gradient. (Tablets ≥768px still get live shaders.) */
+    if (window.matchMedia && window.matchMedia('(max-width: 767px)').matches) {
+      document.querySelectorAll('csa-grain').forEach(function (el) {
+        el.style.background =
+          'radial-gradient(120% 120% at 50% 0%, var(--haze-blue, #243246) 0%, var(--bg-base, #0A0E14) 60%)';
+      });
+      window.CSAShaders = { ok: false, reason: 'mobile-css-fallback' };
+      return;
+    }
+
     try {
       // Self-hosted bundle (React 18 + react-dom 18 + Paper shaders, prebuilt via
       // esbuild → /public/assets/shaders-vendor.js). Replaces three cross-origin

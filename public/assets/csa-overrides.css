@@ -5,12 +5,10 @@
    Keep the export bundle pristine; put deviations here.
    ============================================================ */
 
-/* Hero title: uppercase + wider copy column (requested 2026-06-16). */
+/* Hero title: uppercase (client request 2026-06-16). The v1 "wider copy
+   column" width override was removed — it pinned .vhero__copy to 520px and
+   conflicted with the v2 hero layout (copy column is 940px in v2), which
+   squeezed the title and clipped it on desktop. v2 hero.css owns the width. */
 .vhero__title {
   text-transform: uppercase;
-}
-@media (min-width: 1181px) {
-  .vhero__copy {
-    width: 520px;
-  }
 }
