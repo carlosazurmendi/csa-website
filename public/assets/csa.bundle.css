@@ -1830,8 +1830,8 @@ button.navx__cart { padding: 0; font: inherit; }
   .vhero {
     height: auto;
     min-height: 100vh;
-    min-height: 100dvh;
-    padding-bottom: 60px;   /* room for the pinned ticker; robot base passes behind it */
+    min-height: 100svh;
+    padding-bottom: 76px;   /* reserve the pinned-ticker band (~54px) + clear gap for the controls; robot base passes behind it */
   }
   .vhero__inner {
     display: grid;
@@ -1850,13 +1850,17 @@ button.navx__cart { padding: 0; font: inherit; }
     position: static;
     width: 100%;
     max-width: none;
-    padding-top: 15dvh;
+    padding-top: 15svh;
     z-index: 8;
   }
   .vhero__title { font-size: clamp(40px, 11vw, 60px); line-height: 1.0; }
   .vhero__subhead { margin-top: 12px; font-size: 15.5px; max-width: none; }
   .vhero__sub { margin: 9px 0 14px; font-size: 13px; line-height: 1.45; max-width: none; }   /* sub text restored on mobile */
-  .vhero__copy { margin-bottom: -11dvh; }   /* pull the carousel block up */
+  /* Vertical rhythm uses svh (static small-viewport height), NOT dvh: dvh
+     recomputes when the mobile URL bar hides on scroll, which made this
+     interlocking composition jump after first paint. svh is fixed, so the
+     layout that's correct at load stays correct on scroll. Keep it svh. */
+  .vhero__copy { margin-bottom: -11svh; }   /* pull the carousel block up */
   .vhero__cta { flex-direction: column; align-items: flex-start; gap: 12px; }
   .vhero__cta .btn--gold-pill { width: auto; }
   .vhero__cta .btn--link { align-self: flex-start; padding-left: 2px; }
@@ -1882,7 +1886,7 @@ button.navx__cart { padding: 0; font: inherit; }
     -webkit-backdrop-filter: blur(14px);
     box-shadow: var(--shadow-sm), var(--inset-hairline);
     z-index: 8;
-    top: 11dvh;   /* keep the badge at its original height while the carousel sits higher */
+    top: 11svh;   /* keep the badge at its original height while the carousel sits higher */
   }
   .vhero__mobbadge-count {
     font-family: var(--font-mono);
@@ -1964,7 +1968,10 @@ button.navx__cart { padding: 0; font: inherit; }
   .vhero__selector .selbar { display: none; }
 
   /* --- Carousel controls (full-width row) --- */
-  .vhero__mobsel { display: block; grid-column: 1 / -1; grid-row: 3; position: relative; z-index: 40; top: 4dvh; }
+  /* No viewport-relative `top` push here: it shoved the controls down past the
+     hero's reserved bottom padding and under the pinned ticker (clipping them).
+     The controls sit at the end of the grid, above the ticker band. */
+  .vhero__mobsel { display: block; grid-column: 1 / -1; grid-row: 3; position: relative; z-index: 40; }
   .vhero__mobsel .selbar {
     position: static;
     left: auto; right: auto; bottom: auto;
@@ -2012,8 +2019,8 @@ button.navx__cart { padding: 0; font: inherit; }
 
 @media (max-width: 560px) {
   .vhero__inner { padding: 0 16px; column-gap: 10px; row-gap: 10px; }
-  .vhero__copy { padding-top: 18dvh; margin-bottom: -13dvh; }
-  .vhero__mobbadge { width: 136px; padding: 12px; top: 13dvh; }
+  .vhero__copy { padding-top: 18svh; margin-bottom: -13svh; }
+  .vhero__mobbadge { width: 136px; padding: 12px; top: 13svh; }
   .vhero__mobbadge-cat { font-size: 10.5px; }
   .vhero__selector { min-height: 200px; }
 }
