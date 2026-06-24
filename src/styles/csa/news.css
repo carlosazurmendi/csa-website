@@ -149,3 +149,20 @@
   .nw-card { padding: 22px; gap: 16px; }
   .nw-card__arrow { width: 40px; height: 40px; }
 }
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Latest News — tilt fix + pulsing-border glow.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.nw-card {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg)) !important;
+}
+.nw__list csa-pulsing-border { animation: nw-glow-in 0.28s var(--ease-out) both; transition: transform 0.35s var(--ease-out); transform-style: preserve-3d; will-change: transform, opacity; }
+@keyframes nw-glow-in { from { opacity: 0; } to { opacity: 1; } }

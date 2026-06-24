@@ -258,3 +258,29 @@
   .ab__body { grid-template-columns: 1fr; gap: 36px; }
   .ab__left { position: static; max-width: 360px; margin: 0 auto; }
 }
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — About — silver callout, portrait overlays, blend.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.ab-callout { color: var(--silver-300) !important; border-color: rgba(174,183,196,0.40) !important; }
+.ab-callout__node { background: rgba(174,183,196,0.25) !important; }
+.ab-callout__node::after { background: var(--silver-500) !important; }
+.ab-portrait[data-metal] > .ab-portrait__scrim,
+.ab-portrait[data-metal] > .ab-portrait__gloss { position: absolute; inset: 0; }
+.ab-portrait[data-metal] > .ab-portrait__plate,
+.ab-portrait[data-metal] > .ab-callout { position: absolute; }
+.ab {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-base-2) 0%,
+    var(--bg-base) 220px,
+    var(--bg-base) calc(100% - 220px),
+    var(--bg-base-2) 100%
+  ) !important;
+}

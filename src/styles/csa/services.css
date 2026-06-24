@@ -273,3 +273,43 @@
   .sv-item__bodyinner { padding: 2px 20px 22px 20px; }
   .sv__tab { padding: 11px 22px; }
 }
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Services — CTA, accordion, section blend.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+/* "See All Services" glass button: gold glow on hover */
+.sv__cta-row .rv-glass-btn { transition: box-shadow 0.4s var(--ease-out); }
+.sv__cta-row .rv-glass-btn:hover {
+  color: var(--gold-300) !important;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 24px rgba(var(--gold-rgb), 0.45) !important;
+}
+/* Accordion: thin silver outline on closed-item hover; open item base */
+.sv-item:not(.is-open):hover { border-color: rgba(174, 183, 196, 0.55) !important; }
+.sv-item.is-open { position: relative; box-shadow: var(--shadow-card) !important; }
+/* Blend Services bottom into Standing Apart; feather grain across the seam */
+.sv {
+  background: linear-gradient(to bottom, var(--bg-base) 0%, var(--bg-base) calc(100% - 300px), var(--bg-base-2) 100%) !important;
+  overflow: visible;
+}
+.sv csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+}
+.sv__haze {
+  inset: -360px 0 0 0;
+  background: radial-gradient(720px 320px at 50% 360px,
+    rgba(52,70,94,0.22) 0%, rgba(10,14,20,0) 70%);
+}
+/* Later override (wins): drop the gold hover glow on the glass button */
+.sv__cta-row .rv-glass-btn:hover {
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}

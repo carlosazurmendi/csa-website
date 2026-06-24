@@ -200,6 +200,20 @@
   .pt-card:hover { transform: none; }
 }
 
+/* ---------- Mobile: logos always in colour, hover interactions removed ---------- */
+@media (max-width: 900px) {
+  /* full colour at rest (no grayscale-until-hover) */
+  .pt-logo__img,
+  .pt-card__logo img { filter: grayscale(0) opacity(1) !important; }
+  .pt-logo__mark { color: var(--gold-400); }
+  .pt-card__mono { color: var(--gold-300); }
+
+  /* neutralise the hover lift / tint / scale so nothing sticks on tap */
+  .pt-logo:hover { transform: none; background: transparent; }
+  .pt-card:hover { transform: none; background: transparent; }
+  .pt-card:hover .pt-card__logo img { transform: none; }
+}
+
 .pt-card__logo {
   width: 46px;
   height: 46px;
@@ -276,4 +290,40 @@
 @media (max-width: 560px) {
   .pt-logos { grid-template-columns: repeat(2, 1fr); }
   .pt-card { width: 100%; max-width: 320px; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Partners / Trusted By — neon hover + blueprint grid.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.pt-card:hover {
+  border-color: rgba(19, 224, 255, 0.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(45, 108, 255, 0.60),
+    0 0 16px rgba(19, 224, 255, 0.45),
+    0 0 30px rgba(155, 92, 255, 0.30) !important;
+}
+.pt {
+  background: linear-gradient(to bottom, var(--bg-base) 0%, var(--bg-base-2) 32%, var(--bg-base-2) 74%, var(--bg-base) 100%);
+}
+.pt__haze { display: none; }
+.pt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(440px circle at 16% 26%, rgba(45,108,255,0.07), transparent 60%),
+    radial-gradient(400px circle at 84% 72%, rgba(155,92,255,0.06), transparent 60%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: auto, auto, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
 }

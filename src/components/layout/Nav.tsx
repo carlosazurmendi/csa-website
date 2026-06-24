@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import type { NavUser } from '@/lib/auth'
 import { MetalEdge } from '@/components/ui/MetalEdge'
 
 export type NavChild = { label: string; href: string; isCTA?: boolean | null }
@@ -19,19 +20,36 @@ type Props = {
   logoAlt?: string
   nav: NavItem[]
   utility: NavUtility
+  user?: NavUser | null
 }
 
+const ACCOUNT_LINKS = [
+  { label: 'Dashboard', href: '/dashboard', icon: 'layout-dashboard' },
+  { label: 'Customer Portal', href: '/portal', icon: 'user-cog' },
+]
+
 /**
- * Global primary navigation. Ported from the prototype's nav.jsx — same markup
- * and class names (.navx*), same scroll-solid behavior and mobile drawer — but
- * the route tree comes from the Payload `header` global and active state is
- * derived from the App Router pathname.
+ * Global primary navigation — ported to the v2 design (nav.css):
+ * animated hamburger↔X, auth-aware right cluster (Login + Book a Consultation
+ * when signed out; account menu when signed in), and the v2 mobile drawer.
+ * Route tree comes from the Payload `header` global; the signed-in user comes
+ * from the Supabase session (resolved server-side in the layout).
  */
-export function Nav({ logoUrl, logoAlt = 'CSA — Critical Systems Analysis', nav, utility }: Props) {
+export function Nav({ logoUrl, logoAlt = 'CSA — Critical Systems Analysis', nav, utility, user }: Props) {
   const pathname = usePathname()
+  const router = useRouter()
   const [solid, setSolid] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openAcc, setOpenAcc] = useState<string | null>(null)
+
+  // Real CMS hrefs win; fall back to the live app routes when the CMS still
+  // holds the Phase-1 "#" placeholders.
+  const real = (href?: string | null, fallback?: string) => (href && href !== '#' ? href : fallback || '#')
+  const loginHref = real(utility.loginHref, '/login')
+  const cartHref = real(utility.cartHref, '/cart')
+  const consultationHref = utility.consultationHref || '#'
+  const loginLabel = utility.loginLabel || 'Login'
+  const consultationLabel = utility.consultationLabel || 'Book a Consultation'
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 24)
@@ -41,7 +59,8 @@ export function Nav({ logoUrl, logoAlt = 'CSA — Critical Systems Analysis', na
   }, [])
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).lucide) (window as any).lucide.createIcons()
+    if (typeof window !== 'undefined' && (window as { lucide?: { createIcons: () => void } }).lucide)
+      (window as { lucide?: { createIcons: () => void } }).lucide!.createIcons()
   })
 
   useEffect(() => {
@@ -51,6 +70,11 @@ export function Nav({ logoUrl, logoAlt = 'CSA — Critical Systems Analysis', na
     }
   }, [mobileOpen])
 
+  // Close the mobile drawer when the route changes.
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
   const isActive = (href: string) => {
     if (!href || href === '#') return false
     if (href === '/') return pathname === '/'
@@ -58,6 +82,15 @@ export function Nav({ logoUrl, logoAlt = 'CSA — Critical Systems Analysis', na
   }
   const branchActive = (item: NavItem) =>
     isActive(item.href) || (item.children || []).some((c) => isActive(c.href))
+
+  const logout = async () => {
+    try {
+      await fetch('/auth/signout', { method: 'POST' })
+    } finally {
+      router.push('/')
+      router.refresh()
+    }
+  }
 
   return (
     <>
@@ -109,33 +142,56 @@ export function Nav({ logoUrl, logoAlt = 'CSA — Critical Systems Analysis', na
           </div>
 
           <div className="navx__right">
-            <a className="navx__login" href={utility.loginHref || '#'}>
-              <i data-lucide="user"></i> {utility.loginLabel || 'Login'}
-            </a>
-            <a className="navx__cart" href={utility.cartHref || '#'} aria-label="Cart">
+            <a className="navx__cart" href={cartHref} aria-label="Cart">
               <i data-lucide="shopping-cart"></i>
               <span className="navx__cart-badge">0</span>
             </a>
-            <MetalEdge as="a" className="btn btn--silver-pill navx__cta" href={utility.consultationHref || '#'} goldOnHover>
-              {utility.consultationLabel || 'Book a Consultation'} <i data-lucide="arrow-right"></i>
-            </MetalEdge>
-            <button className="navx__burger" aria-label="Open menu" onClick={() => setMobileOpen(true)}>
-              <i data-lucide="menu"></i>
-            </button>
+
+            {user ? (
+              <AccountMenu user={user} consultationHref={consultationHref} consultationLabel={consultationLabel} onLogout={logout} />
+            ) : (
+              <>
+                <a className="navx__login" href={loginHref}>
+                  <i data-lucide="user"></i> {loginLabel}
+                </a>
+                <MetalEdge as="a" className="btn btn--silver-pill navx__cta" href={consultationHref} goldOnHover>
+                  {consultationLabel} <i data-lucide="arrow-right"></i>
+                </MetalEdge>
+              </>
+            )}
+
+            {/* Animated hamburger ↔ X (mobile) */}
+            <div
+              className={'navx-hamburger' + (mobileOpen ? ' active' : '')}
+              role="button"
+              tabIndex={0}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((o) => !o)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setMobileOpen((o) => !o)
+                }
+              }}
+            >
+              <div></div>
+            </div>
           </div>
         </div>
       </nav>
 
       {/* Mobile drawer */}
       <div className={'navx-mobile' + (mobileOpen ? ' is-open' : '')}>
-        <button
-          className="navx__burger"
-          style={{ position: 'absolute', top: 22, right: 20 }}
-          aria-label="Close menu"
-          onClick={() => setMobileOpen(false)}
-        >
-          <i data-lucide="x"></i>
-        </button>
+        {user && (
+          <div className="navx-mobile__id">
+            <span className="navx-acct__avatar navx-acct__avatar--lg">{user.initials}</span>
+            <div className="navx-acct__idtext">
+              <p className="navx-acct__fullname">{user.fullName}</p>
+              <p className="navx-acct__email">{user.email}</p>
+            </div>
+          </div>
+        )}
         {nav.map((item) => {
           if (!item.children || item.children.length === 0) {
             return (
@@ -173,20 +229,91 @@ export function Nav({ logoUrl, logoAlt = 'CSA — Critical Systems Analysis', na
           )
         })}
         <div className="navx-mobile__actions">
-          <MetalEdge as="a" className="btn btn--silver-pill btn--block" href={utility.consultationHref || '#'} goldOnHover>
-            {utility.consultationLabel || 'Book a Consultation'} <i data-lucide="arrow-right"></i>
-          </MetalEdge>
-          <div className="navx-mobile__row">
-            <a className="navx__login" href={utility.loginHref || '#'} style={{ padding: '9px 0' }}>
-              <i data-lucide="user"></i> {utility.loginLabel || 'Login'}
-            </a>
-            <a className="navx__cart" href={utility.cartHref || '#'} aria-label="Cart">
-              <i data-lucide="shopping-cart"></i>
-              <span className="navx__cart-badge">0</span>
-            </a>
-          </div>
+          {user ? (
+            <>
+              {ACCOUNT_LINKS.map((l) => (
+                <a key={l.label} className="btn btn--silver-pill btn--block" href={l.href}>
+                  {l.label}
+                </a>
+              ))}
+              <button className="btn btn--link btn--block" onClick={logout}>
+                Log Out <i data-lucide="log-out"></i>
+              </button>
+            </>
+          ) : (
+            <>
+              <a className="btn btn--silver-pill btn--block" href={loginHref}>
+                {loginLabel}
+              </a>
+              <a className="btn btn--gold-pill btn--block" href={consultationHref}>
+                {consultationLabel} <i data-lucide="arrow-right"></i>
+              </a>
+            </>
+          )}
         </div>
       </div>
     </>
+  )
+}
+
+/* ---------- Account menu (signed-in) ---------- */
+function AccountMenu({
+  user,
+  consultationHref,
+  consultationLabel,
+  onLogout,
+}: {
+  user: NavUser
+  consultationHref: string
+  consultationLabel: string
+  onLogout: () => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as { lucide?: { createIcons: () => void } }).lucide)
+      (window as { lucide?: { createIcons: () => void } }).lucide!.createIcons()
+  })
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [])
+
+  return (
+    <div className={'navx-acct' + (open ? ' is-open' : '')} ref={ref}>
+      <button className="navx-acct__btn" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}>
+        <span className="navx-acct__avatar">{user.initials}</span>
+        <span className="navx-acct__name">{user.fullName.split(' ')[0]}</span>
+        <i className="chev" data-lucide="chevron-down"></i>
+      </button>
+      <div className="navx-acct__menu" role="menu">
+        <div className="navx-acct__id">
+          <span className="navx-acct__avatar navx-acct__avatar--lg">{user.initials}</span>
+          <div className="navx-acct__idtext">
+            <p className="navx-acct__fullname">{user.fullName}</p>
+            <p className="navx-acct__email">{user.email}</p>
+          </div>
+        </div>
+        <a className="btn btn--gold-pill btn--block navx-acct__cta" href={consultationHref}>
+          {consultationLabel} <i data-lucide="arrow-right"></i>
+        </a>
+        <div className="navx-acct__links">
+          {ACCOUNT_LINKS.map((l) => (
+            <a key={l.label} className="navx-acct__link" href={l.href} role="menuitem">
+              <i data-lucide={l.icon}></i>
+              <span>{l.label}</span>
+            </a>
+          ))}
+        </div>
+        <button className="navx-acct__link navx-acct__logout" onClick={onLogout} role="menuitem">
+          <i data-lucide="log-out"></i>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </div>
   )
 }

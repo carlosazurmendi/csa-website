@@ -178,6 +178,11 @@
 /* While the wrapper carries the neon glow (a solution item is hovered), drop the
    card's silver hairline so only the glow rims it. */
 .pb__panelwrap[data-glow] .pb__panel { border-color: transparent; }
+
+/* Stabilise the detail-card height so its always-on glow never resizes (and so
+   never restarts) when the active solution changes. */
+.pb__panelwrap { min-height: 330px; }
+@media (max-width: 560px) { .pb__panelwrap { min-height: 540px; } }
 .pb__panel-ghost {
   position: absolute;
   right: 30px;

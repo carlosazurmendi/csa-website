@@ -8,7 +8,7 @@
 .navx {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 200;
+  z-index: 220;   /* above the mobile drawer (210) so the bar stays on top when open */
   padding: 16px 40px;
   transition: padding var(--dur) var(--ease-out),
               background var(--dur) var(--ease-out),
@@ -175,8 +175,17 @@
   color: var(--fg-2);
   transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
-.navx__cart i { width: 18px; height: 18px; }
-.navx__cart:hover { color: var(--gold-300); border-color: var(--border-gold); box-shadow: 0 0 18px rgba(var(--gold-rgb), 0.18); }
+.navx__cart i { width: 18px; height: 18px; position: relative; z-index: 1; }
+/* Ghost-material glint, clipped to the circle so the icon + badge stay intact */
+.navx__cart::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.22) 50%, transparent 60%);
+  background-size: 250% 100%; background-position: 150% 0;
+  pointer-events: none; z-index: 0;
+}
+.navx__cart:hover::before { animation: navx-cart-glint 0.7s var(--ease-out) 1; }
+@keyframes navx-cart-glint { from { background-position: 150% 0; } to { background-position: -60% 0; } }
+.navx__cart:hover { color: var(--fg-1); border-color: var(--border-strong); }
 .navx__cart-badge {
   position: absolute;
   top: -2px; right: -2px;
@@ -210,7 +219,9 @@
 .navx-mobile {
   position: fixed;
   inset: 0;
-  z-index: 199;
+  /* Sit ABOVE the fixed top bar (z-index:200) so the drawer's close button
+     receives taps — otherwise the nav bar overlaps the X and swallows them. */
+  z-index: 210;
   background: rgba(8, 11, 16, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -218,9 +229,14 @@
   overflow-y: auto;
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--dur) var(--ease-out), visibility var(--dur);
+  transform: scale(0);
+  transform-origin: calc(100% - 33px) 35px;   /* grow out of the hamburger trigger */
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s var(--ease-out),
+              visibility 0.42s;
+  will-change: transform, opacity;
 }
-.navx-mobile.is-open { opacity: 1; visibility: visible; }
+.navx-mobile.is-open { opacity: 1; visibility: visible; transform: scale(1); }
 .navx-macc { border-bottom: 1px solid var(--border-2); }
 .navx-macc__head {
   width: 100%;
@@ -248,9 +264,26 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
-  .navx__primary, .navx__login { display: none; }
+  .navx__primary { display: none; }
   .navx__burger { display: inline-flex; }
   .navx__cta { display: none; }
+  /* Login + cart show icon-only beside the trigger, each in an equal-width box
+     so the spacing between login, cart and the hamburger is identical. */
+  .navx__right { margin-left: auto; gap: 14px; align-items: center; }
+  .navx__right .navx__login,
+  .navx__right .navx__cart {
+    width: 24px;
+    flex: none;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Cart stays a true circle on mobile — equal width/height, not the 40px default */
+  .navx__right .navx__cart { width: 38px; height: 38px; }
+  .navx__right .navx__login { font-size: 0; }
+  .navx__right .navx__login i, .navx__right .navx__login svg,
+  .navx__right .navx__cart i, .navx__right .navx__cart svg { width: 22px; height: 22px; }
 }
 @media (max-width: 560px) {
   .navx { padding: 12px 20px; }
@@ -258,5 +291,191 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navx, .navx-drop, .navx-item__link .chev, .navx-mobile { transition: none; }
+  html:not([data-csa-motion]) .navx,
+  html:not([data-csa-motion]) .navx-drop,
+  html:not([data-csa-motion]) .navx-item__link .chev,
+  html:not([data-csa-motion]) .navx-mobile { transition: none; }
+}
+
+/* ---------- Single animated hamburger (mobile, in the nav bar with logo/icons) ---------- */
+.navx-hamburger { display: none; }
+@media (max-width: 1080px) {
+  .navx-hamburger {
+    display: block;
+    width: 24px;
+    flex: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+.navx-hamburger::before,
+.navx-hamburger::after,
+.navx-hamburger > div {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2.5px;
+  margin: 5px 0;
+  background-color: #fff;
+  border-radius: 2px;
+  transition: transform 0.25s ease-in-out, opacity 0.2s ease-in-out;
+}
+.navx-hamburger.active::before { transform: translateY(7.5px) rotate(135deg); }
+.navx-hamburger.active::after { transform: translateY(-7.5px) rotate(-135deg); }
+.navx-hamburger.active > div { transform: scale(0); }
+
+/* ============================================================
+   v2 — Authenticated header: cart-as-button, account menu,
+   mini-cart drawer, mobile identity, demo state switcher.
+   ============================================================ */
+
+/* Cart is now a <button> that opens the drawer — reset chrome */
+button.navx__cart { padding: 0; font: inherit; }
+
+/* ---------- Account menu (signed-in) ---------- */
+.navx-acct { position: relative; flex: none; }
+.navx-acct__btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 6px 10px 6px 6px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  color: var(--fg-1); font-family: var(--font-body);
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.navx-acct__btn:hover { border-color: var(--border-strong); background: var(--bg-glass-hover); }
+.navx-acct__avatar {
+  width: 28px; height: 28px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  animation: csa-gold-sheen 6s linear infinite;
+  color: var(--fg-on-gold);
+  font-family: var(--font-mono); font-weight: 700; font-size: 11px; letter-spacing: 0.02em;
+}
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .navx-acct__avatar { animation: none; } }
+.navx-acct__avatar--lg { width: 40px; height: 40px; font-size: 14px; }
+.navx-acct__name { font-size: 13.5px; font-weight: 600; color: var(--fg-1); }
+.navx-acct__btn .chev { width: 14px; height: 14px; opacity: 0.6; transition: transform var(--dur) var(--ease-out); }
+.navx-acct.is-open .navx-acct__btn .chev { transform: rotate(180deg); opacity: 1; }
+
+.navx-acct__menu {
+  position: absolute;
+  top: calc(100% + 8px); right: 0;
+  width: 268px;
+  padding: 8px;
+  border-radius: var(--r-lg);
+  background: rgba(15, 20, 28, 0.95);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-pop), inset 0 1px 0 var(--inset-hairline);
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), visibility var(--dur);
+  pointer-events: none;
+}
+.navx-acct.is-open .navx-acct__menu { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+.navx-acct__id { display: flex; align-items: center; gap: 12px; padding: 10px 10px 12px; }
+.navx-acct__idtext { min-width: 0; }
+.navx-acct__fullname { margin: 0; font-size: 14px; font-weight: 600; color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.navx-acct__email { margin: 2px 0 0; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.navx-acct__cta { margin: 6px 0 10px; }
+.navx-acct__links { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; border-top: 1px solid var(--border-2); }
+.navx-acct__link {
+  display: flex; align-items: center; gap: 11px;
+  width: 100%; text-align: left;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-body); font-size: 13.5px; font-weight: 500; color: var(--fg-2);
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+.navx-acct__link i, .navx-acct__link svg { width: 17px; height: 17px; color: var(--fg-3); transition: color var(--dur-fast); }
+.navx-acct__link:hover { color: var(--fg-1); background: var(--bg-glass-hover); }
+.navx-acct__link:hover i, .navx-acct__link:hover svg { color: var(--gold-400); }
+.navx-acct__logout { border-top: 1px solid var(--border-2); margin-top: 4px; color: var(--fg-3); }
+.navx-acct__logout:hover { color: var(--status-critical); }
+.navx-acct__logout:hover i, .navx-acct__logout:hover svg { color: var(--status-critical); }
+
+/* Mobile identity card atop the drawer */
+.navx-mobile__id { display: flex; align-items: center; gap: 14px; padding: 6px 6px 22px; margin-bottom: 6px; border-bottom: 1px solid var(--border-2); }
+
+/* ---------- Mini-cart drawer ---------- */
+.mc-scrim {
+  position: fixed; inset: 0; z-index: 230;
+  background: rgba(5, 8, 12, 0.6); backdrop-filter: blur(3px);
+  opacity: 0; visibility: hidden; transition: opacity var(--dur) var(--ease-out), visibility var(--dur);
+}
+.mc-scrim.is-open { opacity: 1; visibility: visible; }
+.mc {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 240;
+  width: min(420px, 92vw);
+  display: flex; flex-direction: column;
+  background: var(--bg-base-2);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.5);
+  transform: translateX(100%);
+  transition: transform 0.42s var(--ease-out);
+  will-change: transform;
+}
+.mc.is-open { transform: translateX(0); }
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .mc { transition: none; } html:not([data-csa-motion]) .mc-scrim { transition: none; } }
+
+.mc__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 24px; border-bottom: 1px solid var(--border-1); flex: none;
+}
+.mc__title { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--fg-1); }
+.mc__title i { width: 19px; height: 19px; color: var(--gold-400); }
+.mc__count { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--gold-300); background: rgba(var(--gold-rgb), 0.1); border: 1px solid var(--border-gold); border-radius: var(--r-pill); padding: 2px 9px; }
+.mc__x { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); background: transparent; border: 1px solid var(--border-1); color: var(--fg-3); transition: color var(--dur-fast), border-color var(--dur-fast); }
+.mc__x:hover { color: var(--fg-1); border-color: var(--border-strong); }
+.mc__x i { width: 17px; height: 17px; }
+
+.mc__items { flex: 1; overflow-y: auto; padding: 10px 16px; }
+.mc-item { display: flex; gap: 14px; padding: 16px 8px; border-bottom: 1px solid var(--border-2); }
+.mc-item__body { flex: 1; min-width: 0; }
+.mc-item__kind { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em; color: var(--gold-500); }
+.mc-item__name { margin: 5px 0 4px; font-size: 14px; font-weight: 600; color: var(--fg-1); line-height: 1.3; }
+.mc-item__meta { margin: 0; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+.mc-item__right { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; flex: none; }
+.mc-item__price { font-family: var(--font-mono); font-size: 13.5px; font-weight: 600; color: var(--fg-1); }
+.mc-item__rm { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); background: transparent; border: 1px solid transparent; color: var(--fg-4); transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast); }
+.mc-item__rm:hover { color: var(--status-critical); border-color: var(--border-1); background: var(--status-critical-bg); }
+.mc-item__rm i { width: 15px; height: 15px; }
+
+/* Line-item thumbnail tiles (no stock art — engineered doc tiles) */
+.mc-thumb {
+  position: relative; flex: none;
+  width: 52px; height: 60px; border-radius: var(--r-sm);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  border: 1px solid var(--border-1); background: var(--bg-elevated);
+  color: var(--fg-2);
+}
+.mc-thumb i { width: 18px; height: 18px; }
+.mc-thumb__ext { font-family: var(--font-mono); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; }
+.mc-thumb--doc { color: var(--status-info); border-color: rgba(94, 143, 203, 0.4); background: var(--status-info-bg); }
+.mc-thumb--xls { color: var(--status-safe); border-color: rgba(93, 176, 136, 0.4); background: var(--status-safe-bg); }
+.mc-thumb--bundle { color: var(--gold-400); border-color: var(--border-gold); background: rgba(var(--gold-rgb), 0.08); }
+.mc-thumb--course { color: var(--status-warn); border-color: rgba(217, 164, 65, 0.4); background: var(--status-warn-bg); }
+
+.mc__foot { flex: none; padding: 18px 24px 24px; border-top: 1px solid var(--border-1); background: var(--bg-base); }
+.mc__row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+.mc__row span:first-child { font-size: 14px; color: var(--fg-2); }
+.mc__subtotal { font-family: var(--font-display); font-weight: 700; font-size: 24px; color: var(--fg-1); }
+.mc__note { margin: 0 0 16px; font-size: 11.5px; line-height: 1.5; color: var(--fg-3); }
+.mc__checkout { margin-bottom: 10px; }
+
+/* Empty state */
+.mc__empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 32px; }
+.mc__empty-ic { width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-1); background: var(--bg-elevated); color: var(--fg-3); margin-bottom: 22px; }
+.mc__empty-ic i { width: 26px; height: 26px; }
+.mc__empty-title { margin: 0 0 12px; font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.2; color: var(--fg-1); }
+.mc__empty-sub { margin: 0 0 26px; font-size: 14px; line-height: 1.55; color: var(--fg-3); max-width: 280px; }
+.mc__empty-link { margin-top: 6px; }
+
+/* Compact the account menu alongside the hamburger on smaller widths */
+@media (max-width: 1080px) {
+  .navx-acct__btn { padding: 4px; border-radius: 50%; }
+  .navx-acct__name, .navx-acct__btn .chev { display: none; }
+  .navx-acct__menu { right: 0; }
 }

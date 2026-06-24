@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, createElement } from 'react'
 import { MetalEdge } from '@/components/ui/MetalEdge'
 
 export type HeroSystem = {
@@ -428,6 +428,29 @@ export function Hero(props: HeroProps) {
         </div>
 
         <Hud sys={sys} index={index} count={count} />
+
+        {/* Mobile-only: compact subject badge with live silver liquid-metal edge */}
+        <div className="vhero__mobbadge" aria-hidden="true">
+          {createElement('csa-liquid-metal', {
+            ring: '',
+            thickness: '2px',
+            contour: '0.92',
+            repetition: '3',
+            tint: '#EAF0F8',
+            'color-back': '#46505F',
+            'data-no-lazy': '',
+            style: { position: 'absolute', inset: 0, borderRadius: 'inherit', zIndex: 0, pointerEvents: 'none' },
+          })}
+          <span className="vhero__mobbadge-count">
+            <b>{String(index + 1).padStart(2, '0')}</b> / {String(count).padStart(2, '0')}
+          </span>
+          <span className="vhero__mobbadge-cat">{sys.category}</span>
+        </div>
+
+        {/* Mobile-only: full-width carousel controls below the card + robot row */}
+        <div className="vhero__mobsel">
+          <SelBar index={index} count={count} sys={sys} systems={systems} onDot={setIndex} onPrev={prev} onNext={next} />
+        </div>
       </div>
 
       <div className="vhero__ticker" aria-hidden="true">

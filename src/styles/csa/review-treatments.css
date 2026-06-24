@@ -1,5 +1,11 @@
 /* ============================================================
    CSA — teammate review treatments (Carlos pass)
+   NOTE: every rule below has also been BAKED IN PARALLEL into the
+   owning section source files (hero/kit/services/partners/standing-
+   apart/about/news/case-studies .css), under a "Baked from review
+   pass (Carlos)" header. This overlay is intentionally KEPT and still
+   loads LAST so it remains the authority; the baked copies make each
+   section self-sufficient if this overlay is ever removed.
    Layered over the section CSS (loaded LAST so these win). Live
    WebGL shaders — liquid metal (data-metal), grain (<csa-grain>),
    neon glow — are applied in the components; this sheet covers the
@@ -8,16 +14,39 @@
    treatment, and colour swaps.
    ============================================================ */
 
-/* ---- Hero "Innovation": gold-foil outline + frosted-glass fill ---- */
+/* ---- Hero "Innovation": LIQUID-METAL gold stroke + hollow interior ----
+   The interior stays hollow (faint frosted fill, see-through to the hero).
+   The stroke is painted with the live gold material: its colour travels the
+   --gold-foil stops (deep gold -> primary -> bright specular) so the outline
+   reads as moving brushed/liquid metal rather than flat paint. text-stroke
+   only takes a solid colour, so the "sheen" is an animated stroke-colour
+   sweep timed to match the site's other foil animations (csa-gold-sheen). */
+@keyframes csa-hero-stroke-sheen {
+  0%   { -webkit-text-stroke-color: #8C6C32; text-stroke-color: #8C6C32;
+         filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35)); }
+  28%  { -webkit-text-stroke-color: #C6A256; text-stroke-color: #C6A256; }
+  50%  { -webkit-text-stroke-color: #F4E4A6; text-stroke-color: #F4E4A6;
+         filter: drop-shadow(0 1px 11px rgba(244, 228, 166, 0.55)); }
+  72%  { -webkit-text-stroke-color: #C6A256; text-stroke-color: #C6A256; }
+  100% { -webkit-text-stroke-color: #8C6C32; text-stroke-color: #8C6C32;
+         filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35)); }
+}
 .vhero__title .csa-gold-shimmer {
   background: none !important;
-  -webkit-text-fill-color: rgba(236, 240, 245, 0.13) !important;
-  color: rgba(236, 240, 245, 0.13) !important;
-  -webkit-text-stroke: 1.6px var(--gold-500);
-  text-stroke: 1.6px var(--gold-500);
+  -webkit-text-fill-color: rgba(236, 240, 245, 0.10) !important;
+  color: rgba(236, 240, 245, 0.10) !important;
+  -webkit-text-stroke: 1.8px var(--gold-500);
+  text-stroke: 1.8px var(--gold-500);
   paint-order: stroke fill;
-  filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.4));
-  animation: none !important;
+  filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35));
+  animation: csa-hero-stroke-sheen 5.5s linear infinite !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-csa-motion]) .vhero__title .csa-gold-shimmer {
+    animation: none !important;
+    -webkit-text-stroke-color: var(--gold-500);
+    text-stroke-color: var(--gold-500);
+  }
 }
 
 /* ---- Frosted-glass button face (edge = data-metal="gold" liquid metal) ---- */

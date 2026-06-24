@@ -63,3 +63,38 @@ export async function getCurrentProfile() {
   })
   return res.docs[0] ?? null
 }
+
+export type NavUser = { fullName: string; email: string; initials: string }
+
+const initialsFrom = (name: string): string =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? '')
+    .join('') || 'U'
+
+/**
+ * Compact identity for the nav (avatar/name/email). One auth round-trip +
+ * one profile lookup. null when signed out. Falls back to the email local-part
+ * if the profile mirror hasn't been created yet.
+ */
+export async function getNavUser(): Promise<NavUser | null> {
+  const user = await getSupabaseUser()
+  if (!user) return null
+  let fullName = ''
+  try {
+    const payload = await getPayloadClient()
+    const res = await payload.find({
+      collection: 'profiles',
+      where: { authUserId: { equals: user.id } },
+      limit: 1,
+      overrideAccess: true,
+    })
+    fullName = (res.docs[0]?.fullName as string) || ''
+  } catch {
+    /* profile lookup is best-effort for the nav */
+  }
+  if (!fullName) fullName = user.email?.split('@')[0] || 'Account'
+  return { fullName, email: user.email || '', initials: initialsFrom(fullName) }
+}

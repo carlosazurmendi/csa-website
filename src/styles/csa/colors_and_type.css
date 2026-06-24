@@ -130,6 +130,16 @@
 /* ============================================================
    Base
    ============================================================ */
+/* Global guard against horizontal scroll on small screens. Decorative bleed
+   (hero ghost-track, marquees, glow shaders) intentionally overflows past the
+   right edge; `overflow-x: clip` trims the off-screen sliver WITHOUT creating a
+   scroll container, so position:sticky nav keeps working. Applied site-wide so
+   every page behaves like Home (which set this inline). */
+html, body { overflow-x: clip; }
+/* Hide the scrollbar while keeping the page scrollable (all browsers). */
+html { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
 .csa, .csa-root {
   background: var(--bg-base);
   color: var(--fg-2);

@@ -9,6 +9,7 @@
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "devsafe": "rimraf .next && cross-env NODE_OPTIONS=--no-deprecation next dev",
     "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
+    "build:css": "node scripts/build-css-bundle.mjs",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",

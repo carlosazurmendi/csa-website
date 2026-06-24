@@ -550,8 +550,8 @@ await payload.updateGlobal({
     ],
     utility: {
       loginLabel: 'Login',
-      loginHref: '#',
-      cartHref: '#',
+      loginHref: '/login',
+      cartHref: '/cart',
       consultationLabel: 'Book a Consultation',
       consultationHref: '#',
     },

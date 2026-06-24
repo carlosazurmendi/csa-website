@@ -159,7 +159,8 @@
 .sa-cell.new .sa-cell__mark { color: var(--gold-400); border-color: var(--border-gold); background: rgba(var(--gold-rgb), 0.06); }
 .sa-cell.new .sa-cell__t { color: var(--fg-1); }
 .sa-cell.new .sa-cell__d { color: var(--fg-2); }
-.sa-row:hover .sa-cell.new {
+.sa-row:hover .sa-cell.new,
+.sa-row[data-mactive] .sa-cell.new {
   transform: translateY(-3px);
   border-color: var(--border-gold);
   box-shadow: var(--shadow-pop), 0 0 28px rgba(var(--gold-rgb), 0.16);
@@ -181,7 +182,8 @@
   color: var(--fg-4);
   transition: color 0.4s var(--ease-out);
 }
-.sa-row:hover .sa-mid__label { color: var(--gold-400); }
+.sa-row:hover .sa-mid__label,
+.sa-row[data-mactive] .sa-mid__label { color: var(--gold-400); }
 .sa-mid__arrow {
   width: 34px; height: 34px;
   border-radius: 50%;
@@ -192,7 +194,8 @@
   transition: color 0.4s var(--ease-out), border-color 0.4s var(--ease-out), transform 0.45s var(--ease-out), box-shadow 0.4s var(--ease-out);
 }
 .sa-mid__arrow i { width: 17px; height: 17px; }
-.sa-row:hover .sa-mid__arrow {
+.sa-row:hover .sa-mid__arrow,
+.sa-row[data-mactive] .sa-mid__arrow {
   color: var(--gold-300);
   border-color: var(--border-gold);
   transform: translateX(5px);
@@ -236,7 +239,8 @@
   background: var(--bg-glass);
   transition: border-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), transform 0.4s var(--ease-out);
 }
-.sa-badge:hover {
+.sa-badge:hover,
+.sa-badge[data-mactive] {
   border-color: var(--border-gold);
   box-shadow: 0 0 24px rgba(var(--gold-rgb), 0.16);
   transform: translateY(-3px);
@@ -276,5 +280,50 @@
   .sa-row { grid-template-columns: 1fr; gap: 8px; }
   .sa-mid { flex-direction: row; gap: 12px; padding: 2px 0; }
   .sa-mid__arrow { transform: rotate(90deg); }
-  .sa-row:hover .sa-mid__arrow { transform: rotate(90deg) translateX(5px); }
+  .sa-row:hover .sa-mid__arrow,
+  .sa-row[data-mactive] .sa-mid__arrow { transform: rotate(90deg) translateX(5px); }
+}
+
+/* Mobile: cycled row is focused, the rest recede (matches the hover behaviour) */
+@media (max-width: 900px) {
+  .sa__rows .sa-row:not([data-mactive]) { opacity: 0.5; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Standing Apart — badge, "How we work" cells, blend.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.sa-badge:hover {
+  border-color: var(--border-gold) !important;
+  box-shadow: 0 0 0 1px var(--gold-500), 0 0 22px rgba(var(--gold-rgb), 0.40) !important;
+  transform: translateY(-3px);
+}
+.sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(10,14,20,0.58) !important;
+  border-color: rgba(174,183,196,0.20) !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+  transition: background 0.4s var(--ease-out), border-color 0.4s var(--ease-out) !important;
+}
+.sa-row:hover .sa-cell.new.csa-glass {
+  transform: none !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+.sa-row:hover .sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.11), rgba(255,255,255,0.04)), rgba(10,14,20,0.50) !important;
+  border-color: rgba(214,222,232,0.50) !important;
+  transform: none !important;
+}
+.sa-cell.csa-glass > .sa-cell__mark,
+.sa-cell.csa-glass > div { position: relative; z-index: 2; }
+.sa-cell.old .sa-cell__t { color: var(--fg-1) !important; }
+.sa-cell.old .sa-cell__d { color: var(--fg-2) !important; }
+.sa { background: var(--bg-base-2) !important; }
+.sa csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
 }

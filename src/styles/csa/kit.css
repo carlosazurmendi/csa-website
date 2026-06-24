@@ -54,12 +54,8 @@ a { text-decoration: none; }
 /* ---------- Hero ---------- */
 .hero { position: relative; min-height: 760px; height: 92vh; overflow: hidden; margin-top: -78px;
   background: radial-gradient(64% 80% at 50% 24%, #20304a 0%, rgba(13,18,26,0) 62%), var(--bg-base); }
-/* .hero__robot is dead CSS from an earlier hero iteration (the current hero is
-   .vhero with a background video). The original referenced assets/robot.png,
-   which is not in the export; the rule is kept (unused) but the missing-image
-   background is removed so Turbopack's CSS bundler doesn't fail to resolve it. */
 .hero__robot { position: absolute; top: 0; bottom: 0; left: 50%; width: min(760px, 64vw);
-  transform: translateX(-48%); pointer-events: none; }
+  transform: translateX(-48%); background: url('assets/robot.png') center top / contain no-repeat; pointer-events: none; }
 .hero__ghost { position: absolute; left: 0; right: 0; bottom: -2%; text-align: center;
   font-family: var(--font-display); font-weight: 900; font-size: 26vw; line-height: 1; letter-spacing: -.04em;
   color: rgba(255,255,255,.045); pointer-events: none; user-select: none; white-space: nowrap; }
@@ -209,3 +205,76 @@ a { text-decoration: none; }
   .footer__top { grid-template-columns: 1fr; }
   .statsband__grid { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — shared button / utility treatments (cross-cutting).
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+/* Frosted-glass button face (edge = data-metal="gold" liquid metal) */
+.rv-glass-btn {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  color: var(--gold-300) !important;
+  border: 1px solid var(--border-gold);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+.rv-glass-btn:hover { color: #fff !important; }
+
+/* Generic neon glow border on hover (high-tech affordance) */
+.rv-neon:hover {
+  border-color: rgba(19, 224, 255, 0.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(45, 108, 255, 0.60),
+    0 0 16px rgba(19, 224, 255, 0.45),
+    0 0 30px rgba(155, 92, 255, 0.30) !important;
+}
+
+/* Grain shader background host + content stacking above it */
+.rv-grain { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.nw > :not(.nw__haze):not(.rv-grain),
+.cs > :not(.cs__haze):not(.rv-grain):not(.cs__ghost),
+.sa > :not(.sa__haze):not(.rv-grain),
+.sv > :not(.sv__haze):not(.rv-grain) { position: relative; z-index: 1; }
+
+/* Gold/silver kit buttons: crisp 1px metal hairline outside the liquid-metal ring */
+.btn--gold-pill.csa-metal-on,
+.btn--gold-solid.csa-metal-on { border-color: var(--gold-500) !important; }
+
+/* Unify all button hovers on the glass-shimmer glint; coloured glows removed. */
+.btn--gold-pill,
+.btn--silver-pill,
+.btn--gold-solid,
+.rv-glass-btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn--gold-pill::after,
+.btn--silver-pill::after,
+.btn--gold-solid::after,
+.rv-glass-btn::after {
+  content: ""; position: absolute; top: 0; left: -70%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.20), transparent);
+  transform: skewX(-20deg); pointer-events: none; z-index: 2;
+}
+.btn--gold-pill:hover::after,
+.btn--silver-pill:hover::after,
+.btn--gold-solid:hover::after,
+.rv-glass-btn:hover::after { animation: csa-glint 0.7s var(--ease-out) 1; }
+.btn--gold-pill:hover,
+.btn--silver-pill:hover,
+.btn--gold-solid:hover,
+.rv-glass-btn:hover { transform: scale(1.035); color: #fff !important; }
+.btn--gold-pill:active,
+.btn--silver-pill:active,
+.btn--gold-solid:active,
+.rv-glass-btn:active { transform: scale(0.98); }
+.btn--gold-pill { box-shadow: none !important; animation: none !important; }
+.btn--gold-pill:hover { box-shadow: none !important; }
+.btn--silver-pill:hover { box-shadow: none !important; }

@@ -2,6 +2,7 @@ import React from 'react'
 import type { Metadata } from 'next'
 
 import { getPayloadClient } from '@/lib/payload'
+import { getNavUser } from '@/lib/auth'
 import { buildNav } from '@/lib/nav'
 import { Nav, type NavItem } from '@/components/layout/Nav'
 import { Footer } from '@/components/layout/Footer'
@@ -32,10 +33,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
   const payload = await getPayloadClient()
-  const [settings, header, footer] = await Promise.all([
+  const [settings, header, footer, navUser] = await Promise.all([
     payload.findGlobal({ slug: 'siteSettings', depth: 1 }),
     payload.findGlobal({ slug: 'header', depth: 1 }),
     payload.findGlobal({ slug: 'footer', depth: 1 }),
+    getNavUser(),
   ])
 
   const logoUrl = mediaUrl(settings?.logo)
@@ -56,7 +58,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
             bundle; review-treatments wins because it's concatenated last. */}
         <link rel="stylesheet" href="/assets/csa.bundle.css" precedence="csa" />
         <link rel="stylesheet" href="/assets/csa-overrides.css" precedence="csa-overrides" />
-        <Nav logoUrl={logoUrl} nav={nav} utility={utility} />
+        <Nav logoUrl={logoUrl} nav={nav} utility={utility} user={navUser} />
         {children}
         <Footer
           logoUrl={logoUrl}

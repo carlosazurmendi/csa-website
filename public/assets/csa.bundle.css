@@ -131,6 +131,16 @@
 /* ============================================================
    Base
    ============================================================ */
+/* Global guard against horizontal scroll on small screens. Decorative bleed
+   (hero ghost-track, marquees, glow shaders) intentionally overflows past the
+   right edge; `overflow-x: clip` trims the off-screen sliver WITHOUT creating a
+   scroll container, so position:sticky nav keeps working. Applied site-wide so
+   every page behaves like Home (which set this inline). */
+html, body { overflow-x: clip; }
+/* Hide the scrollbar while keeping the page scrollable (all browsers). */
+html { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
 .csa, .csa-root {
   background: var(--bg-base);
   color: var(--fg-2);
@@ -711,6 +721,79 @@ a { text-decoration: none; }
   .statsband__grid { grid-template-columns: 1fr 1fr; }
 }
 
+
+/* ============================================================
+   Baked from review pass (Carlos) — shared button / utility treatments (cross-cutting).
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+/* Frosted-glass button face (edge = data-metal="gold" liquid metal) */
+.rv-glass-btn {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  color: var(--gold-300) !important;
+  border: 1px solid var(--border-gold);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+.rv-glass-btn:hover { color: #fff !important; }
+
+/* Generic neon glow border on hover (high-tech affordance) */
+.rv-neon:hover {
+  border-color: rgba(19, 224, 255, 0.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(45, 108, 255, 0.60),
+    0 0 16px rgba(19, 224, 255, 0.45),
+    0 0 30px rgba(155, 92, 255, 0.30) !important;
+}
+
+/* Grain shader background host + content stacking above it */
+.rv-grain { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.nw > :not(.nw__haze):not(.rv-grain),
+.cs > :not(.cs__haze):not(.rv-grain):not(.cs__ghost),
+.sa > :not(.sa__haze):not(.rv-grain),
+.sv > :not(.sv__haze):not(.rv-grain) { position: relative; z-index: 1; }
+
+/* Gold/silver kit buttons: crisp 1px metal hairline outside the liquid-metal ring */
+.btn--gold-pill.csa-metal-on,
+.btn--gold-solid.csa-metal-on { border-color: var(--gold-500) !important; }
+
+/* Unify all button hovers on the glass-shimmer glint; coloured glows removed. */
+.btn--gold-pill,
+.btn--silver-pill,
+.btn--gold-solid,
+.rv-glass-btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn--gold-pill::after,
+.btn--silver-pill::after,
+.btn--gold-solid::after,
+.rv-glass-btn::after {
+  content: ""; position: absolute; top: 0; left: -70%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.20), transparent);
+  transform: skewX(-20deg); pointer-events: none; z-index: 2;
+}
+.btn--gold-pill:hover::after,
+.btn--silver-pill:hover::after,
+.btn--gold-solid:hover::after,
+.rv-glass-btn:hover::after { animation: csa-glint 0.7s var(--ease-out) 1; }
+.btn--gold-pill:hover,
+.btn--silver-pill:hover,
+.btn--gold-solid:hover,
+.rv-glass-btn:hover { transform: scale(1.035); color: #fff !important; }
+.btn--gold-pill:active,
+.btn--silver-pill:active,
+.btn--gold-solid:active,
+.rv-glass-btn:active { transform: scale(0.98); }
+.btn--gold-pill { box-shadow: none !important; animation: none !important; }
+.btn--gold-pill:hover { box-shadow: none !important; }
+.btn--silver-pill:hover { box-shadow: none !important; }
+
 /* ===== nav.css ===== */
 /* ============================================================
    CSA — Global primary navigation
@@ -722,7 +805,7 @@ a { text-decoration: none; }
 .navx {
   position: fixed;
   top: 0; left: 0; right: 0;
-  z-index: 200;
+  z-index: 220;   /* above the mobile drawer (210) so the bar stays on top when open */
   padding: 16px 40px;
   transition: padding var(--dur) var(--ease-out),
               background var(--dur) var(--ease-out),
@@ -889,8 +972,17 @@ a { text-decoration: none; }
   color: var(--fg-2);
   transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
-.navx__cart i { width: 18px; height: 18px; }
-.navx__cart:hover { color: var(--gold-300); border-color: var(--border-gold); box-shadow: 0 0 18px rgba(var(--gold-rgb), 0.18); }
+.navx__cart i { width: 18px; height: 18px; position: relative; z-index: 1; }
+/* Ghost-material glint, clipped to the circle so the icon + badge stay intact */
+.navx__cart::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.22) 50%, transparent 60%);
+  background-size: 250% 100%; background-position: 150% 0;
+  pointer-events: none; z-index: 0;
+}
+.navx__cart:hover::before { animation: navx-cart-glint 0.7s var(--ease-out) 1; }
+@keyframes navx-cart-glint { from { background-position: 150% 0; } to { background-position: -60% 0; } }
+.navx__cart:hover { color: var(--fg-1); border-color: var(--border-strong); }
 .navx__cart-badge {
   position: absolute;
   top: -2px; right: -2px;
@@ -924,7 +1016,9 @@ a { text-decoration: none; }
 .navx-mobile {
   position: fixed;
   inset: 0;
-  z-index: 199;
+  /* Sit ABOVE the fixed top bar (z-index:200) so the drawer's close button
+     receives taps — otherwise the nav bar overlaps the X and swallows them. */
+  z-index: 210;
   background: rgba(8, 11, 16, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -932,9 +1026,14 @@ a { text-decoration: none; }
   overflow-y: auto;
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--dur) var(--ease-out), visibility var(--dur);
+  transform: scale(0);
+  transform-origin: calc(100% - 33px) 35px;   /* grow out of the hamburger trigger */
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s var(--ease-out),
+              visibility 0.42s;
+  will-change: transform, opacity;
 }
-.navx-mobile.is-open { opacity: 1; visibility: visible; }
+.navx-mobile.is-open { opacity: 1; visibility: visible; transform: scale(1); }
 .navx-macc { border-bottom: 1px solid var(--border-2); }
 .navx-macc__head {
   width: 100%;
@@ -962,9 +1061,26 @@ a { text-decoration: none; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
-  .navx__primary, .navx__login { display: none; }
+  .navx__primary { display: none; }
   .navx__burger { display: inline-flex; }
   .navx__cta { display: none; }
+  /* Login + cart show icon-only beside the trigger, each in an equal-width box
+     so the spacing between login, cart and the hamburger is identical. */
+  .navx__right { margin-left: auto; gap: 14px; align-items: center; }
+  .navx__right .navx__login,
+  .navx__right .navx__cart {
+    width: 24px;
+    flex: none;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Cart stays a true circle on mobile — equal width/height, not the 40px default */
+  .navx__right .navx__cart { width: 38px; height: 38px; }
+  .navx__right .navx__login { font-size: 0; }
+  .navx__right .navx__login i, .navx__right .navx__login svg,
+  .navx__right .navx__cart i, .navx__right .navx__cart svg { width: 22px; height: 22px; }
 }
 @media (max-width: 560px) {
   .navx { padding: 12px 20px; }
@@ -972,7 +1088,193 @@ a { text-decoration: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navx, .navx-drop, .navx-item__link .chev, .navx-mobile { transition: none; }
+  html:not([data-csa-motion]) .navx,
+  html:not([data-csa-motion]) .navx-drop,
+  html:not([data-csa-motion]) .navx-item__link .chev,
+  html:not([data-csa-motion]) .navx-mobile { transition: none; }
+}
+
+/* ---------- Single animated hamburger (mobile, in the nav bar with logo/icons) ---------- */
+.navx-hamburger { display: none; }
+@media (max-width: 1080px) {
+  .navx-hamburger {
+    display: block;
+    width: 24px;
+    flex: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+.navx-hamburger::before,
+.navx-hamburger::after,
+.navx-hamburger > div {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 2.5px;
+  margin: 5px 0;
+  background-color: #fff;
+  border-radius: 2px;
+  transition: transform 0.25s ease-in-out, opacity 0.2s ease-in-out;
+}
+.navx-hamburger.active::before { transform: translateY(7.5px) rotate(135deg); }
+.navx-hamburger.active::after { transform: translateY(-7.5px) rotate(-135deg); }
+.navx-hamburger.active > div { transform: scale(0); }
+
+/* ============================================================
+   v2 — Authenticated header: cart-as-button, account menu,
+   mini-cart drawer, mobile identity, demo state switcher.
+   ============================================================ */
+
+/* Cart is now a <button> that opens the drawer — reset chrome */
+button.navx__cart { padding: 0; font: inherit; }
+
+/* ---------- Account menu (signed-in) ---------- */
+.navx-acct { position: relative; flex: none; }
+.navx-acct__btn {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 6px 10px 6px 6px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  color: var(--fg-1); font-family: var(--font-body);
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.navx-acct__btn:hover { border-color: var(--border-strong); background: var(--bg-glass-hover); }
+.navx-acct__avatar {
+  width: 28px; height: 28px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  animation: csa-gold-sheen 6s linear infinite;
+  color: var(--fg-on-gold);
+  font-family: var(--font-mono); font-weight: 700; font-size: 11px; letter-spacing: 0.02em;
+}
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .navx-acct__avatar { animation: none; } }
+.navx-acct__avatar--lg { width: 40px; height: 40px; font-size: 14px; }
+.navx-acct__name { font-size: 13.5px; font-weight: 600; color: var(--fg-1); }
+.navx-acct__btn .chev { width: 14px; height: 14px; opacity: 0.6; transition: transform var(--dur) var(--ease-out); }
+.navx-acct.is-open .navx-acct__btn .chev { transform: rotate(180deg); opacity: 1; }
+
+.navx-acct__menu {
+  position: absolute;
+  top: calc(100% + 8px); right: 0;
+  width: 268px;
+  padding: 8px;
+  border-radius: var(--r-lg);
+  background: rgba(15, 20, 28, 0.95);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-pop), inset 0 1px 0 var(--inset-hairline);
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity var(--dur) var(--ease-out), transform var(--dur) var(--ease-out), visibility var(--dur);
+  pointer-events: none;
+}
+.navx-acct.is-open .navx-acct__menu { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+.navx-acct__id { display: flex; align-items: center; gap: 12px; padding: 10px 10px 12px; }
+.navx-acct__idtext { min-width: 0; }
+.navx-acct__fullname { margin: 0; font-size: 14px; font-weight: 600; color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.navx-acct__email { margin: 2px 0 0; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.navx-acct__cta { margin: 6px 0 10px; }
+.navx-acct__links { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; border-top: 1px solid var(--border-2); }
+.navx-acct__link {
+  display: flex; align-items: center; gap: 11px;
+  width: 100%; text-align: left;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-body); font-size: 13.5px; font-weight: 500; color: var(--fg-2);
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+.navx-acct__link i, .navx-acct__link svg { width: 17px; height: 17px; color: var(--fg-3); transition: color var(--dur-fast); }
+.navx-acct__link:hover { color: var(--fg-1); background: var(--bg-glass-hover); }
+.navx-acct__link:hover i, .navx-acct__link:hover svg { color: var(--gold-400); }
+.navx-acct__logout { border-top: 1px solid var(--border-2); margin-top: 4px; color: var(--fg-3); }
+.navx-acct__logout:hover { color: var(--status-critical); }
+.navx-acct__logout:hover i, .navx-acct__logout:hover svg { color: var(--status-critical); }
+
+/* Mobile identity card atop the drawer */
+.navx-mobile__id { display: flex; align-items: center; gap: 14px; padding: 6px 6px 22px; margin-bottom: 6px; border-bottom: 1px solid var(--border-2); }
+
+/* ---------- Mini-cart drawer ---------- */
+.mc-scrim {
+  position: fixed; inset: 0; z-index: 230;
+  background: rgba(5, 8, 12, 0.6); backdrop-filter: blur(3px);
+  opacity: 0; visibility: hidden; transition: opacity var(--dur) var(--ease-out), visibility var(--dur);
+}
+.mc-scrim.is-open { opacity: 1; visibility: visible; }
+.mc {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 240;
+  width: min(420px, 92vw);
+  display: flex; flex-direction: column;
+  background: var(--bg-base-2);
+  border-left: 1px solid var(--border-strong);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.5);
+  transform: translateX(100%);
+  transition: transform 0.42s var(--ease-out);
+  will-change: transform;
+}
+.mc.is-open { transform: translateX(0); }
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .mc { transition: none; } html:not([data-csa-motion]) .mc-scrim { transition: none; } }
+
+.mc__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 24px; border-bottom: 1px solid var(--border-1); flex: none;
+}
+.mc__title { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--fg-1); }
+.mc__title i { width: 19px; height: 19px; color: var(--gold-400); }
+.mc__count { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--gold-300); background: rgba(var(--gold-rgb), 0.1); border: 1px solid var(--border-gold); border-radius: var(--r-pill); padding: 2px 9px; }
+.mc__x { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); background: transparent; border: 1px solid var(--border-1); color: var(--fg-3); transition: color var(--dur-fast), border-color var(--dur-fast); }
+.mc__x:hover { color: var(--fg-1); border-color: var(--border-strong); }
+.mc__x i { width: 17px; height: 17px; }
+
+.mc__items { flex: 1; overflow-y: auto; padding: 10px 16px; }
+.mc-item { display: flex; gap: 14px; padding: 16px 8px; border-bottom: 1px solid var(--border-2); }
+.mc-item__body { flex: 1; min-width: 0; }
+.mc-item__kind { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em; color: var(--gold-500); }
+.mc-item__name { margin: 5px 0 4px; font-size: 14px; font-weight: 600; color: var(--fg-1); line-height: 1.3; }
+.mc-item__meta { margin: 0; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); }
+.mc-item__right { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; flex: none; }
+.mc-item__price { font-family: var(--font-mono); font-size: 13.5px; font-weight: 600; color: var(--fg-1); }
+.mc-item__rm { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-sm); background: transparent; border: 1px solid transparent; color: var(--fg-4); transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast); }
+.mc-item__rm:hover { color: var(--status-critical); border-color: var(--border-1); background: var(--status-critical-bg); }
+.mc-item__rm i { width: 15px; height: 15px; }
+
+/* Line-item thumbnail tiles (no stock art — engineered doc tiles) */
+.mc-thumb {
+  position: relative; flex: none;
+  width: 52px; height: 60px; border-radius: var(--r-sm);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  border: 1px solid var(--border-1); background: var(--bg-elevated);
+  color: var(--fg-2);
+}
+.mc-thumb i { width: 18px; height: 18px; }
+.mc-thumb__ext { font-family: var(--font-mono); font-size: 8px; font-weight: 700; letter-spacing: 0.1em; }
+.mc-thumb--doc { color: var(--status-info); border-color: rgba(94, 143, 203, 0.4); background: var(--status-info-bg); }
+.mc-thumb--xls { color: var(--status-safe); border-color: rgba(93, 176, 136, 0.4); background: var(--status-safe-bg); }
+.mc-thumb--bundle { color: var(--gold-400); border-color: var(--border-gold); background: rgba(var(--gold-rgb), 0.08); }
+.mc-thumb--course { color: var(--status-warn); border-color: rgba(217, 164, 65, 0.4); background: var(--status-warn-bg); }
+
+.mc__foot { flex: none; padding: 18px 24px 24px; border-top: 1px solid var(--border-1); background: var(--bg-base); }
+.mc__row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+.mc__row span:first-child { font-size: 14px; color: var(--fg-2); }
+.mc__subtotal { font-family: var(--font-display); font-weight: 700; font-size: 24px; color: var(--fg-1); }
+.mc__note { margin: 0 0 16px; font-size: 11.5px; line-height: 1.5; color: var(--fg-3); }
+.mc__checkout { margin-bottom: 10px; }
+
+/* Empty state */
+.mc__empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 32px; }
+.mc__empty-ic { width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border-1); background: var(--bg-elevated); color: var(--fg-3); margin-bottom: 22px; }
+.mc__empty-ic i { width: 26px; height: 26px; }
+.mc__empty-title { margin: 0 0 12px; font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.2; color: var(--fg-1); }
+.mc__empty-sub { margin: 0 0 26px; font-size: 14px; line-height: 1.55; color: var(--fg-3); max-width: 280px; }
+.mc__empty-link { margin-top: 6px; }
+
+/* Compact the account menu alongside the hamburger on smaller widths */
+@media (max-width: 1080px) {
+  .navx-acct__btn { padding: 4px; border-radius: 50%; }
+  .navx-acct__name, .navx-acct__btn .chev { display: none; }
+  .navx-acct__menu { right: 0; }
 }
 
 /* ===== hero.css ===== */
@@ -1072,30 +1374,30 @@ a { text-decoration: none; }
   position: absolute;
   top: 21%;
   left: 48px;
-  width: 430px;
+  width: 940px;
   z-index: 8;
 }
 .vhero__eyebrow { margin: 0 0 20px; }
 .vhero__title {
   margin: 0;
-  font-size: clamp(42px, 4.6vw, 70px);
+  font-size: clamp(54px, 6vw, 96px);
   text-shadow: 0 2px 30px rgba(0,0,0,0.5);
 }
 .vhero__subhead {
-  margin: 22px 0 0;
-  font-size: 19px;
-  line-height: 1.36;
+  margin: 26px 0 0;
+  font-size: 24px;
+  line-height: 1.34;
   letter-spacing: -0.01em;
   font-weight: 600;
   color: var(--fg-1);
-  max-width: 400px;
+  max-width: 540px;
 }
 .vhero__sub {
-  margin: 16px 0 32px;
-  font-size: 16px;
+  margin: 18px 0 34px;
+  font-size: 18px;
   line-height: 1.55;
   color: var(--fg-2);
-  max-width: 400px;
+  max-width: 540px;
 }
 .vhero__cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .vhero__standards { display: flex; align-items: center; gap: 14px; margin-top: 38px; }
@@ -1189,10 +1491,10 @@ a { text-decoration: none; }
 .vhero__selector {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 30%;
   right: 0;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   z-index: 4;
 }
 
@@ -1201,7 +1503,7 @@ a { text-decoration: none; }
 .vhero__selector .stage {
   inset: 0;
   perspective-origin: 50% 80%;
-  transform: scale(1.0125) translateY(72px);
+  transform: scale(1.22) translateY(56px);
   transform-origin: 50% 100%;
 }
 
@@ -1231,11 +1533,16 @@ a { text-decoration: none; }
   right: 56px;
   width: 300px;
   z-index: 8;
-  display: flex;
+  display: none;   /* not shown on desktop; revealed in the stacked mobile grid */
   flex-direction: column;
   gap: 14px;
   pointer-events: auto;
 }
+/* Mobile-only carousel chrome (full-width controls + side badge) */
+.vhero__mobsel, .vhero__mobbadge { display: none; }
+/* live liquid-metal silver ring sits behind the badge text */
+.vhero__mobbadge-ring { position: absolute; inset: 0; border-radius: inherit; z-index: 0; pointer-events: none; }
+.vhero__mobbadge-count, .vhero__mobbadge-cat { position: relative; z-index: 1; }
 .vhud__tag {
   margin: 0 0 0 24px;
   font-size: 10.5px;
@@ -1506,15 +1813,250 @@ a { text-decoration: none; }
 /* ---------- Responsive ---------- */
 @media (max-width: 1180px) {
   .vhero__selector { right: 236px; width: 400px; }
-  .vhud { width: 282px; right: 40px; }
   .vhero__copy { width: 348px; }
 }
+
+/* ===== Stacked / mobile hero (≤ 900px) — layout per approved sketch =====
+     nav
+     hero text + cta                 (full-width)
+     [ info card | robot visual ]    (two-column row)
+     carousel controls               (full-width)
+     standards ticker                (full-width)
+   The desktop hero is an absolutely-positioned cinematic stage; on narrow
+   screens .vhero__inner becomes a CSS grid. The desktop selector's nested
+   controls are hidden and a separate full-width control bar (.vhero__mobsel)
+   takes their place. */
 @media (max-width: 900px) {
-  .vhero { height: auto; min-height: 0; padding-bottom: 76px; }
-  .vhero__copy { position: static; width: auto; padding-top: 120px; }
-  .vhero__selector { position: static; width: auto; height: 420px; margin-top: 28px; }
-  .vhud { position: static; width: auto; margin-top: 24px; }
-  .vhero__inner { padding: 0 28px; }
+  .vhero {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: 60px;   /* room for the pinned ticker; robot base passes behind it */
+  }
+  .vhero__inner {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 12px;
+    row-gap: 10px;
+    align-items: stretch;
+    height: auto;
+    padding: 0 24px;
+  }
+
+  /* --- Copy (full-width row) --- */
+  .vhero__copy {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    position: static;
+    width: 100%;
+    max-width: none;
+    padding-top: 15dvh;
+    z-index: 8;
+  }
+  .vhero__title { font-size: clamp(40px, 11vw, 60px); line-height: 1.0; }
+  .vhero__subhead { margin-top: 12px; font-size: 15.5px; max-width: none; }
+  .vhero__sub { margin: 9px 0 14px; font-size: 13px; line-height: 1.45; max-width: none; }   /* sub text restored on mobile */
+  .vhero__copy { margin-bottom: -11dvh; }   /* pull the carousel block up */
+  .vhero__cta { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .vhero__cta .btn--gold-pill { width: auto; }
+  .vhero__cta .btn--link { align-self: flex-start; padding-left: 2px; }
+
+  /* --- Subject badge (left column) — compact rounded-square 01/05 · category.
+     The live brushed-silver liquid-metal edge is the shader (data-metal="silver"
+     on the element); the 1px border below is just a static fallback. --- */
+  .vhero__mobbadge {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    justify-self: start;
+    width: 156px;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-1);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-sm), var(--inset-hairline);
+    z-index: 8;
+    top: 11dvh;   /* keep the badge at its original height while the carousel sits higher */
+  }
+  .vhero__mobbadge-count {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--fg-3);
+  }
+  .vhero__mobbadge-count b { color: var(--gold-400); font-weight: 600; }
+  .vhero__mobbadge-cat {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    color: var(--fg-1);
+    overflow-wrap: break-word;
+  }
+
+  /* --- Robot visual (right column) --- */
+  .vhero__selector {
+    position: relative;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 2;
+    width: auto;
+    height: auto;
+    min-height: 220px;
+    margin: 0;
+    align-self: stretch;
+    z-index: 6;
+    overflow: visible;
+  }
+  /* ticker rides above the carousel so the humanoid's base is cropped behind it */
+  .vhero__ticker { z-index: 20; }
+  .vhero__selector .stage { inset: 0; transform: none; perspective: none; }
+  .vhero__selector .stage__floor { display: none; }
+  .vhero__selector .char[aria-hidden="true"] { display: none; }
+  /* fill the column and centre the active subject so tall AND wide items both
+     sit large and centred — no empty headroom, no width-capped shrinking low */
+  .vhero__selector .char[aria-hidden="false"] {
+    inset: 0;
+    width: auto; height: auto;
+    display: flex; align-items: center; justify-content: center;
+    transform: none !important;
+    filter: drop-shadow(0 14px 26px rgba(0,0,0,0.55)) !important;
+    transition: none;
+  }
+  .vhero__selector .char[aria-hidden="false"] .char__img {
+    position: static;
+    transform: scale(1.5);      /* item scale (mobile) */
+    transform-origin: center top;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;        /* show the whole subject — never crop it */
+    object-position: center top; /* top-align the subject with the badge */
+  }
+
+  /* Humanoid (first subject) only: enlarge, anchor to the top of the row and
+     push it down so its base runs off the bottom, cropped behind the ticker.
+     The column clips siblings but goes visible while the humanoid is active. */
+  .vhero__selector:has(.char[data-sys="humanoid"][aria-hidden="false"]) { overflow: visible; }
+  .vhero__selector .char[data-sys="humanoid"][aria-hidden="false"] { align-items: flex-start; }
+  .vhero__selector .char[data-sys="humanoid"][aria-hidden="false"] .char__img {
+    width: auto;
+    height: 374px;
+    max-width: none;
+    max-height: none;
+    object-fit: contain;
+    object-position: center top;
+    transform: translateY(26px);
+  }
+  /* Rail (second subject) sits lower in its box */
+  .vhero__selector .char[data-sys="rail"][aria-hidden="false"] .char__img {
+    transform: scale(1.8) translateY(42px);
+    transform-origin: center top;
+  }
+  /* desktop's nested controls are replaced by the full-width bar below */
+  .vhero__selector .selbar { display: none; }
+
+  /* --- Carousel controls (full-width row) --- */
+  .vhero__mobsel { display: block; grid-column: 1 / -1; grid-row: 3; position: relative; z-index: 40; top: 4dvh; }
+  .vhero__mobsel .selbar {
+    position: static;
+    left: auto; right: auto; bottom: auto;
+    width: 100%;
+  }
+  /* the 01/05 · category pill is redundant with the info card, so drop it here */
+  .vhero__mobsel .selbar__name { display: none; }
+  /* frosted-glass pill behind the whole controls cluster (arrow → dots → arrow)
+     so the dot markers have a surface to sit on */
+  .vhero__mobsel .selbar__controls {
+    position: relative;
+    gap: 18px;
+    padding: 8px 16px;
+    border-radius: var(--r-pill);
+    background: var(--bg-glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-sm), var(--inset-hairline);
+  }
+  .vhero__mobsel .selbar__controls::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background-image: var(--silver-foil);
+    background-size: 200% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask-composite: exclude;
+    animation: csa-gold-sheen 8s linear infinite;
+    pointer-events: none;
+  }
+  /* arrows become flat icons on the pill instead of their own glass circles */
+  .vhero__mobsel .navarrow {
+    width: 38px; height: 38px;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .vhero__inner { padding: 0 16px; column-gap: 10px; row-gap: 10px; }
+  .vhero__copy { padding-top: 18dvh; margin-bottom: -13dvh; }
+  .vhero__mobbadge { width: 136px; padding: 12px; top: 13dvh; }
+  .vhero__mobbadge-cat { font-size: 10.5px; }
+  .vhero__selector { min-height: 200px; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — hero "Innovation" accent word.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+@keyframes csa-hero-stroke-sheen {
+  0%   { -webkit-text-stroke-color: #8C6C32; text-stroke-color: #8C6C32;
+         filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35)); }
+  28%  { -webkit-text-stroke-color: #C6A256; text-stroke-color: #C6A256; }
+  50%  { -webkit-text-stroke-color: #F4E4A6; text-stroke-color: #F4E4A6;
+         filter: drop-shadow(0 1px 11px rgba(244, 228, 166, 0.55)); }
+  72%  { -webkit-text-stroke-color: #C6A256; text-stroke-color: #C6A256; }
+  100% { -webkit-text-stroke-color: #8C6C32; text-stroke-color: #8C6C32;
+         filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35)); }
+}
+.vhero__title .csa-gold-shimmer {
+  background: none !important;
+  -webkit-text-fill-color: rgba(236, 240, 245, 0.10) !important;
+  color: rgba(236, 240, 245, 0.10) !important;
+  -webkit-text-stroke: 1.8px var(--gold-500);
+  text-stroke: 1.8px var(--gold-500);
+  paint-order: stroke fill;
+  filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35));
+  animation: csa-hero-stroke-sheen 5.5s linear infinite !important;
+  display: inline-block;
+  transform-origin: 0% 100%;
+  transition: transform 0.42s var(--ease-out);
+}
+.vhero__title .csa-gold-shimmer:hover { transform: skewX(-10deg); }
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-csa-motion]) .vhero__title .csa-gold-shimmer {
+    animation: none !important;
+    -webkit-text-stroke-color: var(--gold-500);
+    text-stroke-color: var(--gold-500);
+  }
 }
 
 /* ===== problem.css ===== */
@@ -1698,6 +2240,11 @@ a { text-decoration: none; }
 /* While the wrapper carries the neon glow (a solution item is hovered), drop the
    card's silver hairline so only the glow rims it. */
 .pb__panelwrap[data-glow] .pb__panel { border-color: transparent; }
+
+/* Stabilise the detail-card height so its always-on glow never resizes (and so
+   never restarts) when the active solution changes. */
+.pb__panelwrap { min-height: 330px; }
+@media (max-width: 560px) { .pb__panelwrap { min-height: 540px; } }
 .pb__panel-ghost {
   position: absolute;
   right: 30px;
@@ -1785,6 +2332,31 @@ a { text-decoration: none; }
   z-index: 0;
   pointer-events: none;
   background: radial-gradient(58% 52% at 50% 32%, rgba(52,70,94,0.32) 0%, rgba(10,14,20,0) 62%);
+}
+/* Static CSS stand-in for <csa-grain> on mobile. A live WebGL grain context is
+   evictable under mobile's tight GPU-context budget (it gets force-lost while
+   the carousel swipes spin rings up/down, and Paper doesn't restore it). This
+   layered gradient + fractal-noise grain mirrors the shader's steel-blue + gold
+   haze without a WebGL context, so it can never crash. */
+.cs__grain-static {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 60% at 18% 8%, rgba(36,50,70,0.55) 0%, rgba(10,14,20,0) 58%),
+    radial-gradient(60% 55% at 88% 96%, rgba(52,70,94,0.42) 0%, rgba(10,14,20,0) 60%),
+    radial-gradient(38% 34% at 78% 20%, rgba(198,162,86,0.10) 0%, rgba(10,14,20,0) 64%),
+    var(--bg-base);
+}
+.cs__grain-static::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>");
+  background-size: 160px 160px;
 }
 /* Ghost wordmark echo for scale/texture, consistent with the hero */
 .cs__ghost {
@@ -2160,9 +2732,51 @@ a { text-decoration: none; }
   .cs-card { width: 88vw; max-width: 720px; }
 }
 @media (max-width: 720px) {
-  .cs-card__body { width: 80%; }
+  /* flow-root establishes a BFC so the quote's margin-top indents it WITHIN the
+     stage (it's the only in-flow child; the cards are absolute) instead of
+     collapsing through the stage and dropping the quote onto the card. */
+  .cs__stage { height: auto; display: flow-root; }
+  /* Uniform fixed-size detail cards (sized to fit the tallest: 2-line name + chip) */
+  .cs-card { height: 210px; }
+  .cs-card__body { width: 80%; padding: 24px 28px; }
   .cs-card__desc { display: none; }
-  .cs-quote { padding: 22px 24px; }
+  .cs-card__sector { margin: 0 0 10px; font-size: 10px; }
+  .cs-card__name { font-size: 23px; margin: 0 0 14px; }
+  .cs-card__std { margin: 0 0 14px; }
+  /* Quote keeps its dynamic height, flows in-document (so the controls stay a
+     fixed gap below it), is centered, and overlaps only the card's bottom edge. */
+  .cs-quote {
+    position: relative;
+    top: auto; left: auto;
+    transform: none;
+    width: 88vw;
+    max-width: 88vw;
+    /* 88vw is wider than the padded stage, so plain margin:auto can't center it.
+       Equal (negative) side margins center it on the viewport, matching the card. */
+    margin: 188px calc((100% - 88vw) / 2) 0;
+    padding: 22px 24px;
+  }
+  .cs-quote.cs-anim { animation-name: cs-fade; }
+  .cs__nav { margin-top: 28px; }
+  .cs__cta-row { margin-top: 28px; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Case Studies — metal edge z-index, overlay restore, grain.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.cs-card__tilt > csa-liquid-metal { z-index: 3 !important; }
+.cs-card__tilt[data-metal] > .cs-card__cover,
+.cs-card__tilt[data-metal] > .cs-card__scrim { position: absolute; inset: 0; }
+.cs-card__tilt[data-metal] > .cs-card__body { position: absolute; }
+.cs csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
 }
 
 /* ===== partners.css ===== */
@@ -2368,6 +2982,20 @@ a { text-decoration: none; }
   .pt-card:hover { transform: none; }
 }
 
+/* ---------- Mobile: logos always in colour, hover interactions removed ---------- */
+@media (max-width: 900px) {
+  /* full colour at rest (no grayscale-until-hover) */
+  .pt-logo__img,
+  .pt-card__logo img { filter: grayscale(0) opacity(1) !important; }
+  .pt-logo__mark { color: var(--gold-400); }
+  .pt-card__mono { color: var(--gold-300); }
+
+  /* neutralise the hover lift / tint / scale so nothing sticks on tap */
+  .pt-logo:hover { transform: none; background: transparent; }
+  .pt-card:hover { transform: none; background: transparent; }
+  .pt-card:hover .pt-card__logo img { transform: none; }
+}
+
 .pt-card__logo {
   width: 46px;
   height: 46px;
@@ -2444,6 +3072,42 @@ a { text-decoration: none; }
 @media (max-width: 560px) {
   .pt-logos { grid-template-columns: repeat(2, 1fr); }
   .pt-card { width: 100%; max-width: 320px; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Partners / Trusted By — neon hover + blueprint grid.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.pt-card:hover {
+  border-color: rgba(19, 224, 255, 0.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(45, 108, 255, 0.60),
+    0 0 16px rgba(19, 224, 255, 0.45),
+    0 0 30px rgba(155, 92, 255, 0.30) !important;
+}
+.pt {
+  background: linear-gradient(to bottom, var(--bg-base) 0%, var(--bg-base-2) 32%, var(--bg-base-2) 74%, var(--bg-base) 100%);
+}
+.pt__haze { display: none; }
+.pt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(440px circle at 16% 26%, rgba(45,108,255,0.07), transparent 60%),
+    radial-gradient(400px circle at 84% 72%, rgba(155,92,255,0.06), transparent 60%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: auto, auto, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
 }
 
 /* ===== services.css ===== */
@@ -2723,6 +3387,46 @@ a { text-decoration: none; }
   .sv__tab { padding: 11px 22px; }
 }
 
+
+/* ============================================================
+   Baked from review pass (Carlos) — Services — CTA, accordion, section blend.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+/* "See All Services" glass button: gold glow on hover */
+.sv__cta-row .rv-glass-btn { transition: box-shadow 0.4s var(--ease-out); }
+.sv__cta-row .rv-glass-btn:hover {
+  color: var(--gold-300) !important;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 24px rgba(var(--gold-rgb), 0.45) !important;
+}
+/* Accordion: thin silver outline on closed-item hover; open item base */
+.sv-item:not(.is-open):hover { border-color: rgba(174, 183, 196, 0.55) !important; }
+.sv-item.is-open { position: relative; box-shadow: var(--shadow-card) !important; }
+/* Blend Services bottom into Standing Apart; feather grain across the seam */
+.sv {
+  background: linear-gradient(to bottom, var(--bg-base) 0%, var(--bg-base) calc(100% - 300px), var(--bg-base-2) 100%) !important;
+  overflow: visible;
+}
+.sv csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+}
+.sv__haze {
+  inset: -360px 0 0 0;
+  background: radial-gradient(720px 320px at 50% 360px,
+    rgba(52,70,94,0.22) 0%, rgba(10,14,20,0) 70%);
+}
+/* Later override (wins): drop the gold hover glow on the glass button */
+.sv__cta-row .rv-glass-btn:hover {
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+
 /* ===== standing-apart.css ===== */
 /* ============================================================
    CSA — Standing Apart / How We Work
@@ -2885,7 +3589,8 @@ a { text-decoration: none; }
 .sa-cell.new .sa-cell__mark { color: var(--gold-400); border-color: var(--border-gold); background: rgba(var(--gold-rgb), 0.06); }
 .sa-cell.new .sa-cell__t { color: var(--fg-1); }
 .sa-cell.new .sa-cell__d { color: var(--fg-2); }
-.sa-row:hover .sa-cell.new {
+.sa-row:hover .sa-cell.new,
+.sa-row[data-mactive] .sa-cell.new {
   transform: translateY(-3px);
   border-color: var(--border-gold);
   box-shadow: var(--shadow-pop), 0 0 28px rgba(var(--gold-rgb), 0.16);
@@ -2907,7 +3612,8 @@ a { text-decoration: none; }
   color: var(--fg-4);
   transition: color 0.4s var(--ease-out);
 }
-.sa-row:hover .sa-mid__label { color: var(--gold-400); }
+.sa-row:hover .sa-mid__label,
+.sa-row[data-mactive] .sa-mid__label { color: var(--gold-400); }
 .sa-mid__arrow {
   width: 34px; height: 34px;
   border-radius: 50%;
@@ -2918,7 +3624,8 @@ a { text-decoration: none; }
   transition: color 0.4s var(--ease-out), border-color 0.4s var(--ease-out), transform 0.45s var(--ease-out), box-shadow 0.4s var(--ease-out);
 }
 .sa-mid__arrow i { width: 17px; height: 17px; }
-.sa-row:hover .sa-mid__arrow {
+.sa-row:hover .sa-mid__arrow,
+.sa-row[data-mactive] .sa-mid__arrow {
   color: var(--gold-300);
   border-color: var(--border-gold);
   transform: translateX(5px);
@@ -2962,7 +3669,8 @@ a { text-decoration: none; }
   background: var(--bg-glass);
   transition: border-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), transform 0.4s var(--ease-out);
 }
-.sa-badge:hover {
+.sa-badge:hover,
+.sa-badge[data-mactive] {
   border-color: var(--border-gold);
   box-shadow: 0 0 24px rgba(var(--gold-rgb), 0.16);
   transform: translateY(-3px);
@@ -3002,7 +3710,52 @@ a { text-decoration: none; }
   .sa-row { grid-template-columns: 1fr; gap: 8px; }
   .sa-mid { flex-direction: row; gap: 12px; padding: 2px 0; }
   .sa-mid__arrow { transform: rotate(90deg); }
-  .sa-row:hover .sa-mid__arrow { transform: rotate(90deg) translateX(5px); }
+  .sa-row:hover .sa-mid__arrow,
+  .sa-row[data-mactive] .sa-mid__arrow { transform: rotate(90deg) translateX(5px); }
+}
+
+/* Mobile: cycled row is focused, the rest recede (matches the hover behaviour) */
+@media (max-width: 900px) {
+  .sa__rows .sa-row:not([data-mactive]) { opacity: 0.5; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Standing Apart — badge, "How we work" cells, blend.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.sa-badge:hover {
+  border-color: var(--border-gold) !important;
+  box-shadow: 0 0 0 1px var(--gold-500), 0 0 22px rgba(var(--gold-rgb), 0.40) !important;
+  transform: translateY(-3px);
+}
+.sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(10,14,20,0.58) !important;
+  border-color: rgba(174,183,196,0.20) !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+  transition: background 0.4s var(--ease-out), border-color 0.4s var(--ease-out) !important;
+}
+.sa-row:hover .sa-cell.new.csa-glass {
+  transform: none !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+.sa-row:hover .sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.11), rgba(255,255,255,0.04)), rgba(10,14,20,0.50) !important;
+  border-color: rgba(214,222,232,0.50) !important;
+  transform: none !important;
+}
+.sa-cell.csa-glass > .sa-cell__mark,
+.sa-cell.csa-glass > div { position: relative; z-index: 2; }
+.sa-cell.old .sa-cell__t { color: var(--fg-1) !important; }
+.sa-cell.old .sa-cell__d { color: var(--fg-2) !important; }
+.sa { background: var(--bg-base-2) !important; }
+.sa csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
 }
 
 /* ===== about.css ===== */
@@ -3267,6 +4020,32 @@ a { text-decoration: none; }
   .ab__left { position: static; max-width: 360px; margin: 0 auto; }
 }
 
+
+/* ============================================================
+   Baked from review pass (Carlos) — About — silver callout, portrait overlays, blend.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.ab-callout { color: var(--silver-300) !important; border-color: rgba(174,183,196,0.40) !important; }
+.ab-callout__node { background: rgba(174,183,196,0.25) !important; }
+.ab-callout__node::after { background: var(--silver-500) !important; }
+.ab-portrait[data-metal] > .ab-portrait__scrim,
+.ab-portrait[data-metal] > .ab-portrait__gloss { position: absolute; inset: 0; }
+.ab-portrait[data-metal] > .ab-portrait__plate,
+.ab-portrait[data-metal] > .ab-callout { position: absolute; }
+.ab {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-base-2) 0%,
+    var(--bg-base) 220px,
+    var(--bg-base) calc(100% - 220px),
+    var(--bg-base-2) 100%
+  ) !important;
+}
+
 /* ===== news.css ===== */
 /* ============================================================
    CSA — Latest News
@@ -3419,6 +4198,23 @@ a { text-decoration: none; }
   .nw-card { padding: 22px; gap: 16px; }
   .nw-card__arrow { width: 40px; height: 40px; }
 }
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Latest News — tilt fix + pulsing-border glow.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.nw-card {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg)) !important;
+}
+.nw__list csa-pulsing-border { animation: nw-glow-in 0.28s var(--ease-out) both; transition: transform 0.35s var(--ease-out); transform-style: preserve-3d; will-change: transform, opacity; }
+@keyframes nw-glow-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* ===== footer.css ===== */
 /* ============================================================
@@ -3651,9 +4447,19 @@ a { text-decoration: none; }
 @media (max-width: 860px) {
   .ft__main { grid-template-columns: 1fr 1fr; gap: 36px; }
 }
-@media (max-width: 520px) {
-  .ft__main { grid-template-columns: 1fr; }
-  .ft__bottom { flex-direction: column; align-items: flex-start; }
+@media (max-width: 600px) {
+  .ft-cta { padding: 72px 22px 64px; }
+  .ft__main { grid-template-columns: 1fr; padding: 56px 22px 44px; gap: 32px; }
+  .ft__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px 22px 32px;
+    gap: 18px;
+  }
+  /* Let the bottom-bar items wrap inside the viewport instead of forcing a
+     single long line that overflowed by a few px on phones. */
+  .ft__copy { white-space: normal; line-height: 1.7; }
+  .ft__legal { flex-wrap: wrap; gap: 14px 18px; max-width: 100%; }
 }
 
 /* ===== consulting-overview.css ===== */
@@ -5237,6 +6043,12 @@ a { text-decoration: none; }
 /* ===== review-treatments.css ===== */
 /* ============================================================
    CSA — teammate review treatments (Carlos pass)
+   NOTE: every rule below has also been BAKED IN PARALLEL into the
+   owning section source files (hero/kit/services/partners/standing-
+   apart/about/news/case-studies .css), under a "Baked from review
+   pass (Carlos)" header. This overlay is intentionally KEPT and still
+   loads LAST so it remains the authority; the baked copies make each
+   section self-sufficient if this overlay is ever removed.
    Layered over the section CSS (loaded LAST so these win). Live
    WebGL shaders — liquid metal (data-metal), grain (<csa-grain>),
    neon glow — are applied in the components; this sheet covers the
@@ -5245,16 +6057,39 @@ a { text-decoration: none; }
    treatment, and colour swaps.
    ============================================================ */
 
-/* ---- Hero "Innovation": gold-foil outline + frosted-glass fill ---- */
+/* ---- Hero "Innovation": LIQUID-METAL gold stroke + hollow interior ----
+   The interior stays hollow (faint frosted fill, see-through to the hero).
+   The stroke is painted with the live gold material: its colour travels the
+   --gold-foil stops (deep gold -> primary -> bright specular) so the outline
+   reads as moving brushed/liquid metal rather than flat paint. text-stroke
+   only takes a solid colour, so the "sheen" is an animated stroke-colour
+   sweep timed to match the site's other foil animations (csa-gold-sheen). */
+@keyframes csa-hero-stroke-sheen {
+  0%   { -webkit-text-stroke-color: #8C6C32; text-stroke-color: #8C6C32;
+         filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35)); }
+  28%  { -webkit-text-stroke-color: #C6A256; text-stroke-color: #C6A256; }
+  50%  { -webkit-text-stroke-color: #F4E4A6; text-stroke-color: #F4E4A6;
+         filter: drop-shadow(0 1px 11px rgba(244, 228, 166, 0.55)); }
+  72%  { -webkit-text-stroke-color: #C6A256; text-stroke-color: #C6A256; }
+  100% { -webkit-text-stroke-color: #8C6C32; text-stroke-color: #8C6C32;
+         filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35)); }
+}
 .vhero__title .csa-gold-shimmer {
   background: none !important;
-  -webkit-text-fill-color: rgba(236, 240, 245, 0.13) !important;
-  color: rgba(236, 240, 245, 0.13) !important;
-  -webkit-text-stroke: 1.6px var(--gold-500);
-  text-stroke: 1.6px var(--gold-500);
+  -webkit-text-fill-color: rgba(236, 240, 245, 0.10) !important;
+  color: rgba(236, 240, 245, 0.10) !important;
+  -webkit-text-stroke: 1.8px var(--gold-500);
+  text-stroke: 1.8px var(--gold-500);
   paint-order: stroke fill;
-  filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.4));
-  animation: none !important;
+  filter: drop-shadow(0 1px 7px rgba(var(--gold-rgb), 0.35));
+  animation: csa-hero-stroke-sheen 5.5s linear infinite !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-csa-motion]) .vhero__title .csa-gold-shimmer {
+    animation: none !important;
+    -webkit-text-stroke-color: var(--gold-500);
+    text-stroke-color: var(--gold-500);
+  }
 }
 
 /* ---- Frosted-glass button face (edge = data-metal="gold" liquid metal) ---- */
@@ -5554,8 +6389,4 @@ a { text-decoration: none; }
   transition: transform 0.42s var(--ease-out);
 }
 .vhero__title .csa-gold-shimmer:hover { transform: skewX(-10deg); }
-
-
-/* ===== frontend base ===== */
-html,body{margin:0;padding:0;background:var(--bg-base);overflow-x:clip}
 

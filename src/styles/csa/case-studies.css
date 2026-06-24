@@ -18,6 +18,31 @@
   pointer-events: none;
   background: radial-gradient(58% 52% at 50% 32%, rgba(52,70,94,0.32) 0%, rgba(10,14,20,0) 62%);
 }
+/* Static CSS stand-in for <csa-grain> on mobile. A live WebGL grain context is
+   evictable under mobile's tight GPU-context budget (it gets force-lost while
+   the carousel swipes spin rings up/down, and Paper doesn't restore it). This
+   layered gradient + fractal-noise grain mirrors the shader's steel-blue + gold
+   haze without a WebGL context, so it can never crash. */
+.cs__grain-static {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 60% at 18% 8%, rgba(36,50,70,0.55) 0%, rgba(10,14,20,0) 58%),
+    radial-gradient(60% 55% at 88% 96%, rgba(52,70,94,0.42) 0%, rgba(10,14,20,0) 60%),
+    radial-gradient(38% 34% at 78% 20%, rgba(198,162,86,0.10) 0%, rgba(10,14,20,0) 64%),
+    var(--bg-base);
+}
+.cs__grain-static::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>");
+  background-size: 160px 160px;
+}
 /* Ghost wordmark echo for scale/texture, consistent with the hero */
 .cs__ghost {
   position: absolute;
@@ -392,7 +417,49 @@
   .cs-card { width: 88vw; max-width: 720px; }
 }
 @media (max-width: 720px) {
-  .cs-card__body { width: 80%; }
+  /* flow-root establishes a BFC so the quote's margin-top indents it WITHIN the
+     stage (it's the only in-flow child; the cards are absolute) instead of
+     collapsing through the stage and dropping the quote onto the card. */
+  .cs__stage { height: auto; display: flow-root; }
+  /* Uniform fixed-size detail cards (sized to fit the tallest: 2-line name + chip) */
+  .cs-card { height: 210px; }
+  .cs-card__body { width: 80%; padding: 24px 28px; }
   .cs-card__desc { display: none; }
-  .cs-quote { padding: 22px 24px; }
+  .cs-card__sector { margin: 0 0 10px; font-size: 10px; }
+  .cs-card__name { font-size: 23px; margin: 0 0 14px; }
+  .cs-card__std { margin: 0 0 14px; }
+  /* Quote keeps its dynamic height, flows in-document (so the controls stay a
+     fixed gap below it), is centered, and overlaps only the card's bottom edge. */
+  .cs-quote {
+    position: relative;
+    top: auto; left: auto;
+    transform: none;
+    width: 88vw;
+    max-width: 88vw;
+    /* 88vw is wider than the padded stage, so plain margin:auto can't center it.
+       Equal (negative) side margins center it on the viewport, matching the card. */
+    margin: 188px calc((100% - 88vw) / 2) 0;
+    padding: 22px 24px;
+  }
+  .cs-quote.cs-anim { animation-name: cs-fade; }
+  .cs__nav { margin-top: 28px; }
+  .cs__cta-row { margin-top: 28px; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Case Studies — metal edge z-index, overlay restore, grain.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.cs-card__tilt > csa-liquid-metal { z-index: 3 !important; }
+.cs-card__tilt[data-metal] > .cs-card__cover,
+.cs-card__tilt[data-metal] > .cs-card__scrim { position: absolute; inset: 0; }
+.cs-card__tilt[data-metal] > .cs-card__body { position: absolute; }
+.cs csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
 }
