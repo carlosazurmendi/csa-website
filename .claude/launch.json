@@ -6,6 +6,18 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "design-ref",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "serve",
+        "-l",
+        "4173",
+        "C:\\Users\\offic\\Documents\\CRITICAL SYSTEMS ANALYSIS\\_handoff_new\\csa-website\\project"
+      ],
+      "port": 4173
     }
   ]
 }

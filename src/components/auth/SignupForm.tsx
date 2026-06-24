@@ -79,6 +79,12 @@ export function SignupForm() {
             title="Join CSA."
             sub="Enroll in courses, earn certificates, and access your template library."
           />
+          <div className="auth-sso">
+            <button type="button" className="auth-sso__btn" onClick={google}>
+              <GoogleMark /> Continue with Google
+            </button>
+          </div>
+          <AuthOr />
           <form className="auth-form" onSubmit={onSubmit} noValidate>
             <AuthField label="Full name" name="fullName" placeholder="Jane Engineer" icon="user" autoComplete="name" required />
             <AuthField label="Work email" type="email" name="email" placeholder="you@company.com" icon="mail" autoComplete="email" required />
@@ -103,12 +109,6 @@ export function SignupForm() {
             <AuthError error={error} />
             <AuthSubmit label="Create Account" loading={loading} glow />
           </form>
-          <AuthOr />
-          <div className="auth-sso">
-            <button type="button" className="auth-sso__btn" onClick={google}>
-              <GoogleMark /> Continue with Google
-            </button>
-          </div>
           <p className="auth-alt">
             Already have an account? <Link href="/login">Sign in</Link>
           </p>
