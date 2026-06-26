@@ -1,0 +1,62 @@
+# ============================================================================
+# CSA — production stack (Traefik ingress + Redis). Postgres is EXTERNAL:
+# the app connects to the existing self-hosted Supabase via DATABASE_URI.
+# Postgres is therefore deliberately NOT a service here.
+#
+#   prod:  docker compose -f docker-compose.yml up -d   (requires external `web` network)
+#   local: docker compose up -d                         (docker-compose.override.yml merges)
+# ============================================================================
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: csa-website:latest
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - web
+      - internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.csa.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.csa.entrypoints=websecure"
+      - "traefik.http.routers.csa.tls=true"
+      - "traefik.http.routers.csa.tls.certresolver=letsencrypt"
+      - "traefik.http.services.csa.loadbalancer.server.port=3000"
+      - "traefik.http.routers.csa.middlewares=csa-compress@docker"
+      # HTTP -> HTTPS redirect
+      - "traefik.http.routers.csa-http.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.csa-http.entrypoints=web"
+      - "traefik.http.routers.csa-http.middlewares=csa-https-redirect@docker"
+      - "traefik.http.middlewares.csa-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.csa-https-redirect.redirectscheme.permanent=true"
+      - "traefik.http.middlewares.csa-compress.compress=true"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    networks:
+      - internal # internal-only: no published ports
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  redis-data:
+
+networks:
+  web:
+    external: true # shared with Traefik: `docker network create web`
+  internal:
+    driver: bridge

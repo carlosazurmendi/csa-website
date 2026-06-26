@@ -1,0 +1,465 @@
+/* ============================================================
+   CSA — Case Studies (peek carousel + floating testimonial)
+   Tokens from colors_and_type.css; buttons/chips from kit.css.
+   Namespaced to .cs to avoid clashing with other sections.
+   ============================================================ */
+
+.cs {
+  position: relative;
+  background: var(--bg-base);
+  padding: 104px 40px 116px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.cs__haze {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(58% 52% at 50% 32%, rgba(52,70,94,0.32) 0%, rgba(10,14,20,0) 62%);
+}
+/* Static CSS stand-in for <csa-grain> on mobile. A live WebGL grain context is
+   evictable under mobile's tight GPU-context budget (it gets force-lost while
+   the carousel swipes spin rings up/down, and Paper doesn't restore it). This
+   layered gradient + fractal-noise grain mirrors the shader's steel-blue + gold
+   haze without a WebGL context, so it can never crash. */
+.cs__grain-static {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 60% at 18% 8%, rgba(36,50,70,0.55) 0%, rgba(10,14,20,0) 58%),
+    radial-gradient(60% 55% at 88% 96%, rgba(52,70,94,0.42) 0%, rgba(10,14,20,0) 60%),
+    radial-gradient(38% 34% at 78% 20%, rgba(198,162,86,0.10) 0%, rgba(10,14,20,0) 64%),
+    var(--bg-base);
+}
+.cs__grain-static::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>");
+  background-size: 160px 160px;
+}
+/* Ghost wordmark echo for scale/texture, consistent with the hero */
+.cs__ghost {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  z-index: 0;
+  transform: translateY(-50%);
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 22vw;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.022);
+  white-space: nowrap;
+}
+
+.cs__head {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 60px;
+}
+.cs__head .csa-eyebrow { margin: 0 0 16px; display: inline-block; }
+.cs__title { margin: 0 0 16px; }
+.cs__sub { margin: 0; color: var(--fg-2); font-size: 16px; line-height: 1.6; }
+
+/* ---------- Testimonial grid ---------- */
+.cs-tgrid {
+  position: relative;
+  z-index: 1;
+  max-width: 1680px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.cs-t {
+  position: relative;
+  margin: 0;
+  padding: 30px 30px 28px;
+  border-radius: var(--r-lg);
+  background: var(--bg-glass);
+  box-shadow: var(--shadow-card), var(--inset-hairline);
+  transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+}
+.cs-t.csa-glass::before { opacity: 0.55; }
+.cs-t:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-pop), var(--inset-hairline), 0 0 30px rgba(196,206,222,0.16);
+}
+.cs-t__mark {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 44px;
+  line-height: 0.5;
+  height: 20px;
+  color: var(--gold-500);
+  margin-bottom: 16px;
+}
+.cs-t__quote {
+  margin: 0 0 22px;
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: var(--fg-1);
+  text-wrap: pretty;
+}
+.cs-t__by {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-1);
+}
+.cs-t__author {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--gold-400);
+}
+.cs-t__org {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--fg-3);
+}
+
+.cs__cta-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  margin-top: 48px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cs-t { animation: cs-fade 0.6s var(--ease-out) both; }
+}
+
+@media (max-width: 1080px) {
+  .cs-tgrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+  .cs-tgrid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Carousel stage ---------- */
+.cs__stage {
+  position: relative;
+  z-index: 1;
+  height: 600px;
+  max-width: 1680px;
+  margin: 0 auto;
+}
+
+.cs-card {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 760px;
+  height: 430px;
+  perspective: 1300px;
+  transform-origin: 50% 50%;
+  transition:
+    transform 600ms var(--ease-out),
+    filter 600ms var(--ease-out);
+  will-change: transform, filter;
+}
+.cs-card.is-side { cursor: pointer; }
+
+/* Inner tilt plate — carries the rounding, border, sheen + 3D rotation so it
+   doesn't collide with the carousel positioning transform on .cs-card */
+.cs-card__tilt {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  border: 1px solid var(--border-1);
+  box-shadow: var(--shadow-pop);
+  background: var(--bg-elevated);
+  transition:
+    transform 0.35s var(--ease-out),
+    box-shadow 0.4s var(--ease-out);
+}
+.cs-card.is-active .cs-card__tilt:hover {
+  box-shadow: var(--shadow-pop), 0 34px 84px rgba(0,0,0,0.55);
+}
+
+.cs-card__cover { position: absolute; inset: 0; z-index: 0; }
+.cs-card__cover image-slot { width: 100%; height: 100%; display: block; }
+.cs-card:not(.is-active) .cs-card__cover image-slot { pointer-events: none; }
+/* Make the unfilled slot read as a dark cinematic plate on the CSA theme */
+.cs-card__cover image-slot::part(frame) {
+  background:
+    radial-gradient(120% 90% at 75% 18%, rgba(70,92,120,0.34) 0%, rgba(13,18,26,0) 58%),
+    linear-gradient(145deg, #131923 0%, #0b0f16 100%);
+}
+.cs-card__cover image-slot::part(empty) { color: var(--fg-3); }
+.cs-card__cover image-slot::part(ring) { border-color: rgba(255,255,255,0.12); }
+/* Darken dropped photos so the light card text stays legible over them */
+.cs-card__cover image-slot::part(image) { filter: brightness(0.55) saturate(0.96); }
+
+.cs-card__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(10,14,20,0.28) 0%, rgba(10,14,20,0.04) 36%, rgba(10,14,20,0.74) 100%),
+    linear-gradient(90deg, rgba(10,14,20,0.88) 0%, rgba(10,14,20,0.20) 50%, rgba(10,14,20,0) 100%);
+}
+
+.cs-card__body {
+  position: absolute;
+  z-index: 2;
+  left: 0; top: 0;
+  width: 60%;
+  padding: 40px 42px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.cs-card__sector {
+  margin: 0 0 14px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+}
+.cs-card__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--fg-1);
+  margin: 0 0 16px;
+}
+.cs-card__desc {
+  font-size: 14.5px;
+  line-height: 1.58;
+  color: var(--fg-2);
+  margin: 0 0 22px;
+  max-width: 360px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cs-card__std {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+.cs-card__chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--fg-1);
+  background: rgba(var(--gold-rgb),0.07);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-pill);
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+.cs-card__cta { pointer-events: auto; }
+
+/* Hide body text on side cards (keep it clean; brightness dims them anyway) */
+.cs-card.is-side .cs-card__body { opacity: 0; transition: opacity 360ms var(--ease-out); }
+
+/* ---------- Floating testimonial bubble ---------- */
+.cs-quote {
+  position: absolute;
+  z-index: 40;
+  left: 50%;
+  top: 344px;
+  width: 544px;
+  max-width: 84%;
+  transform: translateX(-50%);
+  padding: 28px 34px 30px;
+  border-radius: var(--r-lg);
+  background: var(--bg-glass);
+  border: none;
+  backdrop-filter: blur(20px);
+
+  box-shadow: var(--shadow-pop), var(--inset-hairline);
+  transition: box-shadow 0.45s var(--ease-out);
+}
+/* Brushed-silver sheen border (from .csa-glass) intensifies + glows on hover */
+.cs-quote.csa-glass:hover {
+  box-shadow:
+    var(--shadow-pop),
+    var(--inset-hairline),
+    0 0 34px rgba(196,206,222,0.20),
+    0 0 1px rgba(225,232,242,0.55);
+}
+.cs-quote.csa-glass::before {
+  opacity: 0.7;
+  transition: opacity 0.45s var(--ease-out);
+}
+.cs-quote.csa-glass:hover::before {
+  opacity: 1;
+  animation-duration: 3.4s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-quote.csa-glass:hover::before { animation-duration: 0s; }
+}
+.cs-quote__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 0.5;
+  color: var(--gold-500);
+  display: block;
+  height: 22px;
+  margin-bottom: 10px;
+}
+.cs-quote__text {
+  margin: 0 0 18px;
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: var(--fg-1);
+  text-wrap: pretty;
+}
+.cs-quote__by {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+.cs-quote__name { color: var(--gold-400); }
+.cs-quote__role { color: var(--fg-3); }
+.cs-quote__sep { color: var(--fg-4); }
+
+/* ---------- Controls ---------- */
+.cs__nav {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  margin-top: 22px;
+}
+.cs-arrow {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10,14,20,0.5);
+  border: 1px solid var(--border-1);
+  color: var(--fg-1);
+  backdrop-filter: blur(10px);
+
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: all var(--dur) var(--ease-out);
+  flex: none;
+}
+.cs-arrow:hover {
+  transform: scale(1.06);
+}
+.cs-arrow:active { transform: scale(0.95); }
+.cs-arrow i { width: 21px; height: 21px; position: relative; z-index: 1; }
+
+.cs-dots { display: flex; align-items: center; gap: 10px; }
+.cs-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid var(--border-1);
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--dur) var(--ease-out);
+}
+.cs-dot:hover { background: rgba(255,255,255,0.30); }
+.cs-dot.is-on {
+  width: 30px;
+  border-radius: var(--r-pill);
+  background-image: var(--gold-foil);
+  background-size: 200% 100%;
+  border-color: transparent;
+  animation: csa-gold-sheen 5.5s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .cs-dot.is-on { animation: none; } }
+
+/* ---------- Swap-in animation ---------- */
+@keyframes cs-swap {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.cs-quote.cs-anim { animation: cs-swap 460ms var(--ease-out) both; }
+@keyframes cs-fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cs-card.is-active .cs-card__body.cs-anim { animation: cs-fade 460ms var(--ease-out) both; }
+@media (prefers-reduced-motion: reduce) {
+  .cs-quote.cs-anim, .cs-card.is-active .cs-card__body.cs-anim { animation: none; }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) {
+  .cs__stage { height: 640px; }
+  .cs-card { width: 88vw; max-width: 720px; }
+}
+@media (max-width: 720px) {
+  /* flow-root establishes a BFC so the quote's margin-top indents it WITHIN the
+     stage (it's the only in-flow child; the cards are absolute) instead of
+     collapsing through the stage and dropping the quote onto the card. */
+  .cs__stage { height: auto; display: flow-root; }
+  /* Uniform fixed-size detail cards (sized to fit the tallest: 2-line name + chip) */
+  .cs-card { height: 210px; }
+  .cs-card__body { width: 80%; padding: 24px 28px; }
+  .cs-card__desc { display: none; }
+  .cs-card__sector { margin: 0 0 10px; font-size: 10px; }
+  .cs-card__name { font-size: 23px; margin: 0 0 14px; }
+  .cs-card__std { margin: 0 0 14px; }
+  /* Quote keeps its dynamic height, flows in-document (so the controls stay a
+     fixed gap below it), is centered, and overlaps only the card's bottom edge. */
+  .cs-quote {
+    position: relative;
+    top: auto; left: auto;
+    transform: none;
+    width: 88vw;
+    max-width: 88vw;
+    /* 88vw is wider than the padded stage, so plain margin:auto can't center it.
+       Equal (negative) side margins center it on the viewport, matching the card. */
+    margin: 188px calc((100% - 88vw) / 2) 0;
+    padding: 22px 24px;
+  }
+  .cs-quote.cs-anim { animation-name: cs-fade; }
+  .cs__nav { margin-top: 28px; }
+  .cs__cta-row { margin-top: 28px; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Case Studies — metal edge z-index, overlay restore, grain.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.cs-card__tilt > csa-liquid-metal { z-index: 3 !important; }
+.cs-card__tilt[data-metal] > .cs-card__cover,
+.cs-card__tilt[data-metal] > .cs-card__scrim { position: absolute; inset: 0; }
+.cs-card__tilt[data-metal] > .cs-card__body { position: absolute; }
+.cs csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 68%, transparent 100%);
+}

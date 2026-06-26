@@ -1,0 +1,251 @@
+/* ============================================================
+   CSA — Problem / Solution explorer
+   Tokens from colors_and_type.css. Interactive tab rail + panel.
+   ============================================================ */
+
+.pb {
+  position: relative;
+  background: var(--bg-base);
+  padding: 108px 40px 116px;
+  overflow: visible;
+  isolation: isolate;
+}
+.pb__haze {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(46% 50% at 76% 64%, rgba(52,70,94,0.24) 0%, rgba(10,14,20,0) 60%);
+}
+
+/* ---------- Head ---------- */
+.pb__head {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto 60px;
+  text-align: center;
+}
+.pb__head .csa-eyebrow { margin: 0 0 16px; display: inline-block; }
+.pb__title { margin: 0 0 22px; }
+.pb__lead { margin: 0 auto; color: var(--fg-2); max-width: 660px; }
+
+/* ---------- Solution label ---------- */
+.pb__solve {
+  position: relative;
+  z-index: 1;
+  max-width: 1680px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* The design-system scroll-reveal end-state ([data-reveal].is-in) applies
+   clip-path: inset(0), which clips PAINTED pixels (the neon hover glow) at this
+   container's box regardless of overflow:visible. The "up" reveal animates only
+   opacity/transform, so the clip is incidental here \u2014 drop it once revealed so
+   the glow can bleed past .pb__solve (fixes both the detail card and the rail
+   items, which all live inside this container). */
+.pb__solve.is-in { clip-path: none; }
+.pb__solve-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  margin: 0 0 28px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+}
+.pb__solve-tick { width: 30px; height: 1px; background: var(--gold-500); }
+
+/* ---------- Explorer ---------- */
+.pb__explorer {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 24px;
+  align-items: stretch;
+  overflow: visible;
+}
+
+.pb__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: visible;
+  /* Inset the items so the hover glow's bloom lives inside the rail column —
+     it never reaches the viewport edge (left) or the panel (right). */
+  padding: 0 30px;
+}
+.pb__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  transition:
+    background 0.35s var(--ease-out),
+    border-color 0.35s var(--ease-out),
+    transform 0.35s var(--ease-out);
+}
+.pb__item::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  height: 56%;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--gold-500);
+  transform: translateY(-50%) scaleY(0);
+  transform-origin: center;
+  transition: transform 0.4s var(--ease-out);
+}
+.pb__item:hover { background: var(--bg-glass-hover); }
+.pb__item.is-on {
+  border-color: var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.06);
+}
+.pb__item.is-on::before { transform: translateY(-50%) scaleY(1); }
+
+/* While the neon glow is mounted (hover), drop the item's own border so only
+   the glow rims the element. */
+.pb__item[data-glow] { border-color: transparent; }
+
+.pb__item-num {
+  font-size: 13px;
+  color: var(--fg-4);
+  flex: none;
+  transition: color 0.35s var(--ease-out);
+}
+.pb__item.is-on .pb__item-num { color: var(--gold-400); }
+.pb__item-title {
+  flex: 1;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--fg-2);
+  transition: color 0.35s var(--ease-out);
+}
+.pb__item.is-on .pb__item-title { color: var(--fg-1); }
+.pb__item-arrow {
+  width: 18px; height: 18px;
+  color: var(--fg-4);
+  flex: none;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.35s var(--ease-out), transform 0.35s var(--ease-out), color 0.35s var(--ease-out);
+}
+.pb__item.is-on .pb__item-arrow { opacity: 1; transform: translateX(0); color: var(--gold-400); }
+
+/* ---------- Panel ---------- */
+/* Stable wrapper: hosts the hover glow so switching cards never rebuilds the
+   WebGL context. It is the grid column; the card fills it. */
+.pb__panelwrap {
+  position: relative;
+  display: flex;
+  /* Match the card's corner radius so the glow ring (roundness is derived from
+     this anchor element) rounds exactly to the card's corners. */
+  border-radius: var(--r-xl);
+  overflow: visible;
+  /* Inset the card within its grid column so the hover glow's bloom lives inside
+     the column \u2014 clear of the viewport edge (right) and the rail (left), the
+     same treatment the rail items get. */
+  margin: 0 30px;
+}
+.pb__panel {
+  position: relative;
+  flex: 1;
+  border-radius: var(--r-xl);
+  border: 1px solid rgba(174, 183, 196, 0.45);
+  background: var(--bg-glass);
+  box-shadow: var(--shadow-card), var(--inset-hairline);
+  padding: 40px 44px;
+  overflow: visible;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: border-color 0.35s var(--ease-out);
+}
+/* While the wrapper carries the neon glow (a solution item is hovered), drop the
+   card's silver hairline so only the glow rims it. */
+.pb__panelwrap[data-glow] .pb__panel { border-color: transparent; }
+
+/* Stabilise the detail-card height so its always-on glow never resizes (and so
+   never restarts) when the active solution changes. */
+.pb__panelwrap { min-height: 330px; }
+@media (max-width: 560px) { .pb__panelwrap { min-height: 540px; } }
+.pb__panel-ghost {
+  position: absolute;
+  right: 30px;
+  top: 4px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 168px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: rgba(255,255,255,0.035);
+  pointer-events: none;
+  user-select: none;
+}
+.pb__panel-inner { position: relative; z-index: 1; max-width: 480px; }
+.pb__icon {
+  width: 60px; height: 60px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-400);
+  margin-bottom: 26px;
+  box-shadow: var(--glow-gold);
+}
+.pb__icon i { width: 28px; height: 28px; }
+.pb__panel-tag {
+  margin: 0 0 14px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.pb__panel-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--fg-1);
+  margin: 0 0 16px;
+}
+.pb__panel-desc {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--fg-2);
+  text-wrap: pretty;
+}
+
+/* ---------- Swap animation ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .pb-anim { animation: pb-rise 0.5s var(--ease-out) both; }
+}
+@keyframes pb-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 880px) {
+  .pb__explorer { grid-template-columns: 1fr; }
+  .pb__panel { min-height: 0; }
+  .pb__panel-ghost { font-size: 120px; }
+}

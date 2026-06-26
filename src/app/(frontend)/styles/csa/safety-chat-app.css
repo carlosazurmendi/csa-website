@@ -1,0 +1,394 @@
+/* ============================================================
+   CSA — Safety Chat (full conversational app)
+   ------------------------------------------------------------
+   ChatGPT-style workspace: fixed global nav on top, a left
+   rail of Projects + Chats, and a main thread with a composer.
+   • Composer carries the system's SILVER liquid-metal edge
+     (data-metal="silver" → live <csa-liquid-metal ring>).
+   • Send / Stop control carries the NEON pulsing-border glow
+     (data-glow) on an elevated dark fill so the ring reads
+     just outside the button.
+   Tokens + helper classes come from colors_and_type.css / kit.css.
+   ============================================================ */
+
+:root { --sca-side: 304px; --sca-nav: 64px; }
+
+.sca {
+  position: fixed;
+  top: var(--sca-nav); left: 0; right: 0; bottom: 0;
+  display: grid;
+  grid-template-columns: var(--sca-side) 1fr;
+  background: var(--bg-base);
+  font-family: var(--font-body);
+}
+
+/* Faint blueprint wash behind the whole app */
+.sca::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    radial-gradient(900px 460px at 78% -8%, rgba(var(--gold-rgb), 0.06), transparent 70%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: auto, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+}
+
+/* ============================================================
+   Sidebar
+   ============================================================ */
+.sca-side {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; min-height: 0;
+  border-right: 1px solid var(--border-1);
+  background: linear-gradient(180deg, rgba(13,18,26,0.72), rgba(10,14,20,0.72));
+  backdrop-filter: blur(8px);
+}
+.sca-side__top { padding: 16px 14px 10px; display: flex; flex-direction: column; gap: 12px; }
+.sca-new {
+  width: 100%; justify-content: center; cursor: pointer;
+  font-family: var(--font-body); font-weight: 700; font-size: 14px;
+}
+.sca-search {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-radius: var(--r-md);
+  background: var(--bg-base-2); border: 1px solid var(--border-1);
+}
+.sca-search:focus-within { border-color: var(--border-gold); }
+.sca-search i { width: 15px; height: 15px; color: var(--fg-4); flex: none; }
+.sca-search input {
+  flex: 1; min-width: 0; background: none; border: none; outline: none;
+  font-family: var(--font-body); font-size: 13.5px; color: var(--fg-1);
+}
+.sca-search input::placeholder { color: var(--fg-4); }
+
+.sca-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 8px 12px; }
+.sca-scroll::-webkit-scrollbar { width: 7px; }
+.sca-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+
+.sca-group { margin-top: 12px; }
+.sca-group__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px 6px 10px;
+}
+.sca-group__label {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--fg-4);
+}
+.sca-group__add {
+  width: 24px; height: 24px; flex: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm); background: transparent;
+  border: 1px solid var(--border-1); color: var(--fg-3);
+  transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+}
+.sca-group__add i { width: 14px; height: 14px; }
+.sca-group__add:hover { color: var(--gold-400); border-color: var(--border-gold); background: rgba(var(--gold-rgb),0.06); }
+
+/* Project block */
+.sca-proj { border-radius: var(--r-md); }
+.sca-proj.is-drop { outline: 1px dashed var(--border-gold); outline-offset: 2px; background: rgba(var(--gold-rgb),0.05); }
+.sca-proj__head {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; text-align: left; cursor: pointer;
+  padding: 9px 9px; border-radius: var(--r-md);
+  background: none; border: none;
+  font-family: var(--font-body); font-size: 13.5px; font-weight: 600; color: var(--fg-2);
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+.sca-proj__head:hover { background: var(--bg-glass-hover); color: var(--fg-1); }
+.sca-proj__chev { width: 14px; height: 14px; flex: none; color: var(--fg-4); transition: transform var(--dur) var(--ease-out); }
+.sca-proj.is-open .sca-proj__chev { transform: rotate(90deg); }
+.sca-proj__ico {
+  width: 22px; height: 22px; flex: none; border-radius: var(--r-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(var(--gold-rgb),0.1); border: 1px solid var(--border-gold); color: var(--gold-400);
+}
+.sca-proj__ico i { width: 13px; height: 13px; }
+.sca-proj__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sca-proj__count { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-4); flex: none; }
+.sca-proj__body { display: none; padding: 2px 0 6px 14px; margin-left: 9px; border-left: 1px solid var(--border-2); }
+.sca-proj.is-open .sca-proj__body { display: block; }
+.sca-proj__empty { padding: 7px 10px; font-size: 12px; color: var(--fg-4); font-style: italic; }
+
+/* Chat row */
+.sca-chat {
+  position: relative; display: flex; align-items: center; gap: 9px;
+  padding: 9px 8px 9px 10px; border-radius: var(--r-md); cursor: pointer;
+  color: var(--fg-2); transition: color var(--dur-fast), background var(--dur-fast);
+}
+.sca-chat:hover { background: var(--bg-glass-hover); color: var(--fg-1); }
+.sca-chat.is-active { background: rgba(var(--gold-rgb),0.09); color: var(--fg-1); }
+.sca-chat.is-active::before {
+  content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px;
+  border-radius: 2px; background: var(--gold-500);
+}
+.sca-chat__ico { width: 15px; height: 15px; flex: none; color: var(--fg-4); }
+.sca-chat.is-active .sca-chat__ico { color: var(--gold-400); }
+.sca-chat__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.sca-chat__kebab {
+  width: 24px; height: 24px; flex: none; opacity: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-sm); background: transparent; border: none; color: var(--fg-3);
+  transition: opacity var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
+}
+.sca-chat__kebab i { width: 15px; height: 15px; }
+.sca-chat:hover .sca-chat__kebab, .sca-chat.is-active .sca-chat__kebab { opacity: 1; }
+.sca-chat__kebab:hover { color: var(--fg-1); background: var(--bg-elevated-2); }
+
+/* Row context menu */
+.sca-menu {
+  position: absolute; z-index: 40; min-width: 196px;
+  padding: 6px; border-radius: var(--r-lg);
+  background: rgba(15,20,28,0.97); border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-pop); backdrop-filter: blur(14px);
+}
+.sca-menu__label {
+  padding: 7px 10px 5px; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-4);
+}
+.sca-menu__item {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; cursor: pointer;
+  padding: 9px 10px; border-radius: var(--r-sm); background: none; border: none;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--fg-2);
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+.sca-menu__item i { width: 15px; height: 15px; color: var(--fg-4); flex: none; }
+.sca-menu__item:hover { background: var(--bg-glass-hover); color: var(--fg-1); }
+.sca-menu__item:hover i { color: var(--gold-400); }
+.sca-menu__item--danger:hover { color: var(--status-critical); }
+.sca-menu__item--danger:hover i { color: var(--status-critical); }
+.sca-menu__sep { height: 1px; background: var(--border-2); margin: 5px 4px; }
+.sca-menu__check { margin-left: auto; width: 14px; height: 14px; color: var(--gold-400); }
+
+/* Sidebar footer */
+.sca-side__foot {
+  flex: none; padding: 12px 12px 14px; border-top: 1px solid var(--border-1);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.sca-user { display: flex; align-items: center; gap: 11px; }
+.sca-user__ava {
+  width: 34px; height: 34px; flex: none; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; color: var(--fg-on-gold);
+  background-image: var(--gold-foil); background-size: 200% 100%;
+}
+.sca-user__id { min-width: 0; }
+.sca-user__name { font-size: 13px; font-weight: 600; color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sca-user__plan { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-4); }
+.sca-side__disc {
+  display: flex; gap: 8px; align-items: flex-start;
+  font-size: 11px; line-height: 1.45; color: var(--fg-4);
+}
+.sca-side__disc i { width: 13px; height: 13px; flex: none; margin-top: 2px; color: var(--fg-3); }
+
+/* ============================================================
+   Main column
+   ============================================================ */
+.sca-main { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+
+.sca-top {
+  flex: none; display: flex; align-items: center; gap: 14px;
+  padding: 14px 24px; border-bottom: 1px solid var(--border-1);
+  background: rgba(10,14,20,0.5); backdrop-filter: blur(8px);
+}
+.sca-top__menu {
+  display: none; width: 38px; height: 38px; flex: none; cursor: pointer;
+  align-items: center; justify-content: center; border-radius: var(--r-sm);
+  background: var(--bg-elevated); border: 1px solid var(--border-1); color: var(--fg-1);
+}
+.sca-top__menu i { width: 18px; height: 18px; }
+.sca-top__id { min-width: 0; flex: 1; }
+.sca-top__crumb {
+  display: flex; align-items: center; gap: 7px; font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.06em; color: var(--fg-4); margin-bottom: 3px;
+}
+.sca-top__crumb i { width: 12px; height: 12px; color: var(--gold-600); }
+.sca-top__title { font-family: var(--font-display); font-weight: 700; font-size: 17px; color: var(--fg-1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sca-top__model {
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
+  padding: 7px 12px; border-radius: var(--r-pill);
+  background: var(--bg-elevated); border: 1px solid var(--border-1);
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--fg-2);
+}
+.sca-top__model .d { width: 6px; height: 6px; border-radius: 50%; background: var(--status-safe); box-shadow: 0 0 8px var(--status-safe); }
+
+/* Thread */
+.sca-thread { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; }
+.sca-thread::-webkit-scrollbar { width: 9px; }
+.sca-thread::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+.sca-thread__inner { max-width: 760px; margin: 0 auto; padding: 30px 28px 40px; display: flex; flex-direction: column; gap: 26px; }
+
+.sca-msg { display: flex; gap: 15px; }
+.sca-msg__ava {
+  width: 34px; height: 34px; flex: none; border-radius: var(--r-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.sca-msg__ava i { width: 18px; height: 18px; }
+.sca-msg--bot .sca-msg__ava { background: rgba(var(--gold-rgb),0.1); border: 1px solid var(--border-gold); color: var(--gold-400); }
+.sca-msg--user .sca-msg__ava {
+  background-image: var(--gold-foil); background-size: 200% 100%; color: var(--fg-on-gold);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+}
+.sca-msg__body { flex: 1; min-width: 0; padding-top: 4px; }
+.sca-msg__who { font-size: 12px; font-weight: 700; color: var(--fg-1); margin-bottom: 6px; letter-spacing: 0.01em; }
+.sca-msg--bot .sca-msg__who { color: var(--gold-300); }
+.sca-msg__text { font-size: 15px; line-height: 1.7; color: var(--fg-1); }
+.sca-msg__text p { margin: 0 0 12px; }
+.sca-msg__text p:last-child { margin-bottom: 0; }
+.sca-msg__text code, .sca-msg__text .mono {
+  font-family: var(--font-mono); font-size: 13px; color: var(--gold-300);
+  background: rgba(var(--gold-rgb),0.08); border: 1px solid var(--border-gold);
+  border-radius: var(--r-xs); padding: 1px 6px;
+}
+.sca-msg__atts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+
+/* Attachment chip (in thread + composer) */
+.sca-att {
+  display: inline-flex; align-items: center; gap: 9px; max-width: 240px;
+  padding: 7px 10px; border-radius: var(--r-md);
+  background: var(--bg-elevated); border: 1px solid var(--border-1);
+}
+.sca-att__ico {
+  width: 26px; height: 26px; flex: none; border-radius: var(--r-xs);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-elevated-2); border: 1px solid var(--border-2); color: var(--gold-400);
+}
+.sca-att__ico i { width: 14px; height: 14px; }
+.sca-att__meta { min-width: 0; }
+.sca-att__name { font-size: 12.5px; color: var(--fg-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sca-att__sub { font-family: var(--font-mono); font-size: 10px; color: var(--fg-4); margin-top: 1px; }
+.sca-att__rm {
+  width: 20px; height: 20px; flex: none; cursor: pointer; border: none; background: none; color: var(--fg-4);
+  display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-xs);
+}
+.sca-att__rm i { width: 13px; height: 13px; }
+.sca-att__rm:hover { color: var(--status-critical); background: var(--bg-elevated-2); }
+
+/* Typing indicator */
+.sca-typing { display: inline-flex; gap: 5px; align-items: center; padding: 4px 0; }
+.sca-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--gold-500); opacity: 0.5; animation: sca-bounce 1.2s infinite ease-in-out; }
+.sca-typing span:nth-child(2) { animation-delay: 0.18s; }
+.sca-typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes sca-bounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { html:not([data-csa-motion]) .sca-typing span { animation: none; } }
+
+/* Empty / welcome state */
+.sca-empty { max-width: 720px; margin: 0 auto; padding: 7vh 28px 40px; text-align: center; }
+.sca-empty__mark {
+  width: 64px; height: 64px; margin: 0 auto 22px; border-radius: var(--r-lg);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(var(--gold-rgb),0.08); border: 1px solid var(--border-gold); color: var(--gold-400);
+}
+.sca-empty__mark i { width: 30px; height: 30px; }
+.sca-empty__title { margin: 0 0 12px; }
+.sca-empty__sub { margin: 0 auto; max-width: 540px; color: var(--fg-2); }
+.sca-prompts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 30px; text-align: left; }
+.sca-prompt {
+  display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+  padding: 15px 16px; border-radius: var(--r-lg);
+  background: var(--bg-elevated); border: 1px solid var(--border-1);
+  transition: border-color var(--dur), background var(--dur), transform var(--dur-fast);
+}
+.sca-prompt:hover { border-color: var(--border-gold); background: var(--bg-elevated-2); transform: translateY(-2px); }
+.sca-prompt__ico { width: 30px; height: 30px; flex: none; border-radius: var(--r-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(var(--gold-rgb),0.08); border: 1px solid var(--border-gold); color: var(--gold-400); }
+.sca-prompt__ico i { width: 16px; height: 16px; }
+.sca-prompt__t { font-size: 13.5px; font-weight: 600; color: var(--fg-1); line-height: 1.4; }
+.sca-prompt__d { font-size: 12px; color: var(--fg-3); margin-top: 3px; line-height: 1.4; }
+
+/* ============================================================
+   Composer  (silver liquid-metal edge + neon-glow send)
+   ============================================================ */
+.sca-dock { flex: none; padding: 14px 28px 20px; background: linear-gradient(180deg, transparent, rgba(10,14,20,0.6) 40%); }
+.sca-dock__inner { max-width: 760px; margin: 0 auto; }
+
+/* attachment tray sits just above the composer */
+.sca-tray { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.sca-reject {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 10px;
+  padding: 9px 13px; border-radius: var(--r-md);
+  background: var(--status-critical-bg); border: 1px solid rgba(203,91,78,0.4);
+  font-size: 12.5px; color: #E7A79E;
+}
+.sca-reject i { width: 15px; height: 15px; flex: none; color: var(--status-critical); }
+
+/* The composer shell — gets the live SILVER liquid-metal ring via data-metal */
+.sca-composer {
+  position: relative; border-radius: var(--r-2xl);
+  background: var(--bg-elevated); border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-card);
+}
+.sca-composer__row { display: flex; align-items: flex-end; gap: 10px; padding: 10px 10px 10px 12px; }
+
+/* "+" upload button — ghost material + light-glint sheen on hover */
+.sca-upload {
+  position: relative; overflow: hidden;
+  width: 40px; height: 40px; flex: none; cursor: pointer; margin-bottom: 1px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--bg-glass); border: 1px solid var(--border-1); color: var(--fg-1);
+  transition: color var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
+}
+.sca-upload i { width: 19px; height: 19px; position: relative; z-index: 1; }
+.sca-upload::before {
+  content: ""; position: absolute; top: 0; left: -70%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.20), transparent);
+  transform: skewX(-20deg); pointer-events: none; z-index: 0;
+}
+.sca-upload:hover { border-color: var(--border-strong); background: var(--bg-glass-hover); }
+.sca-upload:hover::before { animation: csa-glint 0.7s var(--ease-out) 1; }
+.sca-upload:active { transform: scale(0.94); }
+
+.sca-input {
+  flex: 1; min-width: 0; resize: none; align-self: center;
+  background: none; border: none; outline: none;
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--fg-1);
+  max-height: 200px; padding: 9px 2px;
+}
+.sca-input::placeholder { color: var(--fg-4); }
+
+/* Send / Stop — elevated dark fill so the neon glow sits OUTSIDE the rim */
+.sca-send-wrap { position: relative; flex: none; margin-bottom: 1px; }
+.sca-send {
+  position: relative; z-index: 1;
+  width: 40px; height: 40px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-ink); border: 1px solid var(--border-strong); color: var(--fg-1);
+  transition: color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+}
+.sca-send i { width: 18px; height: 18px; }
+.sca-send:hover { color: #fff; border-color: var(--silver-500); }
+.sca-send:active { transform: scale(0.94); }
+.sca-send:disabled { cursor: not-allowed; color: var(--fg-4); }
+.sca-send--stop { color: #fff; }
+.sca-send--stop .sca-stopsq { width: 13px; height: 13px; border-radius: 3px; background: currentColor; }
+
+.sca-dock__hint {
+  margin: 11px 4px 0; text-align: center; font-size: 11px; color: var(--fg-4);
+  display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap;
+}
+.sca-dock__hint .sep { color: var(--fg-4); opacity: 0.5; }
+.sca-dock__hint b { color: var(--fg-3); font-weight: 600; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+.sca-scrim { display: none; }
+@media (max-width: 860px) {
+  .sca { grid-template-columns: 1fr; }
+  .sca-side {
+    position: fixed; top: var(--sca-nav); bottom: 0; left: 0; width: 300px; z-index: 30;
+    transform: translateX(-100%); transition: transform var(--dur) var(--ease-out);
+  }
+  .sca.is-side-open .sca-side { transform: translateX(0); }
+  .sca-scrim { display: block; position: fixed; inset: var(--sca-nav) 0 0 0; z-index: 20;
+    background: rgba(5,8,12,0.6); opacity: 0; visibility: hidden; transition: opacity var(--dur), visibility var(--dur); }
+  .sca.is-side-open .sca-scrim { opacity: 1; visibility: visible; }
+  .sca-top__menu { display: inline-flex; }
+  .sca-prompts { grid-template-columns: 1fr; }
+  .sca-top__model { display: none; }
+}
+@media (max-width: 520px) {
+  .sca-thread__inner, .sca-dock { padding-left: 16px; padding-right: 16px; }
+}

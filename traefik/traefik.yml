@@ -1,0 +1,35 @@
+# ============================================================================
+# Reference Traefik static config for the production host (AWS Lightsail).
+# Traefik runs as the edge ingress on the shared external `web` docker network;
+# the CSA app is discovered via the docker provider labels in docker-compose.yml.
+# (Lightsail firewall must allow inbound 80/443.)
+# ============================================================================
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    # If Traefik is the TRUE edge (clients connect to it directly), leave forwardedHeaders unset.
+    # If you put Cloudflare / an ALB in front (Milestone 8), trust ONLY that proxy's IPs so the
+    # client IP used by the rate limiter (Milestone 5) cannot be spoofed:
+    #
+    # forwardedHeaders:
+    #   trustedIPs:
+    #     - "173.245.48.0/20"   # (example) Cloudflare ranges — replace with the live list
+    #     - "103.21.244.0/22"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: cazurmendi@handistack.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: web
+
+api:
+  dashboard: false

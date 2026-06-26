@@ -1,0 +1,329 @@
+/* ============================================================
+   CSA — Standing Apart / How We Work
+   Old Way -> CSA AI-Augmented Way transformation comparison.
+   Tokens from colors_and_type.css.
+   ============================================================ */
+
+.sa {
+  position: relative;
+  background: var(--bg-base-2);
+  padding: 108px 40px 116px;
+  overflow: hidden;
+  isolation: isolate;
+}
+.sa__haze {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(50% 50% at 80% 40%, rgba(52,70,94,0.22) 0%, rgba(10,14,20,0) 60%);
+}
+
+/* ---------- Head ---------- */
+.sa__head {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 40px;
+}
+.sa__head .csa-eyebrow { margin: 0 0 16px; display: inline-block; }
+.sa__title { margin: 0 0 22px; }
+.sa__lead { margin: 0 auto; color: var(--fg-2); max-width: 660px; }
+
+/* ---------- Mandate banner ---------- */
+.sa__mandate {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 0 auto 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.sa__mandate-k {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--fg-1);
+}
+.sa__mandate-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.06);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+  box-shadow: var(--glow-gold);
+}
+.sa__mandate-tag i { width: 15px; height: 15px; }
+
+/* ---------- Comparison grid ---------- */
+.sa__grid {
+  position: relative;
+  z-index: 1;
+  max-width: 1680px;
+  margin: 0 auto;
+}
+.sa__heads {
+  display: grid;
+  grid-template-columns: 1fr 88px 1fr;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.sa__colhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.sa__colhead.old { color: var(--fg-3); }
+.sa__colhead.new { color: var(--gold-400); }
+.sa__colhead .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.sa__colhead.old .dot { background: var(--status-critical); box-shadow: 0 0 8px rgba(229,115,115,0.4); }
+.sa__colhead.new .dot { background: var(--gold-500); box-shadow: 0 0 8px rgba(var(--gold-rgb),0.5); }
+.sa__colhead.new i { width: 15px; height: 15px; }
+
+.sa__rows { display: flex; flex-direction: column; gap: 14px; }
+
+.sa-row {
+  display: grid;
+  grid-template-columns: 1fr 88px 1fr;
+  gap: 16px;
+  align-items: stretch;
+  transition: opacity 0.4s var(--ease-out);
+}
+/* Focus the hovered row, recede the rest */
+.sa__rows:hover .sa-row:not(:hover) { opacity: 0.5; }
+
+.sa-cell {
+  position: relative;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-1);
+  padding: 20px 22px;
+  display: flex;
+  gap: 14px;
+  transition:
+    transform 0.4s var(--ease-out),
+    border-color 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out),
+    background 0.4s var(--ease-out);
+}
+.sa-cell__mark {
+  width: 26px; height: 26px;
+  flex: none;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid;
+}
+.sa-cell__mark i { width: 15px; height: 15px; }
+.sa-cell__t {
+  margin: 0 0 6px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15.5px;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+}
+.sa-cell__d {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* Old (muted, critical) */
+.sa-cell.old {
+  background: rgba(255,255,255,0.018);
+}
+.sa-cell.old .sa-cell__mark { color: var(--status-critical); border-color: rgba(229,115,115,0.35); background: var(--status-critical-bg); }
+.sa-cell.old .sa-cell__t { color: var(--fg-2); }
+.sa-cell.old .sa-cell__d { color: var(--fg-4); }
+
+/* New (CSA, gold) */
+.sa-cell.new {
+  background: var(--bg-glass);
+}
+.sa-cell.new .sa-cell__mark { color: var(--gold-400); border-color: var(--border-gold); background: rgba(var(--gold-rgb), 0.06); }
+.sa-cell.new .sa-cell__t { color: var(--fg-1); }
+.sa-cell.new .sa-cell__d { color: var(--fg-2); }
+.sa-row:hover .sa-cell.new,
+.sa-row[data-mactive] .sa-cell.new {
+  transform: translateY(-3px);
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow-pop), 0 0 28px rgba(var(--gold-rgb), 0.16);
+}
+
+/* Middle connector */
+.sa-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.sa-mid__label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+  transition: color 0.4s var(--ease-out);
+}
+.sa-row:hover .sa-mid__label,
+.sa-row[data-mactive] .sa-mid__label { color: var(--gold-400); }
+.sa-mid__arrow {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  color: var(--fg-3);
+  transition: color 0.4s var(--ease-out), border-color 0.4s var(--ease-out), transform 0.45s var(--ease-out), box-shadow 0.4s var(--ease-out);
+}
+.sa-mid__arrow i { width: 17px; height: 17px; }
+.sa-row:hover .sa-mid__arrow,
+.sa-row[data-mactive] .sa-mid__arrow {
+  color: var(--gold-300);
+  border-color: var(--border-gold);
+  transform: translateX(5px);
+  box-shadow: 0 0 18px rgba(var(--gold-rgb), 0.22);
+}
+
+/* ---------- Human-in-the-loop closing ---------- */
+.sa__human {
+  position: relative;
+  z-index: 1;
+  margin: 48px auto 0;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  padding-top: 40px;
+  border-top: 1px solid var(--border-2);
+}
+.sa__human-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.sa__human-label .tick { width: 26px; height: 1px; background: var(--gold-500); }
+.sa__human-badges { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.sa__human-note { margin: 4px 0 0; color: var(--fg-3); font-size: 14px; line-height: 1.5; }
+.sa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 20px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  transition: border-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+.sa-badge:hover,
+.sa-badge[data-mactive] {
+  border-color: var(--border-gold);
+  box-shadow: 0 0 24px rgba(var(--gold-rgb), 0.16);
+  transform: translateY(-3px);
+}
+.sa-badge__icon {
+  width: 34px; height: 34px;
+  flex: none;
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-gold);
+  background: rgba(var(--gold-rgb), 0.06);
+  color: var(--gold-400);
+}
+.sa-badge__icon i { width: 18px; height: 18px; }
+.sa-badge__t {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--fg-1);
+}
+
+/* ---------- Entrance ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .sa-row { opacity: 0; animation: sa-rise 0.6s var(--ease-out) forwards; }
+  .sa-row:nth-child(1) { animation-delay: 0.05s; }
+  .sa-row:nth-child(2) { animation-delay: 0.14s; }
+  .sa-row:nth-child(3) { animation-delay: 0.23s; }
+  .sa-row:nth-child(4) { animation-delay: 0.32s; }
+  /* keep the hover-dim behaviour after entrance */
+  .sa__rows:hover .sa-row:not(:hover) { opacity: 0.5; }
+}
+@keyframes sa-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 820px) {
+  .sa__heads { display: none; }
+  .sa-row { grid-template-columns: 1fr; gap: 8px; }
+  .sa-mid { flex-direction: row; gap: 12px; padding: 2px 0; }
+  .sa-mid__arrow { transform: rotate(90deg); }
+  .sa-row:hover .sa-mid__arrow,
+  .sa-row[data-mactive] .sa-mid__arrow { transform: rotate(90deg) translateX(5px); }
+}
+
+/* Mobile: cycled row is focused, the rest recede (matches the hover behaviour) */
+@media (max-width: 900px) {
+  .sa__rows .sa-row:not([data-mactive]) { opacity: 0.5; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — Standing Apart — badge, "How we work" cells, blend.
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+.sa-badge:hover {
+  border-color: var(--border-gold) !important;
+  box-shadow: 0 0 0 1px var(--gold-500), 0 0 22px rgba(var(--gold-rgb), 0.40) !important;
+  transform: translateY(-3px);
+}
+.sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(10,14,20,0.58) !important;
+  border-color: rgba(174,183,196,0.20) !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+  transition: background 0.4s var(--ease-out), border-color 0.4s var(--ease-out) !important;
+}
+.sa-row:hover .sa-cell.new.csa-glass {
+  transform: none !important;
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
+}
+.sa-row:hover .sa-cell.csa-glass {
+  background: linear-gradient(155deg, rgba(255,255,255,0.11), rgba(255,255,255,0.04)), rgba(10,14,20,0.50) !important;
+  border-color: rgba(214,222,232,0.50) !important;
+  transform: none !important;
+}
+.sa-cell.csa-glass > .sa-cell__mark,
+.sa-cell.csa-glass > div { position: relative; z-index: 2; }
+.sa-cell.old .sa-cell__t { color: var(--fg-1) !important; }
+.sa-cell.old .sa-cell__d { color: var(--fg-2) !important; }
+.sa { background: var(--bg-base-2) !important; }
+.sa csa-grain {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, #000 20%, #000 calc(100% - 260px), transparent 100%);
+}

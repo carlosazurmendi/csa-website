@@ -1,0 +1,296 @@
+/* CSA Website UI kit — component styles. Tokens from colors_and_type.css */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: var(--bg-base); color: var(--fg-2); font-family: var(--font-body); }
+.site-scroll { height: 100vh; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+img { display: block; }
+button { font-family: inherit; cursor: pointer; }
+a { text-decoration: none; }
+
+/* ---------- Buttons ---------- */
+.btn { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 14px;
+  border-radius: var(--r-pill); border: 1px solid transparent; transition: all var(--dur) var(--ease-out); white-space: nowrap; }
+.btn i, .btn svg { width: 16px; height: 16px; }
+.btn--lg { font-size: 15px; padding: 14px 26px; }
+.btn--block { width: 100%; justify-content: center; margin-top: 8px; }
+.btn--gold-pill { background: transparent; border-color: var(--border-gold); color: var(--gold-400);
+  padding: 10px 20px; box-shadow: var(--glow-gold); animation: csa-gold-glow-pulse 4s var(--ease-in-out) infinite; }
+.btn--gold-pill:hover { color: var(--gold-300); border-color: var(--gold-400); box-shadow: 0 0 30px rgba(var(--gold-rgb), .28); }
+.btn--gold-pill:active { transform: scale(.98); color: var(--gold-500); }
+/* Silver metallic pill — silver foil outline + silver label at rest; both go gold on hover */
+.btn--silver-pill { position: relative; background: transparent; color: #C9D2DE; padding: 10px 20px;
+  transition: color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+.btn--silver-pill::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background-image: var(--silver-foil); background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: csa-gold-sheen 8s linear infinite; pointer-events: none;
+  transition: background-image var(--dur) var(--ease-out); }
+.btn--silver-pill:hover { color: var(--gold-300); box-shadow: 0 0 28px rgba(var(--gold-rgb), .26); }
+.btn--silver-pill:hover::before { background-image: var(--gold-foil); }
+.btn--silver-pill:active { transform: scale(.98); }
+@media (prefers-reduced-motion: reduce) { .btn--silver-pill::before { animation: none; } }
+.btn--gold-solid { background-image: var(--gold-foil); background-size: 200% 100%; animation: csa-gold-sheen 5.5s linear infinite; color: var(--fg-on-gold); padding: 11px 22px; }
+.btn--gold-solid:hover { filter: brightness(1.08); }
+.btn--gold-solid:active { filter: brightness(0.92); transform: scale(.98); }
+.btn--gold-solid:disabled { background: var(--bg-elevated-2); background-image: none; animation: none; color: var(--fg-4); cursor: not-allowed; box-shadow: none; filter: none; }
+.btn--link { background: none; color: var(--fg-1); padding: 12px 4px; }
+.btn--link:hover { color: var(--gold-400); }
+.btn--link:hover i { transform: translateX(3px); }
+.btn--link i { transition: transform var(--dur) var(--ease-out); }
+
+/* ---------- Nav ---------- */
+.nav { position: sticky; top: 0; z-index: 50; padding: 18px 40px; transition: all var(--dur) var(--ease-out); }
+.nav--solid { padding: 12px 40px; background: rgba(10, 14, 20, .72); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-2); }
+.nav__inner { max-width: 1680px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+.nav__logo { height: 26px; }
+.nav__links { display: flex; gap: 30px; white-space: nowrap; }
+.nav__links a { color: var(--fg-2); font-size: 14px; font-weight: 500; white-space: nowrap; transition: color var(--dur-fast); }
+.nav__links a:hover { color: var(--fg-1); }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; min-height: 760px; height: 92vh; overflow: hidden; margin-top: -78px;
+  background: radial-gradient(64% 80% at 50% 24%, #20304a 0%, rgba(13,18,26,0) 62%), var(--bg-base); }
+.hero__robot { position: absolute; top: 0; bottom: 0; left: 50%; width: min(760px, 64vw);
+  transform: translateX(-48%); background: url('/csa/robot.png') center top / contain no-repeat; pointer-events: none; }
+.hero__ghost { position: absolute; left: 0; right: 0; bottom: -2%; text-align: center;
+  font-family: var(--font-display); font-weight: 900; font-size: 26vw; line-height: 1; letter-spacing: -.04em;
+  color: rgba(255,255,255,.045); pointer-events: none; user-select: none; white-space: nowrap; }
+.hero__grid { position: relative; z-index: 2; max-width: 1680px; margin: 0 auto; height: 100%;
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 78px 40px 0; }
+.hero__eyebrow { margin: 0 0 18px; }
+.hero__title { margin: 0; font-size: clamp(44px, 5.4vw, 78px); }
+.hero__sub { margin: 22px 0 30px; font-size: 18px; line-height: 1.55; color: var(--fg-2); }
+.hero__cta { display: flex; align-items: center; gap: 18px; }
+.hero__standards { display: flex; align-items: center; gap: 14px; margin-top: 34px; }
+.hero__tick { width: 28px; height: 1px; background: var(--gold-500); flex: none; }
+.hero__standards-list { display: flex; align-items: center; gap: 12px; color: var(--fg-3); font-size: 13px; }
+.hero__standards-list .dot { color: var(--gold-500); }
+/* Right HUD */
+.hero__hud { justify-self: end; align-self: stretch; position: relative; width: 100%; }
+.hero__callout { position: absolute; top: 20%; right: 0; max-width: 300px; display: flex; }
+.hero__leader { display: flex; align-items: center; margin-top: 6px; transform: translateX(-86px); }
+.hero__node { width: 13px; height: 13px; border-radius: 50%; border: 1px solid var(--gold-500);
+  display: flex; align-items: center; justify-content: center; flex: none; }
+.hero__node::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-500); }
+.hero__line { width: 74px; height: 1px; background: linear-gradient(90deg, var(--gold-500), var(--border-strong)); }
+.hero__callout-txt { margin-left: -74px; }
+.hero__callout-txt h4 { font-family: var(--font-body); font-weight: 600; font-size: 17px; color: var(--fg-1); margin: 0 0 8px; }
+.hero__callout-txt p { font-size: 12.5px; line-height: 1.55; color: var(--fg-3); margin: 0; }
+.hero__cards { position: absolute; bottom: 16%; right: 0; display: flex; gap: 14px; width: 420px; }
+
+/* HUD cards (hero) */
+.hud-card { flex: 1; text-align: left; background: var(--bg-glass); border: 1px solid var(--border-1);
+  border-radius: var(--r-lg); padding: 18px; backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-card), var(--inset-hairline); display: flex; flex-direction: column; min-height: 160px;
+  transition: all var(--dur) var(--ease-out); }
+.hud-card:hover { background: var(--bg-glass-hover); border-color: var(--border-strong); transform: translateY(-3px); }
+.hud-card__icon { width: 34px; height: 34px; border-radius: var(--r-sm); border: 1px solid var(--border-1);
+  display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.hud-card__icon i { width: 18px; height: 18px; }
+.hud-card__title { font-weight: 600; font-size: 15px; color: var(--fg-1); margin: 14px 0 7px; line-height: 1.25; }
+.hud-card__body { font-size: 12.5px; color: var(--fg-3); line-height: 1.5; margin: 0; }
+.hud-card__arrow { margin-top: auto; color: var(--fg-2); padding-top: 12px; }
+.hud-card__arrow i { width: 18px; height: 18px; }
+.hud-card:hover .hud-card__arrow { color: var(--gold-400); }
+
+/* ---------- Sections ---------- */
+.section { max-width: 1680px; margin: 0 auto; padding: 110px 40px; }
+.section__head { max-width: 680px; margin-bottom: 56px; }
+.section__head .csa-eyebrow { margin: 0 0 16px; }
+.section__head .csa-h2 { margin: 0 0 18px; }
+.section__lead { margin: 0; }
+
+/* Services grid */
+.services__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.svc-card { background: var(--bg-elevated); border: 1px solid var(--border-1); border-radius: var(--r-lg);
+  padding: 26px; transition: all var(--dur) var(--ease-out); display: flex; flex-direction: column; }
+.svc-card:hover { border-color: var(--border-gold); transform: translateY(-3px); box-shadow: var(--shadow-card); }
+.svc-card__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.svc-card__icon { width: 44px; height: 44px; border-radius: var(--r-md); background: rgba(var(--gold-rgb), .08);
+  border: 1px solid var(--border-gold); display: flex; align-items: center; justify-content: center; color: var(--gold-400); }
+.svc-card__icon i { width: 21px; height: 21px; }
+.svc-card__tag { font-size: 11px; color: var(--fg-3); }
+.svc-card__title { font-family: var(--font-body); font-weight: 600; font-size: 19px; color: var(--fg-1); margin: 0 0 10px; }
+.svc-card__body { font-size: 14.5px; line-height: 1.6; color: var(--fg-3); margin: 0 0 20px; }
+.svc-card__link { margin-top: auto; display: inline-flex; align-items: center; gap: 7px; color: var(--gold-400);
+  font-weight: 600; font-size: 13.5px; }
+.svc-card__link i { width: 15px; height: 15px; transition: transform var(--dur) var(--ease-out); }
+.svc-card:hover .svc-card__link i { transform: translateX(4px); }
+
+/* Stats band */
+.statsband { padding-top: 40px; padding-bottom: 40px; }
+.statsband__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+  border-top: 1px solid var(--border-1); border-bottom: 1px solid var(--border-1); padding: 48px 0; }
+.stat__n { font-size: 52px; line-height: 1; background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  animation: csa-gold-sheen 5.5s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .stat__n, .btn--gold-solid, .btn--gold-pill { animation: none; } }
+.stat__l { font-size: 13.5px; color: var(--fg-3); margin-top: 12px; max-width: 200px; }
+
+/* Standards marquee strip */
+.strip { border-top: 1px solid var(--border-2); border-bottom: 1px solid var(--border-2);
+  background: var(--bg-base-2); overflow: hidden; display: flex; align-items: center; gap: 28px; padding: 18px 0 18px 40px; }
+.strip__label { color: var(--fg-3); font-size: 12px; white-space: nowrap; flex: none; }
+.strip__track { display: flex; align-items: center; gap: 0; animation: strip-scroll 32s linear infinite; }
+.strip__item { display: inline-flex; align-items: center; gap: 28px; color: var(--fg-2); font-size: 14px; white-space: nowrap; padding-right: 28px; }
+.strip__dot { color: var(--gold-500); }
+@keyframes strip-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .strip__track { animation: none; } }
+
+/* CTA band */
+.cta-band { text-align: center; padding: 120px 40px; }
+.cta-band__inner { max-width: 720px; margin: 0 auto; }
+.cta-band .csa-eyebrow { margin: 0 0 18px; }
+.cta-band__title { margin: 0 0 18px; }
+.cta-band__sub { margin: 0 0 34px; color: var(--fg-2); }
+
+/* Footer */
+.footer { border-top: 1px solid var(--border-1); background: var(--bg-base-2); }
+.footer__top { max-width: 1680px; margin: 0 auto; padding: 64px 40px 48px; display: grid;
+  grid-template-columns: 1.3fr 2fr; gap: 60px; }
+.footer__logo { height: 26px; margin-bottom: 18px; }
+.footer__tag { font-size: 14px; line-height: 1.6; color: var(--fg-3); max-width: 320px; margin: 0 0 18px; }
+.footer__std { display: flex; gap: 8px; color: var(--fg-3); font-size: 12px; }
+.footer__std .dot { color: var(--gold-500); }
+.footer__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+.footer__h { font-weight: 600; font-size: 13px; color: var(--fg-1); margin-bottom: 16px; }
+.footer__col a { display: block; color: var(--fg-3); font-size: 14px; padding: 6px 0; transition: color var(--dur-fast); }
+.footer__col a:hover { color: var(--gold-400); }
+.footer__bottom { max-width: 1680px; margin: 0 auto; padding: 22px 40px; border-top: 1px solid var(--border-2);
+  display: flex; justify-content: space-between; align-items: center; color: var(--fg-3); font-size: 13px; }
+.footer__legal { display: flex; gap: 22px; }
+.footer__legal a { color: var(--fg-3); }
+.footer__legal a:hover { color: var(--fg-1); }
+
+/* ---------- Modal ---------- */
+.modal { position: fixed; inset: 0; z-index: 100; background: rgba(5, 8, 12, .72); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; padding: 24px; animation: fade var(--dur) var(--ease-out); }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.modal__panel { position: relative; width: 100%; max-width: 520px; background: var(--bg-elevated);
+  border: 1px solid var(--border-strong); border-radius: var(--r-xl); padding: 36px; box-shadow: var(--shadow-pop);
+  animation: pop var(--dur) var(--ease-out); }
+@keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+.modal__close { position: absolute; top: 18px; right: 18px; width: 34px; height: 34px; border-radius: var(--r-sm);
+  background: transparent; border: 1px solid var(--border-1); color: var(--fg-3); display: flex; align-items: center; justify-content: center; }
+.modal__close:hover { color: var(--fg-1); border-color: var(--border-strong); }
+.modal__close i { width: 17px; height: 17px; }
+.modal__title { margin: 12px 0 8px; }
+.modal__sub { font-size: 14.5px; line-height: 1.6; color: var(--fg-3); margin: 0 0 24px; }
+.field-row { display: flex; gap: 14px; }
+.field-row .field { flex: 1; }
+.field { display: block; margin-bottom: 16px; }
+.field > span { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); margin-bottom: 7px; letter-spacing: .04em; }
+.field input { width: 100%; background: var(--bg-base); border: 1px solid var(--border-1); border-radius: var(--r-md);
+  padding: 12px 14px; color: var(--fg-1); font-family: var(--font-body); font-size: 15px; outline: none; transition: all var(--dur-fast); }
+.field input::placeholder { color: var(--fg-4); }
+.field input:focus { border-color: var(--border-gold); box-shadow: var(--ring-gold); }
+.chip-select { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip-opt { font-size: 12px; color: var(--fg-2); background: var(--bg-base); border: 1px solid var(--border-1);
+  border-radius: var(--r-pill); padding: 8px 14px; transition: all var(--dur-fast); }
+.chip-opt.is-on { color: var(--gold-300); border-color: var(--border-gold); background: rgba(var(--gold-rgb), .08); }
+.modal__done { text-align: center; padding: 12px 8px; }
+.modal__check { width: 56px; height: 56px; border-radius: 50%; background: var(--status-safe-bg);
+  border: 1px solid var(--status-safe); color: var(--status-safe); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+.modal__check i { width: 26px; height: 26px; }
+.modal__done h3 { margin: 0 0 10px; }
+
+@media (max-width: 900px) {
+  .hero__grid { grid-template-columns: 1fr; }
+  .hero__hud { display: none; }
+  .services__grid { grid-template-columns: 1fr 1fr; }
+  .footer__top { grid-template-columns: 1fr; }
+  .statsband__grid { grid-template-columns: 1fr 1fr; }
+}
+
+
+/* ============================================================
+   Baked from review pass (Carlos) — shared button / utility treatments (cross-cutting).
+   Mirrors assets/review-treatments.css (which is kept as the
+   loaded-last authority) so this source file is self-sufficient
+   if the review overlay is ever removed. Rules preserved verbatim,
+   !important included, so behaviour is identical with or without it.
+   ============================================================ */
+
+/* Frosted-glass button face (edge = data-metal="gold" liquid metal) */
+.rv-glass-btn {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)) !important;
+
+  backdrop-filter: blur(14px) saturate(140%);
+  color: var(--gold-300) !important;
+  border: 1px solid var(--border-gold);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}
+.rv-glass-btn:hover { color: #fff !important; }
+
+/* Generic neon glow border on hover (high-tech affordance) */
+.rv-neon:hover {
+  border-color: rgba(19, 224, 255, 0.55) !important;
+  box-shadow:
+    0 0 0 1px rgba(45, 108, 255, 0.60),
+    0 0 16px rgba(19, 224, 255, 0.45),
+    0 0 30px rgba(155, 92, 255, 0.30) !important;
+}
+
+/* Grain shader background host + content stacking above it */
+.rv-grain { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.nw > :not(.nw__haze):not(.rv-grain),
+.cs > :not(.cs__haze):not(.rv-grain):not(.cs__ghost),
+.sa > :not(.sa__haze):not(.rv-grain),
+.sv > :not(.sv__haze):not(.rv-grain) { position: relative; z-index: 1; }
+
+/* Gold/silver kit buttons: crisp 1px metal hairline outside the liquid-metal ring */
+.btn--gold-pill.csa-metal-on,
+.btn--gold-solid.csa-metal-on { border-color: var(--gold-500) !important; }
+
+/* Unify all button hovers on the glass-shimmer glint; coloured glows removed. */
+.btn--gold-pill,
+.btn--silver-pill,
+.btn--gold-solid,
+.rv-glass-btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn--gold-pill::after,
+.btn--silver-pill::after,
+.btn--gold-solid::after,
+.rv-glass-btn::after {
+  content: ""; position: absolute; top: 0; left: -70%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.20), transparent);
+  transform: skewX(-20deg); pointer-events: none; z-index: 2;
+}
+.btn--gold-pill:hover::after,
+.btn--silver-pill:hover::after,
+.btn--gold-solid:hover::after,
+.rv-glass-btn:hover::after { animation: csa-glint 0.7s var(--ease-out) 1; }
+.btn--gold-pill:hover,
+.btn--silver-pill:hover,
+.btn--gold-solid:hover,
+.rv-glass-btn:hover { transform: scale(1.035); color: #fff !important; }
+.btn--gold-pill:active,
+.btn--silver-pill:active,
+.btn--gold-solid:active,
+.rv-glass-btn:active { transform: scale(0.98); }
+.btn--gold-pill { box-shadow: none !important; animation: none !important; }
+.btn--gold-pill:hover { box-shadow: none !important; }
+.btn--silver-pill:hover { box-shadow: none !important; }
+
+/* ---------- Sub-page frosted-glass CTAs ----------
+   .csa-shell wraps the page CONTENT (not the header/footer) and generates no box
+   of its own; on every route except the home page it also carries .csa-subpage.
+   That lets the prominent transparent pill CTAs on sub-pages pick up the
+   frosted-glass face (translucent fill + blur) the home hero/feature buttons
+   already have, while leaving the home page's bespoke button mix and the shared
+   header/footer untouched. Pill shape + gold/silver edge + label colour kept;
+   gold-solid is already opaque so it needs no fill. */
+.csa-shell { display: contents; }
+.csa-subpage .btn--gold-pill,
+.csa-subpage .btn--silver-pill {
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+}

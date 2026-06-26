@@ -1,0 +1,46 @@
+/* ============================================================
+   CSA design-system stylesheet — aggregator.
+   Ported VERBATIM from design-reference/project/assets/*.css.
+   Import order mirrors the export: tokens → kit → section/page
+   styles → review-treatments LAST (it is the override authority,
+   loaded last on every export page). Do not reorder.
+   ============================================================ */
+
+/* Extra display face used by the hero title (Home.html loads it
+   separately from the token sheet). Must precede non-@import rules. */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+/* Foundations */
+@import './colors_and_type.css';
+@import './kit.css';
+
+/* Global chrome */
+@import './nav.css';
+@import './footer.css';
+
+/* Home sections */
+@import './hero.css';
+@import './problem.css';
+@import './case-studies.css';
+@import './partners.css';
+@import './services.css';
+@import './standing-apart.css';
+@import './about.css';
+@import './news.css';
+
+/* Marketing / inner pages (namespaced; safe to load site-wide) */
+@import './consulting-overview.css';
+@import './industry-page.css';
+@import './company.css';
+@import './services.css';
+@import './training.css';
+@import './templates.css';
+@import './template-detail.css';
+@import './course.css';
+@import './resources.css';
+@import './article-detail.css';
+@import './case-study-detail.css';
+@import './legal.css';
+
+/* Override authority — MUST stay last. */
+@import './review-treatments.css';

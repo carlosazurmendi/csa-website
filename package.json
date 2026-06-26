@@ -1,0 +1,56 @@
+{
+  "name": "csa-website",
+  "version": "0.1.0",
+  "description": "Critical Systems Analysis — functional-safety marketing, e-learning and e-commerce site (Next.js + Payload CMS).",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=4096\" next build && node scripts/check-css-fidelity.mjs",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
+    "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
+    "migrate:status": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:status",
+    "seed:admin": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seedAdmin.ts",
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seed.ts",
+    "reseed:globals": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/reseed-globals.ts",
+    "check:css": "node scripts/check-css-fidelity.mjs",
+    "bundle:shaders": "cd scripts/shader-bundle && npm install --no-audit --no-fund && node build.mjs"
+  },
+  "browserslist": [
+    "Chrome >= 76",
+    "Edge >= 79",
+    "Firefox >= 103",
+    "Safari >= 18",
+    "iOS >= 18"
+  ],
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.85.1",
+    "@payloadcms/next": "3.85.1",
+    "@payloadcms/richtext-lexical": "3.85.1",
+    "@payloadcms/storage-s3": "3.85.1",
+    "@payloadcms/ui": "3.85.1",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
+    "cross-env": "^7.0.3",
+    "graphql": "^16.8.1",
+    "ioredis": "^5.11.1",
+    "next": "16.2.9",
+    "payload": "3.85.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "sharp": "0.35.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.7.0"
+  }
+}

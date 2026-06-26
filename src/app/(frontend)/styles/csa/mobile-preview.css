@@ -1,0 +1,79 @@
+/* ============================================================
+   CSA — Mobile preview overlay (Tweaks "Viewport" control)
+   Frames the live page in a real phone-width iframe.
+   ============================================================ */
+.mp-ov {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgba(52,70,94,0.28), rgba(5,7,11,0) 70%),
+    rgba(5, 7, 11, 0.94);
+  backdrop-filter: blur(8px);
+
+}
+.mp-ov__bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border-2);
+}
+.mp-ov__tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-400);
+}
+.mp-ov__dim {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--fg-4);
+}
+.mp-ov__exit {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-1);
+  background: var(--bg-glass);
+  color: var(--fg-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.mp-ov__exit:hover { color: var(--gold-300); border-color: var(--border-gold); }
+.mp-ov__exit i { width: 15px; height: 15px; }
+.mp-ov__stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 16px;
+}
+.mp-phone {
+  flex: none;
+  transform-origin: center center;
+  padding: 13px;
+  background: #04060A;
+  border-radius: 46px;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 50px 130px rgba(0,0,0,0.7), inset 0 0 0 2px rgba(255,255,255,0.035);
+}
+.mp-phone__screen {
+  display: block;
+  border: 0;
+  border-radius: 34px;
+  background: var(--bg-base);
+}
+
