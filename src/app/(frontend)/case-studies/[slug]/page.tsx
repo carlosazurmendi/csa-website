@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { findBySlug, findDocs } from '@/lib/cms'
+import { mediaUrl, type MediaLike } from '@/lib/media'
 import { lexicalToParagraphs } from '@/lib/lexical'
 
 export const dynamic = 'force-dynamic'
@@ -20,8 +21,8 @@ export const dynamic = 'force-dynamic'
    server component with no co-located client section. Per-section icons +
    tags (the Problem/Solution/Result chrome) are design constants the CMS
    doesn't carry, kept inline exactly as the export's SECTION_META. The
-   client logo + hero image keep the export's empty <image-slot> placeholders
-   (no CMS image invented). Global nav/footer are rendered by the layout.
+   client logo + hero image + related covers render from CMS media (client.logo,
+   heroImage) via plain <img>. Global nav/footer are rendered by the layout.
    ============================================================ */
 
 /* ---------- CMS shapes ---------- */
@@ -40,6 +41,7 @@ type RelatedStudy = {
   title?: string
   sector?: string
   lead?: string
+  heroImage?: MediaLike
 }
 
 type CaseStudy = {
@@ -50,7 +52,9 @@ type CaseStudy = {
   client?: {
     clientName?: string
     role?: string
+    logo?: MediaLike
   }
+  heroImage?: MediaLike
   lead?: string
   glance?: {
     industry?: string
@@ -149,10 +153,11 @@ function Section({
 
 function RelatedCard({ c }: { c: RelatedStudy }) {
   const href = c.slug ? '/case-studies/' + c.slug : '#'
+  const cover = mediaUrl(c.heroImage)
   return (
     <Link className="csd-rcard" href={href}>
       <div className="csd-rcard__cover">
-        <image-slot shape="rect" fit="cover" placeholder="Drop cover"></image-slot>
+        {cover && <img src={cover} alt={c.title ?? ''} />}
         <span className="csd-rcard__sector">{c.sector}</span>
       </div>
       <div className="csd-rcard__body">
@@ -210,6 +215,8 @@ export default async function CaseStudyDetailPage({ params }: { params: Promise<
   )
 
   const closing = data.closing ?? {}
+  const logoUrl = mediaUrl(data.client?.logo)
+  const heroUrl = mediaUrl(data.heroImage)
 
   return (
     <main className="csd">
@@ -240,7 +247,7 @@ export default async function CaseStudyDetailPage({ params }: { params: Promise<
             </p>
             <div className="csd-hero__client">
               <div className="csd-hero__logo">
-                <image-slot shape="rect" fit="contain" placeholder="Client logo"></image-slot>
+                {logoUrl && <img src={logoUrl} alt={(data.client?.clientName ?? '') + ' logo'} />}
               </div>
               <div className="csd-hero__client-txt">
                 <div className="csd-hero__client-name">{data.client?.clientName}</div>
@@ -249,7 +256,7 @@ export default async function CaseStudyDetailPage({ params }: { params: Promise<
             </div>
           </div>
           <div className="csd-hero__media" data-reveal="scale" data-reveal-delay="120">
-            <image-slot shape="rect" fit="cover" placeholder="Drop project image"></image-slot>
+            {heroUrl && <img src={heroUrl} alt={data.title ?? ''} />}
             <div className="csd-hero__media-scrim" aria-hidden="true"></div>
             {data.heroBadge && (
               <div className="csd-hero__badge csa-glass">

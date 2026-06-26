@@ -16,6 +16,17 @@ export const Media: CollectionConfig = {
   },
   upload: {
     mimeTypes: ['image/*', 'video/*', 'application/pdf'],
+    // Focal point + crop so editors control how each image fills its slot.
+    focalPoint: true,
+    crop: true,
+    adminThumbnail: 'thumbnail',
+    // Responsive variants generated on upload (sharp) and stored alongside the
+    // original in the public bucket. Components pick the size their slot needs.
+    imageSizes: [
+      { name: 'thumbnail', width: 400, position: 'centre' },
+      { name: 'card', width: 800, position: 'centre' },
+      { name: 'hero', width: 1600, position: 'centre' },
+    ],
   },
   fields: [
     {

@@ -73,25 +73,56 @@ const databaseSsl =
 
 const plugins: Plugin[] = []
 
-// PUBLIC media bucket — enabled only when Supabase Storage (S3) credentials are present.
-if (process.env.SUPABASE_S3_ENDPOINT && process.env.S3_PUBLIC_BUCKET) {
-  plugins.push(
-    s3Storage({
-      collections: { media: true },
-      bucket: process.env.S3_PUBLIC_BUCKET,
-      acl: 'public-read',
-      config: {
-        endpoint: process.env.SUPABASE_S3_ENDPOINT,
-        region: process.env.SUPABASE_S3_REGION || 'us-east-1',
-        forcePathStyle: true,
-        credentials: {
-          accessKeyId: process.env.SUPABASE_S3_ACCESS_KEY_ID || '',
-          secretAccessKey: process.env.SUPABASE_S3_SECRET_ACCESS_KEY || '',
-        },
-      },
-    }),
+// Media storage = Supabase Storage (S3-compatible) PUBLIC bucket. No local-disk
+// fallback in production (M4 decision). The four S3 vars must be set together —
+// a partial set is a misconfiguration, and production with none is fatal so
+// uploads can never silently land on the ephemeral container disk.
+const s3Env = {
+  endpoint: process.env.SUPABASE_S3_ENDPOINT,
+  bucket: process.env.S3_PUBLIC_BUCKET,
+  accessKeyId: process.env.SUPABASE_S3_ACCESS_KEY_ID,
+  secretAccessKey: process.env.SUPABASE_S3_SECRET_ACCESS_KEY,
+}
+const s3Configured = Boolean(s3Env.endpoint && s3Env.bucket && s3Env.accessKeyId && s3Env.secretAccessKey)
+const s3AnySet = Boolean(s3Env.endpoint || s3Env.bucket || s3Env.accessKeyId || s3Env.secretAccessKey)
+// `next build` evaluates this config with NODE_ENV=production but no live env /
+// no DB connection — don't fail the build on missing creds; enforce at runtime.
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build'
+
+if (!isBuildPhase && s3AnySet && !s3Configured) {
+  throw new Error(
+    'Incomplete Supabase S3 config — set ALL of SUPABASE_S3_ENDPOINT, S3_PUBLIC_BUCKET, ' +
+      'SUPABASE_S3_ACCESS_KEY_ID, SUPABASE_S3_SECRET_ACCESS_KEY (or none).',
   )
 }
+if (!isBuildPhase && process.env.NODE_ENV === 'production' && !s3Configured) {
+  throw new Error(
+    'Media storage misconfigured: Supabase Storage (S3) is required in production — no local-disk fallback.',
+  )
+}
+// Register the S3 plugin UNCONDITIONALLY so the admin importMap always contains its
+// client upload component. `payload generate:importmap` runs without the runtime env
+// (so s3Configured would be false there); if the plugin were env-gated, the component
+// would be absent from the map and the admin would crash to a blank screen at runtime
+// once the plugin IS active. The fallbacks only keep config construction valid at
+// build / importmap time — no uploads happen then, and the throws above still fail a
+// real production deploy that is missing credentials.
+plugins.push(
+  s3Storage({
+    collections: { media: true },
+    bucket: s3Env.bucket || 'media',
+    acl: 'public-read',
+    config: {
+      endpoint: s3Env.endpoint || 'http://localhost:9000',
+      region: process.env.SUPABASE_S3_REGION || 'us-east-1',
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: s3Env.accessKeyId || 'build-placeholder',
+        secretAccessKey: s3Env.secretAccessKey || 'build-placeholder',
+      },
+    },
+  }),
+)
 
 export default buildConfig({
   admin: {

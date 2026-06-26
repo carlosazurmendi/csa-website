@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { lexicalToParagraphs } from '@/lib/lexical'
+import { mediaUrl } from '@/lib/media'
 import { attachTilt } from '../../_components/tilt'
 import type { HomeDoc } from './types'
 
@@ -46,6 +47,7 @@ export function AboutSection({ home }: { home: HomeDoc }) {
   const experience = home.abExperience ?? []
   const conferences = home.abConferences ?? []
   const bioParagraphs = lexicalToParagraphs(home.abBio)
+  const portrait = mediaUrl(home.abPortrait)
 
   return (
     <section className="ab">
@@ -64,7 +66,7 @@ export function AboutSection({ home }: { home: HomeDoc }) {
               ref={tiltRef}
               data-metal="silver">
 
-              <image-slot id="about-ben" shape="rect" fit="cover" placeholder="Drop a photo of Ben"></image-slot>
+              {portrait && <img src={portrait} alt={home.abName ?? ''} />}
               <div className="ab-portrait__scrim" />
               <span className="ab-callout"><span className="ab-callout__node" />{home.abCallout}</span>
               <div className="ab-portrait__gloss" />

@@ -8,6 +8,9 @@
 export type Code = { code: string }
 export type RichText = unknown
 
+/** A Payload upload field: a resolved media object, a bare id, or empty. */
+export type MediaRef = { url?: string | null; alt?: string | null } | number | string | null
+
 export type HeroSystem = {
   cat?: string
   name?: string
@@ -25,6 +28,7 @@ export type CaseStudyCard = {
   quote?: string
   author?: string
   affiliation?: string
+  cover?: MediaRef
 }
 
 export type Customer = { name: string; mark?: string; domain?: string }
@@ -122,6 +126,7 @@ export interface HomeDoc {
   abName?: string
   abRole?: string
   abLocation?: string
+  abPortrait?: MediaRef
   abCallout?: string
   abCerts?: Cert[]
   abBio?: RichText

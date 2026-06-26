@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { findDocs } from '@/lib/cms'
+import { mediaUrl } from '@/lib/media'
 import { CaseStudiesCarousel, type CaseCard } from '../_sections/case-studies/CaseStudiesCarousel'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,7 @@ type CaseStudyDoc = {
   lead?: string
   standards?: Code[]
   testimonialRef?: Testimonial | string | null
+  heroImage?: { url?: string } | string | number | null
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -46,6 +48,7 @@ export default async function CaseStudiesPage() {
       quote: t?.quote ?? d.lead ?? '',
       author: t?.authorName ?? d.title ?? '',
       affiliation: t?.authorCompany ?? null,
+      cover: mediaUrl(d.heroImage),
     }
   })
 

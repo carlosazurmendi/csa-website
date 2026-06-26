@@ -131,6 +131,12 @@ export const Home: CollectionConfig = {
                 { name: 'quote', type: 'textarea', admin: { description: 'Testimonial pull-quote.' } },
                 { name: 'author', type: 'text', admin: { description: 'Quote author.' } },
                 { name: 'affiliation', type: 'text', admin: { description: 'Author affiliation / company.' } },
+                {
+                  name: 'cover',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: { description: 'Card cover image.' },
+                },
               ],
             },
           ],
@@ -282,6 +288,12 @@ export const Home: CollectionConfig = {
             { name: 'abName', type: 'text', admin: { description: 'Founder name.' } },
             { name: 'abRole', type: 'text', admin: { description: 'Founder role.' } },
             { name: 'abLocation', type: 'text', admin: { description: 'Founder location.' } },
+            {
+              name: 'abPortrait',
+              type: 'upload',
+              relationTo: 'media',
+              admin: { description: 'Founder portrait shown in the About section.' },
+            },
             { name: 'abCallout', type: 'text', admin: { description: 'Portrait callout chip, e.g. "Principal-led".' } },
             {
               name: 'abCerts',

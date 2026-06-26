@@ -3,7 +3,6 @@ import type React from 'react'
 /**
  * Ambient types for the ported CSA design system:
  *  - the WebGL shader custom elements registered by public/csa/vendor/csa-shaders.js
- *  - the design-tool image-slot element
  *  - the window globals exposed by the vendored side-effect scripts
  *    (lucide UMD, store.js, interactions.js).
  */
@@ -20,7 +19,6 @@ declare module 'react' {
       'csa-liquid-metal': CsaCustomElementProps
       'csa-pulsing-border': CsaCustomElementProps
       'csa-grain': CsaCustomElementProps
-      'image-slot': CsaCustomElementProps
     }
   }
 }

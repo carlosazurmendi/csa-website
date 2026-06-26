@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs } from '@/lib/lexical'
+import { mediaUrl } from '@/lib/media'
 import { ArticleShare, ArticleToc, type TocSection } from './ArticleInteractive'
 
 export const dynamic = 'force-dynamic'
@@ -38,6 +39,7 @@ type RelatedArticle = {
   title?: string
   category?: string
   date?: string
+  heroImage?: { url?: string } | string | number | null
 }
 
 type Article = {
@@ -234,6 +236,7 @@ function resolveAuthor(article: Article): {
   name: string
   role: string
   bioText: string
+  photoUrl: string | undefined
 } {
   const member = typeof article.authorMember === 'object' && article.authorMember ? article.authorMember : null
   const name = member?.name || article.authorName || ''
@@ -242,7 +245,8 @@ function resolveAuthor(article: Article): {
     ? member.role + (credentials.length ? ' · ' + credentials.join(', ') : '')
     : credentials.join(', ')
   const bioText = lexicalToParagraphs(member?.bio).join(' ')
-  return { name, role, bioText }
+  const photoUrl = mediaUrl(member?.photo)
+  return { name, role, bioText, photoUrl }
 }
 
 /* ---------- metadata + static params ---------- */
@@ -274,7 +278,8 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
   const category = categoryLabel(article.category)
   const dateLong = fmtLong(article.date)
   const topics = (article.topics ?? []).map((t) => t.topic).filter(Boolean) as string[]
-  const { name: authorName, role: authorRole, bioText } = resolveAuthor(article)
+  const { name: authorName, role: authorRole, bioText, photoUrl: authorPhoto } = resolveAuthor(article)
+  const heroUrl = mediaUrl(article.heroImage)
   const { sections, nodes } = renderBody(article.body)
 
   const related: RelatedArticle[] = (article.related ?? []).filter(
@@ -317,7 +322,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
           <div className="ad-byline">
             <div className="ad-byline__author">
               <div className="ad-byline__avatar">
-                <image-slot shape="circle" fit="cover" placeholder="Photo"></image-slot>
+                {authorPhoto && <img src={authorPhoto} alt={authorName} />}
               </div>
               <div className="ad-byline__who">
                 <div className="ad-byline__name">{authorName}</div>
@@ -339,7 +344,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
         </div>
         <div className="ad-hero">
           <div className="ad-hero__frame">
-            <image-slot shape="rect" fit="cover" placeholder="Drop hero image"></image-slot>
+            {heroUrl && <img src={heroUrl} alt={article.title ?? ''} />}
             <div className="ad-hero__scrim" aria-hidden="true"></div>
           </div>
           {article.heroCaption && (
@@ -363,7 +368,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
         <div className="ad-bio-wrap">
           <div className="ad-bio csa-glass">
             <div className="ad-bio__avatar">
-              <image-slot shape="circle" fit="cover" placeholder="Photo"></image-slot>
+              {authorPhoto && <img src={authorPhoto} alt={authorName} />}
             </div>
             <div className="ad-bio__body">
               <p className="ad-bio__kicker">Written by</p>
@@ -409,7 +414,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
                   key={a.slug ?? i}
                 >
                   <div className="ad-rcard__cover">
-                    <image-slot shape="rect" fit="cover" placeholder="Drop cover"></image-slot>
+                    {mediaUrl(a.heroImage) && <img src={mediaUrl(a.heroImage)} alt={a.title ?? ''} />}
                   </div>
                   <div className="ad-rcard__body">
                     <p className="ad-rcard__meta">

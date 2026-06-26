@@ -4,6 +4,7 @@ import Link from 'next/link'
 
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs } from '@/lib/lexical'
+import { mediaUrl } from '@/lib/media'
 
 export const dynamic = 'force-dynamic'
 
@@ -80,6 +81,7 @@ type InstructorDoc = {
   location?: string
   bioShort?: string
   bio?: unknown
+  avatar?: { url?: string } | string | null
   credentials?: CredentialItem[]
   stats?: StatItem[]
 }
@@ -107,7 +109,7 @@ export default async function DigitalCoursesPage() {
   const [row, courses, instructors] = await Promise.all([
     findBySlug<PageRow>('training-templates', 'digital-courses'),
     findDocs<CourseDoc>('courses', { depth: 0, limit: 100 }),
-    findDocs<InstructorDoc>('instructors', { where: { slug: { equals: 'ben' } }, limit: 1, depth: 0 }),
+    findDocs<InstructorDoc>('instructors', { where: { slug: { equals: 'ben' } }, limit: 1, depth: 1 }),
   ])
 
   const page = row ?? {}
@@ -118,6 +120,7 @@ export default async function DigitalCoursesPage() {
 
   const ben = instructors[0]
   const benBio = lexicalToParagraphs(ben?.bio)
+  const benAvatar = mediaUrl(ben?.avatar)
   const credentials = ben?.credentials ?? []
   const stats = ben?.stats ?? []
 
@@ -241,7 +244,7 @@ export default async function DigitalCoursesPage() {
           <div className="ch-instr__left" data-reveal="right">
             <div className="ch-portrait" data-metal="silver">
               <span className="ch-portrait__tag">{page.instrPortraitTag}</span>
-              <image-slot id="about-ben" shape="rect" fit="cover" placeholder="Drop a photo of Ben"></image-slot>
+              {benAvatar && <img src={benAvatar} alt={ben?.name ?? ''} />}
               <div className="ch-portrait__plate">
                 <p className="ch-portrait__name">{ben?.name}</p>
                 <p className="ch-portrait__role">

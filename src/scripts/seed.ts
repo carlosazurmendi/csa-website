@@ -109,7 +109,7 @@ for (const mod of MODULES) {
     if (existing) {
       doc = await payload.update({
         collection: mod.collection as never,
-        id: existing.id,
+        id: (existing as { id: number | string }).id,
         data: data as never,
         overrideAccess: true,
       })

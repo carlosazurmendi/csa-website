@@ -47,7 +47,7 @@
   width: 132px; height: 56px; flex: none; border-radius: var(--r-md); overflow: hidden;
   border: 1px solid var(--border-1); background: var(--bg-elevated);
 }
-.csd-hero__logo image-slot { width: 100%; height: 100%; display: block; }
+.csd-hero__logo img { width: 100%; height: 100%; display: block; object-fit: contain; }
 .csd-hero__client-txt { line-height: 1.4; }
 .csd-hero__client-name { font-weight: 600; color: var(--fg-1); font-size: 15px; }
 .csd-hero__client-role { font-size: 12.5px; color: var(--fg-3); margin-top: 3px; }
@@ -57,7 +57,7 @@
   position: relative; aspect-ratio: 4 / 5; border-radius: var(--r-lg); overflow: hidden;
   border: 1px solid var(--border-1); box-shadow: var(--shadow-card);
 }
-.csd-hero__media image-slot { width: 100%; height: 100%; display: block; }
+.csd-hero__media img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .csd-hero__media-scrim {
   position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(10,14,20,0.10) 0%, rgba(10,14,20,0) 36%, rgba(10,14,20,0.50) 100%);
@@ -190,7 +190,7 @@
 }
 .csd-rcard:hover { transform: translateY(-4px); border-color: var(--border-gold); box-shadow: var(--shadow-card); }
 .csd-rcard__cover { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
-.csd-rcard__cover image-slot { width: 100%; height: 100%; display: block; }
+.csd-rcard__cover img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .csd-rcard__cover::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(10,14,20,0) 38%, rgba(10,14,20,0.6) 100%);

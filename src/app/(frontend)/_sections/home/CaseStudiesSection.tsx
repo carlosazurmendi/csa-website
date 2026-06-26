@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from '../../_components/Chevron'
 import { attachTilt } from '../../_components/tilt'
+import { mediaUrl } from '@/lib/media'
 import type { CaseStudyCard, HomeDoc } from './types'
 
 /**
@@ -118,6 +119,7 @@ function Card({
   }, [active])
 
   const standards = (data.standards ?? []).map((s) => s.code)
+  const cover = mediaUrl(data.cover)
 
   return (
     <article
@@ -135,7 +137,7 @@ function Card({
             Only the active card mounts it (1 WebGL context). */}
         {active && !isMobile && <MetalRing />}
         <div className="cs-card__cover">
-          <image-slot id={'cs-cover-' + data.id} shape="rect" fit="cover" placeholder={'Drop cover image'}></image-slot>
+          {cover && <img src={cover} alt={data.name ?? ''} />}
         </div>
         <div className="cs-card__scrim" />
         <div className={'cs-card__body' + (active ? ' cs-anim' : '')} key={'body' + data.id}>

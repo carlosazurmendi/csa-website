@@ -24,6 +24,7 @@ export type CaseCard = {
   quote: string
   author: string
   affiliation: string | null
+  cover?: string
 }
 
 /* Mobile guard: on phones the carousel is swiped rapidly, and each swap
@@ -147,7 +148,7 @@ function Card({
       >
         {active && <MetalRing kind="silver" />}
         <div className="cs-card__cover">
-          <image-slot id={'cs-cover-' + data.id} shape="rect" fit="cover" placeholder={'Drop cover image'}></image-slot>
+          {data.cover && <img src={data.cover} alt={data.name} />}
         </div>
         <div className="cs-card__scrim" />
         <div className={'cs-card__body' + (active ? ' cs-anim' : '')} key={'body' + data.id}>

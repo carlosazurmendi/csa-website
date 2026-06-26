@@ -197,8 +197,8 @@
 }
 
 .cs-card__cover { position: absolute; inset: 0; z-index: 0; }
-.cs-card__cover image-slot { width: 100%; height: 100%; display: block; }
-.cs-card:not(.is-active) .cs-card__cover image-slot { pointer-events: none; }
+.cs-card__cover img { width: 100%; height: 100%; display: block; object-fit: cover; filter: brightness(0.55) saturate(0.96); }
+.cs-card:not(.is-active) .cs-card__cover img { pointer-events: none; }
 /* Make the unfilled slot read as a dark cinematic plate on the CSA theme */
 .cs-card__cover image-slot::part(frame) {
   background:

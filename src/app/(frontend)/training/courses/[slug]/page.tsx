@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs, lexicalToText } from '@/lib/lexical'
+import { mediaUrl } from '@/lib/media'
 import { CourseCurriculum, type CurriculumModule } from '../../../_sections/training/CourseCurriculum'
 
 export const dynamic = 'force-dynamic'
@@ -31,6 +32,7 @@ type InstructorDoc = {
   role?: string
   bioShort?: string
   bio?: unknown
+  avatar?: { url?: string } | string | null
   credentials?: { icon?: string; title?: string; subtitle?: string }[]
 }
 
@@ -120,6 +122,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
     c.instructor && typeof c.instructor === 'object' ? c.instructor : {}
   const instructorCredentials = instructor.credentials ?? []
   const instructorBio = lexicalToParagraphs(instructor.bio)
+  const instructorAvatar = mediaUrl(instructor.avatar)
 
   // Related: same collection, shares a track, not this course (first 3).
   const allCourses = await findDocs<CourseDoc>('courses', { limit: 100 })
@@ -287,7 +290,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
         </div>
         <div className="cl-instr">
           <div className="cl-instr__portrait" data-metal="silver">
-            <image-slot id="about-ben" shape="rect" fit="cover" placeholder="Drop a photo of Ben"></image-slot>
+            {instructorAvatar && <img src={instructorAvatar} alt={instructor.name ?? ''} />}
             <div className="cl-instr__plate">
               <p className="cl-instr__name">{instructor.name}</p>
               <p className="cl-instr__role">{instructor.role}</p>
