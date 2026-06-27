@@ -139,6 +139,10 @@
 .cp-btn-sm i { width: 15px; height: 15px; }
 .cp-btn-sm--danger:hover { border-color: rgba(203,91,78,.5); color: var(--status-critical); }
 
+/* embedded Stripe Elements card form */
+.cp-cardform { display: flex; flex-direction: column; gap: 16px; }
+.cp-cardform__actions { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+
 /* address block */
 .cp-address { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .cp-address__group > span { display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .1em;

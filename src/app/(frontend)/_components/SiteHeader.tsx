@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+
+import { createClient } from '@/lib/supabase/client'
+import { toAuthUser, type AuthUser } from '@/lib/auth-user'
 
 /**
  * SiteHeader — faithful port of design-reference/project/assets/nav.jsx.
@@ -33,7 +36,6 @@ type CartItem = {
   price: number
   qty?: number
 }
-type AuthUser = { email: string; fullName: string; initials: string } | null
 
 const DEFAULT_NAV: NavItem[] = [
   { label: 'Home', href: '/' },
@@ -291,8 +293,9 @@ function AccountMenu({
   )
 }
 
-export function SiteHeader({ data }: { data: HeaderData }) {
+export function SiteHeader({ data, initialUser = null }: { data: HeaderData; initialUser?: AuthUser }) {
   const pathname = usePathname() || '/'
+  const router = useRouter()
 
   const NAV = data?.navItems && data.navItems.length > 0 ? data.navItems : DEFAULT_NAV
   const login = {
@@ -307,21 +310,47 @@ export function SiteHeader({ data }: { data: HeaderData }) {
   const [solid, setSolid] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openAcc, setOpenAcc] = useState<string | null>(null)
-  const [auth, setAuth] = useState<AuthUser>(null)
+  const [auth, setAuth] = useState<AuthUser>(initialUser)
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
   const [suppressDrops, setSuppressDrops] = useState(false)
 
-  // Subscribe to the shared store so every nav instance stays in sync.
+  // Cart still comes from the localStorage store stub (commerce is M7).
   useEffect(() => {
     const Store = getStore()
-    const sync = () => {
-      setAuth(Store.getAuth())
-      setCart(Store.getCart())
-    }
+    const sync = () => setCart(Store.getCart())
     sync()
     return Store.subscribe(sync)
   }, [])
+
+  // Auth comes from Supabase: hydrate from the current session, then stay live on
+  // sign-in / sign-out so the account menu flips without a page reload.
+  useEffect(() => {
+    const sb = createClient()
+    let active = true
+    sb.auth.getUser().then(({ data }) => {
+      if (active) setAuth(toAuthUser(data.user))
+    })
+    const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
+      setAuth(toAuthUser(session?.user ?? null))
+    })
+    return () => {
+      active = false
+      sub.subscription.unsubscribe()
+    }
+  }, [])
+
+  const onLogout = async () => {
+    setMobileOpen(false)
+    setCartOpen(false)
+    try {
+      await createClient().auth.signOut()
+    } catch {
+      // ignore — we still clear local state below
+    }
+    setAuth(null)
+    router.refresh()
+  }
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 24)
@@ -432,7 +461,7 @@ export function SiteHeader({ data }: { data: HeaderData }) {
             </button>
 
             {auth ? (
-              <AccountMenu user={auth} consultation={consultation} onLogout={() => getStore().logout()} />
+              <AccountMenu user={auth} consultation={consultation} onLogout={onLogout} />
             ) : (
               <>
                 <Link className="navx__login" href={login.href}>
@@ -531,7 +560,7 @@ export function SiteHeader({ data }: { data: HeaderData }) {
                   {l.label}
                 </Link>
               ))}
-              <button className="btn btn--link btn--block" onClick={() => getStore().logout()}>
+              <button className="btn btn--link btn--block" onClick={onLogout}>
                 Log Out <i data-lucide="log-out"></i>
               </button>
             </>

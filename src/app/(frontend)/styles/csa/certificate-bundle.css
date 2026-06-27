@@ -1,0 +1,17 @@
+/* ============================================================
+   Certificate page CSS bundle.
+
+   Mirrors design-reference/project/Training - Templates/Certificate.html,
+   which loads ONLY the tokens + kit + certificate sheets. The certificate uses
+   its own `.ct-` class prefix (no collision with the `.cp-` course-player/portal
+   prefix or the `.as-` assessment prefix), and is a dedicated full-screen page
+   with its own dark masthead — NOT the marketing chrome. We load only the minimal
+   set so nothing else can bleed in, matching the (player)/(assessment) precedent.
+   certificate.css carries its own @media print rules to isolate the paper.
+
+   colors_and_type.css already pulls in the Space Grotesk @font + `.csa-root`
+   base, so those don't need a separate import here.
+   ============================================================ */
+@import './colors_and_type.css';
+@import './kit.css';
+@import './certificate.css';

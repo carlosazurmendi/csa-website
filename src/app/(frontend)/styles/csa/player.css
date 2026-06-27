@@ -1,0 +1,18 @@
+/* ============================================================
+   Course Player CSS bundle.
+
+   Mirrors design-reference/project/Training - Templates/Course Player.html,
+   which loads ONLY the tokens + kit + course-player sheets — NOT the site
+   nav/footer/portal sheets. This matters because the Customer Portal stylesheet
+   (portal.css) ALSO uses the `.cp-` class prefix ("Customer Portal"), so it
+   collides with course-player.css on `.cp`, `.cp-main`, `.cp-nav`, `.cp i`, …
+   Loading the full site index.css made portal's `.cp-nav { display:flex }`
+   hijack the lesson navigator and break its layout. The (player) route group
+   imports this minimal bundle instead, so only the player's own rules apply.
+
+   colors_and_type.css already pulls in the Space Grotesk @font + `.csa-root`
+   base, so those don't need a separate import here.
+   ============================================================ */
+@import './colors_and_type.css';
+@import './kit.css';
+@import './course-player.css';

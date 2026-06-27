@@ -103,6 +103,14 @@ export const Courses: CollectionConfig = {
       admin: { description: 'Pricing caveat under the price, e.g. "Per seat · team & site licenses available".' },
     },
     {
+      name: 'enrollCtaLabel',
+      type: 'text',
+      defaultValue: 'Enroll Now',
+      admin: {
+        description: 'Label for the purchase / enroll button on the course page, e.g. "Enroll Now", "Buy Course", "Get Access".',
+      },
+    },
+    {
       name: 'summary',
       type: 'textarea',
       admin: { description: 'One-line card summary used in the hub and catalog grid.' },
@@ -138,23 +146,81 @@ export const Courses: CollectionConfig = {
               name: 'video',
               type: 'upload',
               relationTo: 'media',
-              admin: { description: 'Lesson video for the course player.' },
+              admin: { description: 'Uploaded lesson video (streamed from storage). Takes precedence over Video URL.' },
+            },
+            {
+              name: 'videoUrl',
+              type: 'text',
+              admin: {
+                description:
+                  'External video URL (YouTube / Vimeo / direct MP4) embedded by the player when no video is uploaded.',
+              },
             },
             {
               name: 'body',
               type: 'richText',
-              admin: { description: 'Lesson notes / written content.' },
+              admin: { description: 'Lesson notes / written content — the "In this lesson" summary in the player sidebar.' },
+            },
+            {
+              name: 'keyPoints',
+              type: 'array',
+              label: 'Key points',
+              admin: { description: 'Bullet takeaways shown under "In this lesson" in the player sidebar.' },
+              fields: [{ name: 'point', type: 'text', required: true }],
+            },
+            {
+              name: 'quiz',
+              type: 'group',
+              label: 'Knowledge check',
+              admin: {
+                description:
+                  'Formative self-check shown below the video (client-graded, with explanations). Not the graded final assessment.',
+              },
+              fields: [
+                {
+                  name: 'passScore',
+                  type: 'number',
+                  defaultValue: 100,
+                  admin: { description: '% correct required to pass the check.' },
+                },
+                {
+                  name: 'questions',
+                  type: 'array',
+                  label: 'Questions',
+                  fields: [
+                    { name: 'prompt', type: 'text', required: true },
+                    {
+                      name: 'options',
+                      type: 'array',
+                      minRows: 2,
+                      admin: { description: 'Answer options.' },
+                      fields: [{ name: 'text', type: 'text', required: true }],
+                    },
+                    {
+                      name: 'answerIndex',
+                      type: 'number',
+                      defaultValue: 0,
+                      admin: { description: 'Index (0-based) of the correct option.' },
+                    },
+                    { name: 'explanation', type: 'textarea', admin: { description: 'Shown after grading.' } },
+                  ],
+                },
+              ],
             },
             {
               name: 'resources',
               type: 'array',
               label: 'Downloadable resources',
-              admin: { description: 'Attachments for this lesson (handouts, worksheets).' },
+              admin: { description: 'Handouts / worksheets shown in the player sidebar.' },
               fields: [
+                { name: 'name', type: 'text', required: true, admin: { description: 'Display file name, e.g. "Checklist.pdf".' } },
+                { name: 'type', type: 'text', admin: { description: 'File-type chip, e.g. PDF / XLSX / DOCX / ZIP.' } },
+                { name: 'sizeLabel', type: 'text', admin: { description: 'Human size, e.g. "318 KB".' } },
                 {
                   name: 'file',
                   type: 'upload',
                   relationTo: 'media',
+                  admin: { description: 'The downloadable file (optional until uploaded; download is disabled without it).' },
                 },
               ],
             },

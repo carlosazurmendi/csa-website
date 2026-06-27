@@ -42,5 +42,16 @@
 @import './case-study-detail.css';
 @import './legal.css';
 
+/* Auth screens (login / sign up / forgot / reset) */
+@import './auth.css';
+
+/* Customer area (student dashboard + customer portal). The course player is NOT
+   imported here: it lives in its own (player) route group with a dedicated CSS
+   bundle (player.css). course-player.css and portal.css both use the `.cp-`
+   prefix and collide on `.cp`, `.cp-main`, `.cp-nav` — loading both globally let
+   the player's sticky full-height `.cp-nav` clobber the portal's sidebar. */
+@import './dashboard.css';
+@import './portal.css';
+
 /* Override authority — MUST stay last. */
 @import './review-treatments.css';

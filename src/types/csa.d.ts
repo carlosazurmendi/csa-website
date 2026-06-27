@@ -63,6 +63,9 @@ declare global {
     CSAStore?: CsaStore
     csaInit?: (root?: Element | Document) => void
     csaIntro?: (opts?: { label?: string }) => void
+    // Runtime-injected public config (see (frontend)/layout.tsx) — avoids baking
+    // NEXT_PUBLIC_* into the image at build time.
+    __CSA_ENV__?: { supabaseUrl?: string; supabaseAnonKey?: string; stripePublishableKey?: string }
   }
 }
 

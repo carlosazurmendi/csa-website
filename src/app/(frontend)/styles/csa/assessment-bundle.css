@@ -1,0 +1,17 @@
+/* ============================================================
+   Final Assessment CSS bundle.
+
+   Mirrors design-reference/project/Training - Templates/Assessment.html,
+   which loads ONLY the tokens + kit + assessment sheets. The assessment is a
+   dedicated full-screen testing screen with its own `.as-` class prefix, so it
+   has NO collision with the `.cp-` prefix shared by course-player.css and
+   portal.css. We still load only the minimal set (no index.css, no portal,
+   no course-player) so nothing else can bleed in — matching the (player) bundle
+   precedent.
+
+   colors_and_type.css already pulls in the Space Grotesk @font + `.csa-root`
+   base, so those don't need a separate import here.
+   ============================================================ */
+@import './colors_and_type.css';
+@import './kit.css';
+@import './assessment.css';

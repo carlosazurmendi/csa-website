@@ -8,10 +8,15 @@ import { cookies } from 'next/headers'
 export async function createClient() {
   const cookieStore = await cookies() // cookies() is async in Next 15+
 
+  // Server-side calls reach Supabase Auth at the INTERNAL url when set (e.g. the
+  // dev auth-proxy hostname inside Docker); the browser uses NEXT_PUBLIC_SUPABASE_URL.
+  // In prod both resolve to the same self-hosted Supabase (SUPABASE_INTERNAL_URL unset).
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_INTERNAL_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // Must match the browser client's cookie name (see lib/supabase/client.ts).
+      cookieOptions: { name: 'sb-csa-auth' },
       cookies: {
         getAll() {
           return cookieStore.getAll()

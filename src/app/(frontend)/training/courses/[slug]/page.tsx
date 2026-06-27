@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs, lexicalToText } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
+import { isEnrolled } from '@/lib/lms'
 import { CourseCurriculum, type CurriculumModule } from '../../../_sections/training/CourseCurriculum'
 
 export const dynamic = 'force-dynamic'
@@ -37,6 +38,7 @@ type InstructorDoc = {
 }
 
 type CourseDoc = {
+  id: number | string
   slug: string
   code?: string
   title: string
@@ -48,6 +50,7 @@ type CourseDoc = {
   lessons?: number
   price?: number | null
   priceNote?: string
+  enrollCtaLabel?: string
   summary?: string
   blurb?: unknown
   outcomes?: { outcome?: string }[]
@@ -103,6 +106,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   const { slug } = await params
   const c = await findBySlug<CourseDoc>('courses', slug, 2)
   if (!c) notFound()
+
+  // Does the signed-in user already own this course (via purchase or admin grant)?
+  const enrolled = await isEnrolled(c.id)
+  const enrollLabel = c.enrollCtaLabel || 'Enroll Now'
 
   const track = c.track ?? []
   const isQuote = c.price == null
@@ -202,10 +209,14 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 <Link className="btn btn--gold-solid btn--lg" href="/training/request-a-private-course">
                   Request a Quote <i data-lucide="arrow-right"></i>
                 </Link>
+              ) : enrolled ? (
+                <Link className="btn btn--gold-solid btn--lg" href="/dashboard">
+                  Go to My Courses <i data-lucide="arrow-right"></i>
+                </Link>
               ) : (
                 <>
                   <Link className="btn btn--gold-solid btn--lg" href="/cart">
-                    Enroll Now <i data-lucide="arrow-right"></i>
+                    {enrollLabel} <i data-lucide="arrow-right"></i>
                   </Link>
                   <Link className="cl-enroll__secondary" href="/cart">
                     <i data-lucide="shopping-cart"></i> Add to Cart
@@ -371,7 +382,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </Link>
           ) : (
             <Link className="btn btn--gold-solid btn--lg" href="/cart">
-              Enroll Now <i data-lucide="arrow-right"></i>
+              {enrollLabel} <i data-lucide="arrow-right"></i>
             </Link>
           )}
           <Link className="btn btn--link" href="/book-a-consultation">

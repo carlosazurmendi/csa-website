@@ -11,12 +11,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  // Reach Supabase Auth at the internal url inside the container; browser uses the public one.
+  const url = process.env.SUPABASE_INTERNAL_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   // Supabase Auth not configured yet — pass requests through untouched.
   if (!url || !anon) return supabaseResponse
 
   const supabase = createServerClient(url, anon, {
+    // Must match the browser client's cookie name (see lib/supabase/client.ts).
+    cookieOptions: { name: 'sb-csa-auth' },
     cookies: {
       getAll() {
         return request.cookies.getAll()
@@ -33,10 +36,25 @@ export async function updateSession(request: NextRequest) {
 
   // Do not run logic between createServerClient and the auth call. This touches the session
   // so an expired access token is refreshed into the response cookies.
+  let user = null
   try {
-    await supabase.auth.getUser()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
   } catch {
-    // Self-hosted Supabase unreachable/misconfigured — never break the page in M1.
+    // Self-hosted Supabase unreachable/misconfigured — never break the page.
+  }
+
+  // Route gating (M5): the customer area requires a session. Unauthenticated
+  // requests are redirected to login with a `next` param to return afterwards.
+  const path = request.nextUrl.pathname
+  const PROTECTED = ['/dashboard', '/portal', '/account', '/learn']
+  const needsAuth = PROTECTED.some((p) => path === p || path.startsWith(p + '/'))
+  if (!user && needsAuth) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    redirectUrl.search = ''
+    redirectUrl.searchParams.set('next', path)
+    return NextResponse.redirect(redirectUrl)
   }
 
   return supabaseResponse

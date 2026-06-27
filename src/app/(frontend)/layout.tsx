@@ -5,6 +5,8 @@ import Script from 'next/script'
 import type { Metadata } from 'next'
 
 import { getGlobalSafe } from '@/lib/cms'
+import { createClient } from '@/lib/supabase/server'
+import { toAuthUser, type AuthUser } from '@/lib/auth-user'
 import { SiteHeader, type HeaderData } from './_components/SiteHeader'
 import { SiteFooter, type FooterData } from './_components/SiteFooter'
 import { CsaIcons } from './_components/CsaIcons'
@@ -31,9 +33,34 @@ export default async function FrontendLayout({ children }: { children: React.Rea
     getGlobalSafe<FooterData>('footer'),
   ])
 
+  // Server-side session so the nav renders the correct logged-in/out chrome on
+  // first paint (the client header then stays live via Supabase auth events).
+  let initialUser: AuthUser = null
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    initialUser = toAuthUser(user)
+  } catch {
+    // Supabase unreachable — render logged-out chrome.
+  }
+
   return (
     <html lang="en" data-csa-motion>
       <body className="csa-root">
+        {/* Runtime public config for client components (Supabase). Read from
+            server-side env at request time and set before hydration, so the
+            production image carries no baked NEXT_PUBLIC_* values. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__CSA_ENV__=${JSON.stringify({
+              supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+              supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+              stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '',
+            })}`,
+          }}
+        />
         {/* Start fetching the self-hosted shader bundle (React 18 + Paper) during
             HTML parse so it's cached by the time csa-shaders.js dynamic-imports
             it — faster, deterministic first paint for the WebGL effects. */}
@@ -46,7 +73,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         <Script src="/csa/vendor/interactions.js" strategy="afterInteractive" />
         <Script src="/csa/vendor/csa-shaders.js" type="module" strategy="afterInteractive" />
 
-        <SiteHeader data={header} />
+        <SiteHeader data={header} initialUser={initialUser} />
         <Shell>{children}</Shell>
         <SiteFooter data={footer} />
 

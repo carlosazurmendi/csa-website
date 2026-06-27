@@ -45,9 +45,61 @@ export const Certificates: CollectionConfig = {
       admin: { description: 'The recipient’s full name at the time of issue (printed on the certificate).' },
     },
     {
+      name: 'recipientCompany',
+      type: 'text',
+      admin: { description: 'The recipient’s company at the time of issue (snapshot).' },
+    },
+    {
+      name: 'courseTitle',
+      type: 'text',
+      admin: { description: 'Snapshot of the course title at issue (printed on the certificate).' },
+    },
+    {
+      name: 'credential',
+      type: 'text',
+      defaultValue: 'Certificate of Completion',
+      admin: { description: 'Credential name, e.g. "Certificate of Completion".' },
+    },
+    {
+      name: 'standards',
+      type: 'array',
+      label: 'Standards',
+      admin: { description: 'Standards covered, rendered as mono chips on the certificate.' },
+      fields: [{ name: 'code', type: 'text', required: true }],
+    },
+    {
+      name: 'score',
+      type: 'number',
+      min: 0,
+      max: 100,
+      admin: { description: 'Final assessment score (%) printed on the certificate.' },
+    },
+    {
+      name: 'hours',
+      type: 'text',
+      admin: { description: 'Nominal learning hours, e.g. "6.0".' },
+    },
+    {
       name: 'issuedAt',
       type: 'date',
       admin: { description: 'The date the certificate was issued.' },
+    },
+    {
+      name: 'expiresAt',
+      type: 'date',
+      admin: { description: 'Expiry date, or empty for "No expiry".' },
+    },
+    {
+      name: 'instructorName',
+      type: 'text',
+      defaultValue: 'Ben Twombly',
+      admin: { description: 'Signatory name printed on the certificate.' },
+    },
+    {
+      name: 'instructorTitle',
+      type: 'text',
+      defaultValue: 'Founder & Principal Safety Engineer · TÜV FS Eng., IFSP',
+      admin: { description: 'Signatory title printed on the certificate.' },
     },
     {
       name: 'certificateId',
