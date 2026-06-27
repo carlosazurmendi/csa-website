@@ -47,7 +47,7 @@ export async function updateSession(request: NextRequest) {
   // Route gating (M5): the customer area requires a session. Unauthenticated
   // requests are redirected to login with a `next` param to return afterwards.
   const path = request.nextUrl.pathname
-  const PROTECTED = ['/dashboard', '/portal', '/account', '/learn']
+  const PROTECTED = ['/dashboard', '/portal', '/account', '/learn', '/assessment', '/safety-chat']
   const needsAuth = PROTECTED.some((p) => path === p || path.startsWith(p + '/'))
   if (!user && needsAuth) {
     const redirectUrl = request.nextUrl.clone()

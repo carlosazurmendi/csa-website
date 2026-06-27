@@ -206,7 +206,7 @@ const PORTAL_LINKS = [
     icon: 'message-square',
     t: 'Safety Chat',
     d: 'Ask an AI functional-safety assistant a quick question.',
-    href: '/resources/safety-chat',
+    href: '/safety-chat',
     meta: 'Open assistant',
   },
 ]

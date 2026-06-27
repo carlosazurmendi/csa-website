@@ -9,6 +9,7 @@ import * as migration_20260626_006000_m8_course_enroll_cta_label from './2026062
 import * as migration_20260627_130005_m9_lesson_quiz_keypoints from './20260627_130005_m9_lesson_quiz_keypoints';
 import * as migration_20260627_140000_m10_lesson_resource_meta from './20260627_140000_m10_lesson_resource_meta';
 import * as migration_20260627_150000_m11_certificate_metadata from './20260627_150000_m11_certificate_metadata';
+import * as migration_20260627_160000_m12_safety_chat from './20260627_160000_m12_safety_chat';
 
 export const migrations = [
   {
@@ -65,5 +66,10 @@ export const migrations = [
     up: migration_20260627_150000_m11_certificate_metadata.up,
     down: migration_20260627_150000_m11_certificate_metadata.down,
     name: '20260627_150000_m11_certificate_metadata'
+  },
+  {
+    up: migration_20260627_160000_m12_safety_chat.up,
+    down: migration_20260627_160000_m12_safety_chat.down,
+    name: '20260627_160000_m12_safety_chat'
   },
 ];

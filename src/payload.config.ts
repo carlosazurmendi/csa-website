@@ -45,6 +45,8 @@ import { Enrollments } from './collections/Enrollments'
 import { CourseProgress } from './collections/CourseProgress'
 import { QuizAttempts } from './collections/QuizAttempts'
 import { Certificates } from './collections/Certificates'
+import { ChatProjects } from './collections/ChatProjects'
+import { ChatThreads } from './collections/ChatThreads'
 import { Orders } from './collections/Orders'
 import { Entitlements } from './collections/Entitlements'
 import { CustomerProfiles } from './collections/CustomerProfiles'
@@ -164,6 +166,8 @@ export default buildConfig({
     CourseProgress,
     QuizAttempts,
     Certificates,
+    ChatProjects,
+    ChatThreads,
     Orders,
     Entitlements,
     CustomerProfiles,

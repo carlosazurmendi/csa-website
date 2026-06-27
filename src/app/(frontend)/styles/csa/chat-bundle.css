@@ -1,0 +1,49 @@
+/* ============================================================
+   Safety Chat CSS bundle.
+
+   Mirrors design-reference/project/Customer Portal/Safety Chat.html, which loads
+   tokens + kit + nav + safety-chat-app — the global nav stays (the chat sits under
+   it), but there is NO footer and the body is locked to the viewport (the app owns
+   its own internal scroll). The `.sca-` prefix is collision-free with `.cp-`
+   (player/portal), `.as-` (assessment), and `.ct-` (certificate).
+
+   colors_and_type.css already pulls in the Space Grotesk @font + `.csa-root` base.
+   ============================================================ */
+@import './colors_and_type.css';
+@import './kit.css';
+@import './nav.css';
+@import './safety-chat-app.css';
+
+/* Icon box model for React-owned inline SVG icons (SafetyChatIcon renders
+   <i><svg/></i>). The design swapped <i data-lucide> → <svg> at runtime; with
+   React-owned SVG we keep the <i> wrapper, so it needs the same base rules the
+   other ported sheets carry (.as i / .ct i). The per-context rules in
+   safety-chat-app.css size the <i>; this makes the <svg> fill it. */
+.sca i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  vertical-align: middle;
+}
+.sca i > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Welcome prompt cards: stack the sub-text below the bold title (the inline
+   spans otherwise flow on one line). */
+.sca-prompt__t,
+.sca-prompt__d {
+  display: block;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  overflow: hidden;
+}

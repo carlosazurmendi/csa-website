@@ -31,6 +31,7 @@
     "iOS >= 18"
   ],
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@payloadcms/db-postgres": "3.85.1",
     "@payloadcms/next": "3.85.1",
     "@payloadcms/richtext-lexical": "3.85.1",
@@ -43,6 +44,7 @@
     "cross-env": "^7.0.3",
     "graphql": "^16.8.1",
     "ioredis": "^5.11.1",
+    "mammoth": "^1.12.0",
     "next": "16.2.9",
     "payload": "3.85.1",
     "react": "19.2.7",

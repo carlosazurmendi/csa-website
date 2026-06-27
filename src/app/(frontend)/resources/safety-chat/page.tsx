@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { findBySlug } from '@/lib/cms'
+import { getCurrentCustomer } from '@/lib/customer'
 import { ResourcesReveal } from '../../_sections/resources/ResourcesOverviewClient'
 
 export const dynamic = 'force-dynamic'
@@ -94,6 +95,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SafetyChatPage() {
   const row = (await findBySlug<SafetyChat>('resources', 'safety-chat')) ?? {}
+  // Signed-in visitors get the live app ("Go to Chat"); everyone else routes to login.
+  const signedIn = Boolean(await getCurrentCustomer())
+  const chatHref = signedIn ? '/safety-chat' : '/login'
 
   return (
     <>
@@ -127,7 +131,7 @@ export default async function SafetyChatPage() {
                 </span>
               </div>
               <div className="res-hero__cta">
-                <Link className="btn btn--gold-pill btn--lg" href="/login">
+                <Link className="btn btn--gold-pill btn--lg" href={chatHref}>
                   {row.heroCtaLabel ?? 'Ask Safety Chat'} <i data-lucide="arrow-right"></i>
                 </Link>
                 <Link className="btn btn--link" href="/book-a-consultation">
@@ -186,18 +190,30 @@ export default async function SafetyChatPage() {
                 </div>
               </div>
 
-              {/* Logged-out lock (default export state; auth gating deferred to M6+). */}
-              <div className="sc-lock">
-                <span className="sc-lock__ico">
-                  <i data-lucide="lock"></i>
-                </span>
-                <p className="sc-lock__t">
-                  {row.toolNote ?? 'Sign in to start chatting. Safety Chat is available to logged-in users.'}
-                </p>
-                <Link className="btn btn--gold-pill" href="/login">
-                  {row.toolCtaLabel ?? 'Sign in to chat'} <i data-lucide="arrow-right"></i>
-                </Link>
-              </div>
+              {/* Auth-aware lock: signed-in → open the live app; else → sign in. */}
+              {signedIn ? (
+                <div className="sc-lock">
+                  <span className="sc-lock__ico">
+                    <i data-lucide="message-square-text"></i>
+                  </span>
+                  <p className="sc-lock__t">You&rsquo;re signed in. Pick up the conversation in Safety Chat.</p>
+                  <Link className="btn btn--gold-pill" href="/safety-chat">
+                    Go to Chat <i data-lucide="arrow-right"></i>
+                  </Link>
+                </div>
+              ) : (
+                <div className="sc-lock">
+                  <span className="sc-lock__ico">
+                    <i data-lucide="lock"></i>
+                  </span>
+                  <p className="sc-lock__t">
+                    {row.toolNote ?? 'Sign in to start chatting. Safety Chat is available to logged-in users.'}
+                  </p>
+                  <Link className="btn btn--gold-pill" href="/login">
+                    {row.toolCtaLabel ?? 'Sign in to chat'} <i data-lucide="arrow-right"></i>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -212,7 +228,7 @@ export default async function SafetyChatPage() {
               {row.closeSub ??
                 'Sign in to ask quick functional safety questions and get immediate, high-level engineering insight — then escalate the hard ones to a principal engineer.'}
             </p>
-            <Link className="btn btn--gold-pill btn--lg" href="/login">
+            <Link className="btn btn--gold-pill btn--lg" href={chatHref}>
               {row.closeCtaLabel ?? 'Ask Safety Chat'} <i data-lucide="arrow-right"></i>
             </Link>
           </div>

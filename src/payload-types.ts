@@ -92,6 +92,8 @@ export interface Config {
     'course-progress': CourseProgress;
     'quiz-attempts': QuizAttempt;
     certificates: Certificate;
+    'chat-projects': ChatProject;
+    'chat-threads': ChatThread;
     orders: Order;
     entitlements: Entitlement;
     'customer-profiles': CustomerProfile;
@@ -130,6 +132,8 @@ export interface Config {
     'course-progress': CourseProgressSelect<false> | CourseProgressSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
     certificates: CertificatesSelect<false> | CertificatesSelect<true>;
+    'chat-projects': ChatProjectsSelect<false> | ChatProjectsSelect<true>;
+    'chat-threads': ChatThreadsSelect<false> | ChatThreadsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     entitlements: EntitlementsSelect<false> | EntitlementsSelect<true>;
     'customer-profiles': CustomerProfilesSelect<false> | CustomerProfilesSelect<true>;
@@ -2895,6 +2899,10 @@ export interface Course {
    */
   priceNote?: string | null;
   /**
+   * Label for the purchase / enroll button on the course page, e.g. "Enroll Now", "Buy Course", "Get Access".
+   */
+  enrollCtaLabel?: string | null;
+  /**
    * One-line card summary used in the hub and catalog grid.
    */
   summary?: string | null;
@@ -2948,11 +2956,15 @@ export interface Course {
                */
               title: string;
               /**
-               * Lesson video for the course player.
+               * Uploaded lesson video (streamed from storage). Takes precedence over Video URL.
                */
               video?: (number | null) | Media;
               /**
-               * Lesson notes / written content.
+               * External video URL (YouTube / Vimeo / direct MP4) embedded by the player when no video is uploaded.
+               */
+              videoUrl?: string | null;
+              /**
+               * Lesson notes / written content — the "In this lesson" summary in the player sidebar.
                */
               body?: {
                 root: {
@@ -2970,10 +2982,66 @@ export interface Course {
                 [k: string]: unknown;
               } | null;
               /**
-               * Attachments for this lesson (handouts, worksheets).
+               * Bullet takeaways shown under "In this lesson" in the player sidebar.
+               */
+              keyPoints?:
+                | {
+                    point: string;
+                    id?: string | null;
+                  }[]
+                | null;
+              /**
+               * Formative self-check shown below the video (client-graded, with explanations). Not the graded final assessment.
+               */
+              quiz?: {
+                /**
+                 * % correct required to pass the check.
+                 */
+                passScore?: number | null;
+                questions?:
+                  | {
+                      prompt: string;
+                      /**
+                       * Answer options.
+                       */
+                      options?:
+                        | {
+                            text: string;
+                            id?: string | null;
+                          }[]
+                        | null;
+                      /**
+                       * Index (0-based) of the correct option.
+                       */
+                      answerIndex?: number | null;
+                      /**
+                       * Shown after grading.
+                       */
+                      explanation?: string | null;
+                      id?: string | null;
+                    }[]
+                  | null;
+              };
+              /**
+               * Handouts / worksheets shown in the player sidebar.
                */
               resources?:
                 | {
+                    /**
+                     * Display file name, e.g. "Checklist.pdf".
+                     */
+                    name: string;
+                    /**
+                     * File-type chip, e.g. PDF / XLSX / DOCX / ZIP.
+                     */
+                    type?: string | null;
+                    /**
+                     * Human size, e.g. "318 KB".
+                     */
+                    sizeLabel?: string | null;
+                    /**
+                     * The downloadable file (optional until uploaded; download is disabled without it).
+                     */
                     file?: (number | null) | Media;
                     id?: string | null;
                   }[]
@@ -3740,9 +3808,50 @@ export interface Certificate {
    */
   recipientName?: string | null;
   /**
+   * The recipient’s company at the time of issue (snapshot).
+   */
+  recipientCompany?: string | null;
+  /**
+   * Snapshot of the course title at issue (printed on the certificate).
+   */
+  courseTitle?: string | null;
+  /**
+   * Credential name, e.g. "Certificate of Completion".
+   */
+  credential?: string | null;
+  /**
+   * Standards covered, rendered as mono chips on the certificate.
+   */
+  standards?:
+    | {
+        code: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Final assessment score (%) printed on the certificate.
+   */
+  score?: number | null;
+  /**
+   * Nominal learning hours, e.g. "6.0".
+   */
+  hours?: string | null;
+  /**
    * The date the certificate was issued.
    */
   issuedAt?: string | null;
+  /**
+   * Expiry date, or empty for "No expiry".
+   */
+  expiresAt?: string | null;
+  /**
+   * Signatory name printed on the certificate.
+   */
+  instructorName?: string | null;
+  /**
+   * Signatory title printed on the certificate.
+   */
+  instructorTitle?: string | null;
   /**
    * Public verification ID (e.g. CSA-RSF-2026-0214). Unique — anyone can verify a certificate by this key.
    */
@@ -3755,6 +3864,68 @@ export interface Certificate {
    * Whether the certificate is currently valid (uncheck to revoke).
    */
   verified?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Safety Chat projects (folders) — one set per user.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-projects".
+ */
+export interface ChatProject {
+  id: number;
+  /**
+   * Supabase auth.users.id of the owner.
+   */
+  userId: string;
+  /**
+   * Project name.
+   */
+  name: string;
+  /**
+   * Lucide icon name shown next to the project.
+   */
+  icon?: string | null;
+  /**
+   * Sort order in the rail.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Safety Chat conversations. Messages are stored as a JSON array.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-threads".
+ */
+export interface ChatThread {
+  id: number;
+  /**
+   * Supabase auth.users.id of the owner.
+   */
+  userId: string;
+  /**
+   * Optional project (folder) this chat belongs to.
+   */
+  project?: (number | null) | ChatProject;
+  /**
+   * Conversation title (first user message, truncated).
+   */
+  title?: string | null;
+  /**
+   * Ordered messages: [{ role: "user"|"bot", text, atts: [{ name, ext, sizeLabel }] }]. Attachments store display metadata only — file content is never persisted, only sent to the model on the turn it was attached.
+   */
+  messages?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -4062,6 +4233,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'certificates';
         value: number | Certificate;
+      } | null)
+    | ({
+        relationTo: 'chat-projects';
+        value: number | ChatProject;
+      } | null)
+    | ({
+        relationTo: 'chat-threads';
+        value: number | ChatThread;
       } | null)
     | ({
         relationTo: 'orders';
@@ -5189,6 +5368,7 @@ export interface CoursesSelect<T extends boolean = true> {
   lessons?: T;
   price?: T;
   priceNote?: T;
+  enrollCtaLabel?: T;
   summary?: T;
   blurb?: T;
   outcomes?:
@@ -5207,10 +5387,39 @@ export interface CoursesSelect<T extends boolean = true> {
           | {
               title?: T;
               video?: T;
+              videoUrl?: T;
               body?: T;
+              keyPoints?:
+                | T
+                | {
+                    point?: T;
+                    id?: T;
+                  };
+              quiz?:
+                | T
+                | {
+                    passScore?: T;
+                    questions?:
+                      | T
+                      | {
+                          prompt?: T;
+                          options?:
+                            | T
+                            | {
+                                text?: T;
+                                id?: T;
+                              };
+                          answerIndex?: T;
+                          explanation?: T;
+                          id?: T;
+                        };
+                  };
               resources?:
                 | T
                 | {
+                    name?: T;
+                    type?: T;
+                    sizeLabel?: T;
                     file?: T;
                     id?: T;
                   };
@@ -5514,10 +5723,48 @@ export interface CertificatesSelect<T extends boolean = true> {
   userId?: T;
   course?: T;
   recipientName?: T;
+  recipientCompany?: T;
+  courseTitle?: T;
+  credential?: T;
+  standards?:
+    | T
+    | {
+        code?: T;
+        id?: T;
+      };
+  score?: T;
+  hours?: T;
   issuedAt?: T;
+  expiresAt?: T;
+  instructorName?: T;
+  instructorTitle?: T;
   certificateId?: T;
   pdf?: T;
   verified?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-projects_select".
+ */
+export interface ChatProjectsSelect<T extends boolean = true> {
+  userId?: T;
+  name?: T;
+  icon?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-threads_select".
+ */
+export interface ChatThreadsSelect<T extends boolean = true> {
+  userId?: T;
+  project?: T;
+  title?: T;
+  messages?: T;
   updatedAt?: T;
   createdAt?: T;
 }
