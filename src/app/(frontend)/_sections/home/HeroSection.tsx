@@ -470,7 +470,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         <div className="vhero__copy">
           <h1
             className="csa-display vhero__title vhero__reveal vhero__reveal--1"
-            style={{ fontFamily: '"Space Grotesk"', fontSize: '7px' }}
+            style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif', fontSize: '7px' }}
           >
             <span className="csa-mega" style={{ fontSize: 'var(--t-h1)' }}>
               {line1}
@@ -482,7 +482,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
                   {l2before}
                 </span>
                 {accentAt >= 0 && (
-                  <span className="csa-gold-shimmer" style={{ fontFamily: '"Space Grotesk"' }}>
+                  <span className="csa-gold-shimmer" style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif' }}>
                     <span className="csa-mega" style={{ fontSize: 'var(--t-h1)' }}>
                       {accent}
                     </span>
@@ -499,7 +499,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
           {home.heroSubhead && (
             <p
               className="vhero__subhead vhero__reveal vhero__reveal--2"
-              style={{ fontFamily: '"Space Grotesk"', fontWeight: 600, fontSize: '23px' }}
+              style={{ fontFamily: 'var(--font-space-grotesk), "Space Grotesk", sans-serif', fontWeight: 600, fontSize: '23px' }}
             >
               {home.heroSubhead}
             </p>

@@ -8,6 +8,7 @@ import { getGlobalSafe } from '@/lib/cms'
 import { createClient } from '@/lib/supabase/server'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
 import { SiteHeader, type HeaderData } from '../(frontend)/_components/SiteHeader'
+import { fontVariables } from '@/lib/fonts'
 import { CsaIcons } from '../(frontend)/_components/CsaIcons'
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default async function ChatLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="en" data-csa-motion>
+    <html lang="en" className={fontVariables} data-csa-motion>
       <body className="csa-root">
         <script
           dangerouslySetInnerHTML={{

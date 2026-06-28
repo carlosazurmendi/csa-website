@@ -4,6 +4,7 @@ import React from 'react'
 import Script from 'next/script'
 import type { Metadata } from 'next'
 
+import { fontVariables } from '@/lib/fonts'
 import { getGlobalSafe } from '@/lib/cms'
 import { createClient } from '@/lib/supabase/server'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
@@ -48,7 +49,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
   }
 
   return (
-    <html lang="en" data-csa-motion>
+    <html lang="en" className={fontVariables} data-csa-motion>
       <body className="csa-root">
         {/* Runtime public config for client components (Supabase). Read from
             server-side env at request time and set before hydration, so the

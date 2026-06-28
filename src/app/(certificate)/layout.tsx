@@ -4,6 +4,7 @@ import React from 'react'
 import Script from 'next/script'
 import type { Metadata } from 'next'
 
+import { fontVariables } from '@/lib/fonts'
 import { CsaIcons } from '../(frontend)/_components/CsaIcons'
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
  */
 export default function CertificateLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-csa-motion>
+    <html lang="en" className={fontVariables} data-csa-motion>
       <body className="csa-root">
         <script
           dangerouslySetInnerHTML={{

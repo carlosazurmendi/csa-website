@@ -13,8 +13,9 @@
    Token + class NAMES are preserved for backward compatibility.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
-
+/* M8: fonts are self-hosted via next/font (src/lib/fonts.ts) — the old
+   render-blocking Google Fonts @import was removed. The --font-* tokens below
+   resolve to the next/font CSS variables set on each route group's <html>. */
 :root {
   /* ---------- Surfaces (dark-first) ---------- */
   --bg-base:      #0A0E14;  /* page background, deepest */
@@ -109,9 +110,11 @@
   --dur-slow: 520ms; /* @kind other */
 
   /* ---------- Type families ---------- */
-  --font-display: 'Archivo', 'Helvetica Neue', system-ui, sans-serif;
-  --font-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+  /* M8: front of each stack = the self-hosted next/font variable (src/lib/fonts.ts);
+     the named family + system fonts stay as graceful fallbacks. */
+  --font-display: var(--font-archivo), 'Archivo', 'Helvetica Neue', system-ui, sans-serif;
+  --font-body: var(--font-ibm-plex-sans), 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
   /* ---------- Type scale (fluid) ---------- */
   --t-mega: clamp(64px, 12vw, 184px); /* @kind font */
