@@ -4,7 +4,7 @@
 # Postgres is therefore deliberately NOT a service here.
 #
 #   prod:  docker compose -f docker-compose.yml up -d   (needs external `proxy` + `supabase_default` nets)
-#   local: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   local: docker compose -f docker-compose.yml -f dev/docker-compose.yml up -d
 # ============================================================================
 
 # Full app/migrator container environment. Each value is resolved from ${...}, which

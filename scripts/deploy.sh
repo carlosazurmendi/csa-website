@@ -17,7 +17,7 @@
 # ============================================================================
 set -euo pipefail
 
-COMPOSE="docker compose -f docker-compose.yml"   # prod file ONLY (docker-compose.dev.yml is opt-in, never auto-merged)
+COMPOSE="docker compose -f docker-compose.yml"   # prod file ONLY (dev/docker-compose.yml is opt-in, never auto-merged)
 ENV_FILE=".env"
 
 c_bold=$'\033[1m'; c_grn=$'\033[32m'; c_yel=$'\033[33m'; c_red=$'\033[31m'; c_dim=$'\033[2m'; c_rst=$'\033[0m'

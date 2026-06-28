@@ -140,7 +140,7 @@ idempotent) and, because content already exists, **skips seeding** — your CMS 
 preserved. Hashed static assets self-bust (new filenames each build), so no CDN purge
 is needed for `_next/static`.
 
-> The dev stack lives in **`docker-compose.dev.yml`** — deliberately **not** named
+> The dev stack lives in **`dev/docker-compose.yml`** — deliberately **not** named
 > `docker-compose.override.yml`, so a bare `docker compose up` (and stack managers like
 > dockhand) use **only** `docker-compose.yml` (production). Running the dev stack is
 > opt-in (§5). This prevents the dev Postgres/MinIO/GoTrue and local-bridge networks
@@ -150,14 +150,14 @@ is needed for `_next/static`.
 
 ## 5. Local development
 
-The dev stack (`docker-compose.dev.yml`) provides a complete self-contained
+The dev stack (`dev/docker-compose.yml`) provides a complete self-contained
 environment — throwaway Postgres, MinIO (stands in for Supabase Storage), and a demo
 GoTrue — so nothing external is required. **You must pass both files** (it is not
 auto-merged):
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml build
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.yml -f dev/docker-compose.yml build
+docker compose -f docker-compose.yml -f dev/docker-compose.yml up -d
 # init migrates + seeds the local Postgres, then the app starts on http://localhost:3000
 ```
 
@@ -166,7 +166,7 @@ profile-gated migrator (Payload introspects the diff in node22 — the host's No
 breaks `migrate:create`), then commit it:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools \
+docker compose -f docker-compose.yml -f dev/docker-compose.yml --profile tools \
   run --rm migrator npm run migrate:create -- <name>
 ```
 

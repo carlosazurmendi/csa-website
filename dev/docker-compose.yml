@@ -1,16 +1,17 @@
 # ============================================================================
 # LOCAL development overrides — NOT for production.
 #
-# This file is named docker-compose.dev.yml (NOT docker-compose.override.yml) ON
-# PURPOSE: it must NOT be auto-merged. Stack managers (dockhand, Portainer) and a bare
-# `docker compose up` auto-merge an override file, which would wrongly spin up the
-# throwaway Postgres/MinIO/GoTrue and turn the external `proxy`/`supabase_default`
-# networks into empty local bridges in production. Use it explicitly, only locally:
+# This lives in dev/ (NOT the repo root, NOT named docker-compose.override.yml) ON
+# PURPOSE: it must NOT be auto-merged. A bare `docker compose up` auto-merges a root
+# override file, and stack managers (dockhand) glob root `docker-compose*.yml` — either
+# would wrongly spin up the throwaway Postgres/MinIO/GoTrue and turn the external
+# `proxy`/`supabase_default` networks into empty local bridges in production. Keeping it
+# in dev/ hides it from both. Use it explicitly, only locally, from the repo root:
 #
-#   docker compose -f docker-compose.yml -f docker-compose.dev.yml build
-#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.yml -f dev/docker-compose.yml build
+#   docker compose -f docker-compose.yml -f dev/docker-compose.yml up -d
 #   # generate a migration in node22 (host Node 26 breaks migrate:create):
-#   docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools \
+#   docker compose -f docker-compose.yml -f dev/docker-compose.yml --profile tools \
 #     run --rm migrator npm run migrate:create -- <name>
 #
 # - Adds a throwaway Postgres (prod uses the EXTERNAL self-hosted Supabase; never bundled).
