@@ -145,8 +145,11 @@ export const Courses: CollectionConfig = {
             {
               name: 'video',
               type: 'upload',
-              relationTo: 'media',
-              admin: { description: 'Uploaded lesson video (streamed from storage). Takes precedence over Video URL.' },
+              relationTo: 'protected-media',
+              admin: {
+                description:
+                  'Uploaded lesson video — stored in the PRIVATE bucket and streamed to enrolled students via a short-lived signed URL (never a public link). Takes precedence over Video URL.',
+              },
             },
             {
               name: 'videoUrl',

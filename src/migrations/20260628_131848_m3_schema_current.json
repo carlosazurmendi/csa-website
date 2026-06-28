@@ -21533,10 +21533,10 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "products_downloadable_file_id_media_id_fk": {
-          "name": "products_downloadable_file_id_media_id_fk",
+        "products_downloadable_file_id_protected_media_id_fk": {
+          "name": "products_downloadable_file_id_protected_media_id_fk",
           "tableFrom": "products",
-          "tableTo": "media",
+          "tableTo": "protected_media",
           "columnsFrom": [
             "downloadable_file_id"
           ],
@@ -22257,10 +22257,10 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "_products_v_version_downloadable_file_id_media_id_fk": {
-          "name": "_products_v_version_downloadable_file_id_media_id_fk",
+        "_products_v_version_downloadable_file_id_protected_media_id_fk": {
+          "name": "_products_v_version_downloadable_file_id_protected_media_id_fk",
           "tableFrom": "_products_v",
-          "tableTo": "media",
+          "tableTo": "protected_media",
           "columnsFrom": [
             "version_downloadable_file_id"
           ],
@@ -22950,6 +22950,24 @@
           "primaryKey": true,
           "notNull": true
         },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "size_label": {
+          "name": "size_label",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "file_id": {
           "name": "file_id",
           "type": "integer",
@@ -23140,10 +23158,10 @@
         }
       },
       "foreignKeys": {
-        "courses_modules_lessons_video_id_media_id_fk": {
-          "name": "courses_modules_lessons_video_id_media_id_fk",
+        "courses_modules_lessons_video_id_protected_media_id_fk": {
+          "name": "courses_modules_lessons_video_id_protected_media_id_fk",
           "tableFrom": "courses_modules_lessons",
-          "tableTo": "media",
+          "tableTo": "protected_media",
           "columnsFrom": [
             "video_id"
           ],
@@ -24235,6 +24253,24 @@
           "primaryKey": true,
           "notNull": true
         },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "size_label": {
+          "name": "size_label",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "file_id": {
           "name": "file_id",
           "type": "integer",
@@ -24437,10 +24473,10 @@
         }
       },
       "foreignKeys": {
-        "_courses_v_version_modules_lessons_video_id_media_id_fk": {
-          "name": "_courses_v_version_modules_lessons_video_id_media_id_fk",
+        "_courses_v_version_modules_lessons_video_id_protected_media_id_fk": {
+          "name": "_courses_v_version_modules_lessons_video_id_protected_media_id_fk",
           "tableFrom": "_courses_v_version_modules_lessons",
-          "tableTo": "media",
+          "tableTo": "protected_media",
           "columnsFrom": [
             "video_id"
           ],
@@ -28781,6 +28817,145 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.protected_media": {
+      "name": "protected_media",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "alt": {
+          "name": "alt",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "url": {
+          "name": "url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "thumbnail_u_r_l": {
+          "name": "thumbnail_u_r_l",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filename": {
+          "name": "filename",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filesize": {
+          "name": "filesize",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "width": {
+          "name": "width",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height": {
+          "name": "height",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "focal_x": {
+          "name": "focal_x",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "focal_y": {
+          "name": "focal_y",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "protected_media_updated_at_idx": {
+          "name": "protected_media_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "protected_media_created_at_idx": {
+          "name": "protected_media_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "protected_media_filename_idx": {
+          "name": "protected_media_filename_idx",
+          "columns": [
+            {
+              "expression": "filename",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.enrollments": {
       "name": "enrollments",
       "schema": "",
@@ -29366,6 +29541,88 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.certificates_standards": {
+      "name": "certificates_standards",
+      "schema": "",
+      "columns": {
+        "_order": {
+          "name": "_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "_parent_id": {
+          "name": "_parent_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "certificates_standards_order_idx": {
+          "name": "certificates_standards_order_idx",
+          "columns": [
+            {
+              "expression": "_order",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "certificates_standards_parent_id_idx": {
+          "name": "certificates_standards_parent_id_idx",
+          "columns": [
+            {
+              "expression": "_parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "certificates_standards_parent_id_fk": {
+          "name": "certificates_standards_parent_id_fk",
+          "tableFrom": "certificates_standards",
+          "tableTo": "certificates",
+          "columnsFrom": [
+            "_parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.certificates": {
       "name": "certificates",
       "schema": "",
@@ -29394,11 +29651,62 @@
           "primaryKey": false,
           "notNull": false
         },
+        "recipient_company": {
+          "name": "recipient_company",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "course_title": {
+          "name": "course_title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "credential": {
+          "name": "credential",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'Certificate of Completion'"
+        },
+        "score": {
+          "name": "score",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hours": {
+          "name": "hours",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "issued_at": {
           "name": "issued_at",
           "type": "timestamp(3) with time zone",
           "primaryKey": false,
           "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "instructor_name": {
+          "name": "instructor_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'Ben Twombly'"
+        },
+        "instructor_title": {
+          "name": "instructor_title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'Founder & Principal Safety Engineer · TÜV FS Eng., IFSP'"
         },
         "certificate_id": {
           "name": "certificate_id",
@@ -29546,6 +29854,245 @@
           "tableTo": "media",
           "columnsFrom": [
             "pdf_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.chat_projects": {
+      "name": "chat_projects",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "icon": {
+          "name": "icon",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'folder'"
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "chat_projects_user_id_idx": {
+          "name": "chat_projects_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "chat_projects_updated_at_idx": {
+          "name": "chat_projects_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "chat_projects_created_at_idx": {
+          "name": "chat_projects_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.chat_threads": {
+      "name": "chat_threads",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "project_id": {
+          "name": "project_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'New chat'"
+        },
+        "messages": {
+          "name": "messages",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp(3) with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "chat_threads_user_id_idx": {
+          "name": "chat_threads_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "chat_threads_project_idx": {
+          "name": "chat_threads_project_idx",
+          "columns": [
+            {
+              "expression": "project_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "chat_threads_updated_at_idx": {
+          "name": "chat_threads_updated_at_idx",
+          "columns": [
+            {
+              "expression": "updated_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "chat_threads_created_at_idx": {
+          "name": "chat_threads_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "chat_threads_project_id_chat_projects_id_fk": {
+          "name": "chat_threads_project_id_chat_projects_id_fk",
+          "tableFrom": "chat_threads",
+          "tableTo": "chat_projects",
+          "columnsFrom": [
+            "project_id"
           ],
           "columnsTo": [
             "id"
@@ -29764,6 +30311,21 @@
           "columns": [
             {
               "expression": "order_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "orders_stripe_session_id_idx": {
+          "name": "orders_stripe_session_id_idx",
+          "columns": [
+            {
+              "expression": "stripe_session_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -30913,6 +31475,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "protected_media_id": {
+          "name": "protected_media_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "enrollments_id": {
           "name": "enrollments_id",
           "type": "integer",
@@ -30933,6 +31501,18 @@
         },
         "certificates_id": {
           "name": "certificates_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chat_projects_id": {
+          "name": "chat_projects_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "chat_threads_id": {
+          "name": "chat_threads_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
@@ -31335,6 +31915,21 @@
           "method": "btree",
           "with": {}
         },
+        "payload_locked_documents_rels_protected_media_id_idx": {
+          "name": "payload_locked_documents_rels_protected_media_id_idx",
+          "columns": [
+            {
+              "expression": "protected_media_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "payload_locked_documents_rels_enrollments_id_idx": {
           "name": "payload_locked_documents_rels_enrollments_id_idx",
           "columns": [
@@ -31385,6 +31980,36 @@
           "columns": [
             {
               "expression": "certificates_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payload_locked_documents_rels_chat_projects_id_idx": {
+          "name": "payload_locked_documents_rels_chat_projects_id_idx",
+          "columns": [
+            {
+              "expression": "chat_projects_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "payload_locked_documents_rels_chat_threads_id_idx": {
+          "name": "payload_locked_documents_rels_chat_threads_id_idx",
+          "columns": [
+            {
+              "expression": "chat_threads_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -31773,6 +32398,19 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
+        "payload_locked_documents_rels_protected_media_fk": {
+          "name": "payload_locked_documents_rels_protected_media_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "protected_media",
+          "columnsFrom": [
+            "protected_media_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
         "payload_locked_documents_rels_enrollments_fk": {
           "name": "payload_locked_documents_rels_enrollments_fk",
           "tableFrom": "payload_locked_documents_rels",
@@ -31818,6 +32456,32 @@
           "tableTo": "certificates",
           "columnsFrom": [
             "certificates_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payload_locked_documents_rels_chat_projects_fk": {
+          "name": "payload_locked_documents_rels_chat_projects_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "chat_projects",
+          "columnsFrom": [
+            "chat_projects_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "payload_locked_documents_rels_chat_threads_fk": {
+          "name": "payload_locked_documents_rels_chat_threads_fk",
+          "tableFrom": "payload_locked_documents_rels",
+          "tableTo": "chat_threads",
+          "columnsFrom": [
+            "chat_threads_id"
           ],
           "columnsTo": [
             "id"
@@ -38850,6 +39514,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "26ee8529-195e-4c76-8183-3ae92d0a4858",
+  "id": "6b0d04f0-f6df-42c1-b2cf-3aa2f4b3c13d",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

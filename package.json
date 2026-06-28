@@ -19,6 +19,9 @@
     "migrate:status": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:status",
     "seed:admin": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seedAdmin.ts",
     "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seed.ts",
+    "seed:media": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seed-media.ts",
+    "seed:lessons": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seedLessonContent.ts",
+    "seed:assessment": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seedAssessment.ts",
     "reseed:globals": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/reseed-globals.ts",
     "check:css": "node scripts/check-css-fidelity.mjs",
     "bundle:shaders": "cd scripts/shader-bundle && npm install --no-audit --no-fund && node build.mjs"
@@ -32,6 +35,8 @@
   ],
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
+    "@aws-sdk/client-s3": "3.1075.0",
+    "@aws-sdk/s3-request-presigner": "3.1075.0",
     "@payloadcms/db-postgres": "3.85.1",
     "@payloadcms/next": "3.85.1",
     "@payloadcms/richtext-lexical": "3.85.1",
@@ -46,6 +51,7 @@
     "ioredis": "^5.11.1",
     "mammoth": "^1.12.0",
     "next": "16.2.9",
+    "pg": "8.20.0",
     "payload": "3.85.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",

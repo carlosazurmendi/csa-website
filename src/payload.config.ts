@@ -41,6 +41,7 @@ import { Events } from './collections/Events'
 // --- Legal / Media ---
 import { LegalPages } from './collections/LegalPages'
 import { Media } from './collections/Media'
+import { ProtectedMedia } from './collections/ProtectedMedia'
 
 // --- App / user-owned (locked down; M5 hardens to owner-scoped server-only) ---
 import { Enrollments } from './collections/Enrollments'
@@ -104,7 +105,19 @@ if (!isBuildPhase && process.env.NODE_ENV === 'production' && !s3Configured) {
     'Media storage misconfigured: Supabase Storage (S3) is required in production — no local-disk fallback.',
   )
 }
-// Register the S3 plugin UNCONDITIONALLY so the admin importMap always contains its
+// Shared S3 client config — the public `media` bucket and the private
+// `protected-media` bucket live on the same Supabase Storage endpoint/credentials.
+const s3ClientConfig = {
+  endpoint: s3Env.endpoint || 'http://localhost:9000',
+  region: process.env.SUPABASE_S3_REGION || 'us-east-1',
+  forcePathStyle: true,
+  credentials: {
+    accessKeyId: s3Env.accessKeyId || 'build-placeholder',
+    secretAccessKey: s3Env.secretAccessKey || 'build-placeholder',
+  },
+}
+
+// Register the S3 plugins UNCONDITIONALLY so the admin importMap always contains the
 // client upload component. `payload generate:importmap` runs without the runtime env
 // (so s3Configured would be false there); if the plugin were env-gated, the component
 // would be absent from the map and the admin would crash to a blank screen at runtime
@@ -112,19 +125,21 @@ if (!isBuildPhase && process.env.NODE_ENV === 'production' && !s3Configured) {
 // build / importmap time — no uploads happen then, and the throws above still fail a
 // real production deploy that is missing credentials.
 plugins.push(
+  // PUBLIC marketing media (world-readable).
   s3Storage({
     collections: { media: true },
     bucket: s3Env.bucket || 'media',
     acl: 'public-read',
-    config: {
-      endpoint: s3Env.endpoint || 'http://localhost:9000',
-      region: process.env.SUPABASE_S3_REGION || 'us-east-1',
-      forcePathStyle: true,
-      credentials: {
-        accessKeyId: s3Env.accessKeyId || 'build-placeholder',
-        secretAccessKey: s3Env.secretAccessKey || 'build-placeholder',
-      },
-    },
+    config: s3ClientConfig,
+  }),
+  // PRIVATE purchase/enrolment-gated deliverables + lesson videos. No public-read
+  // ACL — objects are reachable only via short-lived presigned GET URLs minted by
+  // the gated routes (src/lib/protectedMedia.ts).
+  s3Storage({
+    collections: { 'protected-media': true },
+    bucket: process.env.S3_PROTECTED_BUCKET || 'course-assets',
+    acl: 'private',
+    config: s3ClientConfig,
   }),
 )
 
@@ -144,6 +159,8 @@ const APP_DATA_SLUGS = new Set([
   'stripe-customers',
   'processed-stripe-events',
   'users',
+  // Private deliverables — not public marketing content, so no public-cache purge.
+  'protected-media',
 ])
 
 export default buildConfig({
@@ -181,6 +198,7 @@ export default buildConfig({
     LegalPages,
     // Media
     Media,
+    ProtectedMedia,
     // Customers (app/user-owned, locked down)
     Enrollments,
     CourseProgress,

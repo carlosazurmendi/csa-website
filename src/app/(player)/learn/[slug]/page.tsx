@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { findBySlug, getPayloadClient } from '@/lib/cms'
 import { lexicalToParagraphs } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
+import { presignProtectedRef, VIDEO_TTL_SECONDS } from '@/lib/protectedMedia'
 import { getCurrentCustomer } from '@/lib/customer'
 import { CoursePlayer, type PlayerData } from './CoursePlayer'
 
@@ -98,12 +99,18 @@ export default async function CoursePlayerPage({
   })
   if (enr.docs.length === 0) redirect(`/training/courses/${slug}`)
 
-  // Build a flat, serializable lesson list + module outline.
+  // Build a flat, serializable lesson list + module outline. Uploaded lesson videos
+  // live in the PRIVATE bucket, so each is resolved to a short-lived presigned URL
+  // server-side (the enrollment was already verified above) — never a public link.
   const lessons: PlayerData['lessons'] = []
   const modules: PlayerData['modules'] = []
-  ;(course.modules ?? []).forEach((mod, mi) => {
+  const courseModules = course.modules ?? []
+  for (let mi = 0; mi < courseModules.length; mi++) {
+    const mod = courseModules[mi]
     const modLessons: { global: number; title: string }[] = []
-    ;(mod.lessons ?? []).forEach((lesson, li) => {
+    const lessonDocs = mod.lessons ?? []
+    for (let li = 0; li < lessonDocs.length; li++) {
+      const lesson = lessonDocs[li]
       const global = lessons.length
       modLessons.push({ global, title: lesson.title ?? `Lesson ${li + 1}` })
       lessons.push({
@@ -113,7 +120,7 @@ export default async function CoursePlayerPage({
         moduleN: mod.n ?? String(mi + 1).padStart(2, '0'),
         moduleTitle: mod.title ?? '',
         title: lesson.title ?? `Lesson ${li + 1}`,
-        uploadUrl: mediaUrl(lesson.video as never) ?? null,
+        uploadUrl: await presignProtectedRef(lesson.video as never, { expiresIn: VIDEO_TTL_SECONDS }),
         videoUrl: lesson.videoUrl ?? null,
         bodyParas: lexicalToParagraphs(lesson.body),
         keyPoints: (lesson.keyPoints ?? []).map((k) => k.point ?? '').filter(Boolean),
@@ -131,9 +138,9 @@ export default async function CoursePlayerPage({
             : null,
         resources: (lesson.resources ?? []).map(resMeta).filter((r) => r.name),
       })
-    })
+    }
     modules.push({ moduleIndex: mi, n: mod.n ?? String(mi + 1).padStart(2, '0'), title: mod.title ?? '', lessons: modLessons })
-  })
+  }
 
   // Progress (owner-scoped).
   const progRes = await payload.find({

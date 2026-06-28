@@ -88,6 +88,7 @@ export interface Config {
     events: Event;
     'legal-pages': LegalPage;
     media: Media;
+    'protected-media': ProtectedMedia;
     enrollments: Enrollment;
     'course-progress': CourseProgress;
     'quiz-attempts': QuizAttempt;
@@ -128,6 +129,7 @@ export interface Config {
     events: EventsSelect<false> | EventsSelect<true>;
     'legal-pages': LegalPagesSelect<false> | LegalPagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'protected-media': ProtectedMediaSelect<false> | ProtectedMediaSelect<true>;
     enrollments: EnrollmentsSelect<false> | EnrollmentsSelect<true>;
     'course-progress': CourseProgressSelect<false> | CourseProgressSelect<true>;
     'quiz-attempts': QuizAttemptsSelect<false> | QuizAttemptsSelect<true>;
@@ -2824,9 +2826,9 @@ export interface Product {
    */
   popular?: boolean | null;
   /**
-   * PROTECTED deliverable — the actual purchasable file. Gated: never served from the public API. Delivered only via short-lived signed URLs after a verified purchase (Milestone 6). Do not link to this directly.
+   * PROTECTED deliverable — the actual purchasable file. Stored in the PRIVATE bucket; never served from the public API. Delivered only via a short-lived signed URL after a verified purchase (gated by /download/[entitlementId]). Do not link to this directly.
    */
-  downloadableFile?: (number | null) | Media;
+  downloadableFile?: (number | null) | ProtectedMedia;
   /**
    * Search-engine and social-sharing metadata for this page.
    */
@@ -2851,6 +2853,30 @@ export interface Product {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * Private, purchase-gated files (template deliverables + lesson videos). Never public — delivered only via short-lived signed URLs after an entitlement / enrollment check.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "protected-media".
+ */
+export interface ProtectedMedia {
+  id: number;
+  /**
+   * Internal label / description for this file (not shown publicly).
+   */
+  alt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2956,9 +2982,9 @@ export interface Course {
                */
               title: string;
               /**
-               * Uploaded lesson video (streamed from storage). Takes precedence over Video URL.
+               * Uploaded lesson video — stored in the PRIVATE bucket and streamed to enrolled students via a short-lived signed URL (never a public link). Takes precedence over Video URL.
                */
-              video?: (number | null) | Media;
+              video?: (number | null) | ProtectedMedia;
               /**
                * External video URL (YouTube / Vimeo / direct MP4) embedded by the player when no video is uploaded.
                */
@@ -3621,7 +3647,7 @@ export interface Order {
    */
   orderNumber: string;
   /**
-   * Stripe Checkout Session id (opaque reference).
+   * Stripe Checkout Session id (opaque reference). Unique — the idempotency key that prevents a re-delivered webhook from creating a duplicate order (M7).
    */
   stripeSessionId?: string | null;
   /**
@@ -4217,6 +4243,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'protected-media';
+        value: number | ProtectedMedia;
       } | null)
     | ({
         relationTo: 'enrollments';
@@ -5662,6 +5692,24 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "protected-media_select".
+ */
+export interface ProtectedMediaSelect<T extends boolean = true> {
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

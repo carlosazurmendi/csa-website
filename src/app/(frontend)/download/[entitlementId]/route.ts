@@ -2,14 +2,15 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 import { getCurrentCustomer } from '@/lib/customer'
 import { getPayloadClient } from '@/lib/cms'
+import { presignProtectedGet, DOWNLOAD_TTL_SECONDS } from '@/lib/protectedMedia'
 
 /**
- * Owner-gated template download (M7) at /download/[entitlementId] — OUTSIDE
- * Payload's /api/[...slug] catch-all. The entitlement must belong to the
- * signed-in Supabase user and be active; only then is the deliverable streamed
- * back through this route, so the underlying storage URL is never handed to the
- * client. (The deliverable currently lives in the public media bucket; a
- * dedicated protected bucket + presigned URLs is a follow-up.)
+ * Owner-gated template download (M7, hardened M9) at /download/[entitlementId] —
+ * OUTSIDE Payload's /api/[...slug] catch-all. The entitlement must belong to the
+ * signed-in Supabase user and be active; only then do we mint a short-lived
+ * presigned GET against the PRIVATE bucket and 302 the browser to it. The
+ * deliverable lives in `protected-media` (no public-read ACL), so there is no
+ * durable public URL — the entitlement check gates the only way to the bytes.
  */
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -52,35 +53,26 @@ export async function GET(
       ? product.downloadableFile
       : null
   ) as Record<string, unknown> | null
-  const url = file && typeof file.url === 'string' ? file.url : null
-  if (!file || !url) {
+  const key = file && typeof file.filename === 'string' ? file.filename : null
+  if (!file || !key) {
     return new NextResponse('No downloadable file is attached to this product yet.', { status: 404 })
   }
 
-  const absolute = url.startsWith('http') ? url : new URL(url, req.url).toString()
-  let upstream: Response
+  // Mint a short-lived presigned GET against the private bucket and hand the
+  // browser straight to it (Content-Disposition forces a clean download name).
+  // The URL expires, so it is never a durable public link.
+  const downloadName = key || `${(product?.code as string) || 'download'}`
+  let signedUrl: string
   try {
-    upstream = await fetch(absolute)
+    signedUrl = await presignProtectedGet(key, {
+      downloadFilename: downloadName,
+      expiresIn: DOWNLOAD_TTL_SECONDS,
+    })
   } catch {
     return new NextResponse('Download is temporarily unavailable.', { status: 502 })
   }
-  if (!upstream.ok || !upstream.body) {
-    return new NextResponse('Download is temporarily unavailable.', { status: 502 })
-  }
 
-  const rawName =
-    (typeof file.filename === 'string' && file.filename) || `${(product?.code as string) || 'download'}`
-  const filename = rawName.replace(/["\r\n]/g, '')
-
-  const headers = new Headers()
-  headers.set(
-    'Content-Type',
-    upstream.headers.get('content-type') || (file.mimeType as string) || 'application/octet-stream',
-  )
-  const len = upstream.headers.get('content-length')
-  if (len) headers.set('Content-Length', len)
-  headers.set('Content-Disposition', `attachment; filename="${filename}"`)
-  headers.set('Cache-Control', 'private, no-store')
-
-  return new NextResponse(upstream.body, { status: 200, headers })
+  const res = NextResponse.redirect(signedUrl, { status: 302 })
+  res.headers.set('Cache-Control', 'private, no-store')
+  return res
 }

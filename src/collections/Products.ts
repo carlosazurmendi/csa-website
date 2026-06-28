@@ -163,10 +163,10 @@ export const Products: CollectionConfig = {
     {
       name: 'downloadableFile',
       type: 'upload',
-      relationTo: 'media',
+      relationTo: 'protected-media',
       admin: {
         description:
-          'PROTECTED deliverable — the actual purchasable file. Gated: never served from the public API. Delivered only via short-lived signed URLs after a verified purchase (Milestone 6). Do not link to this directly.',
+          'PROTECTED deliverable — the actual purchasable file. Stored in the PRIVATE bucket; never served from the public API. Delivered only via a short-lived signed URL after a verified purchase (gated by /download/[entitlementId]). Do not link to this directly.',
       },
     },
     seoField,
