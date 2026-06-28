@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { getCurrentCustomer } from '@/lib/customer'
 import { getOrCreateStripeCustomer, getStripe, stripeConfigured } from '@/lib/stripe'
 import { resolveCartItems, type CompactItem } from '@/lib/commerce'
+import { resolveTrustedOrigin } from '@/lib/origin'
 
 /**
  * Checkout server action (M7) — turns the client cart into a Stripe Hosted
@@ -20,13 +21,20 @@ export type CheckoutResult = {
   code?: 'not-configured' | 'sign-in-required' | 'empty-cart' | 'unavailable'
 }
 
-async function getOrigin(): Promise<string> {
-  const env = process.env.NEXT_PUBLIC_SERVER_URL
-  if (env) return env.replace(/\/+$/, '')
+/**
+ * Trusted origin for the Stripe success/cancel redirect. Pinned to the canonical
+ * `NEXT_PUBLIC_SERVER_URL` (+ optional `CHECKOUT_ALLOWED_ORIGINS` allowlist); the
+ * inbound Host header is honoured only if allow-listed, else the canonical origin
+ * is used. Returns null in production when no canonical origin is configured so
+ * the caller fails closed instead of echoing an attacker-controlled host into a
+ * payment redirect. See src/lib/origin.ts.
+ */
+async function getOrigin(): Promise<string | null> {
   const h = await headers()
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000'
-  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https')
-  return `${proto}://${host}`
+  return resolveTrustedOrigin({
+    host: h.get('x-forwarded-host') ?? h.get('host'),
+    proto: h.get('x-forwarded-proto'),
+  })
 }
 
 export async function createCheckoutSession(items: CompactItem[]): Promise<CheckoutResult> {
@@ -50,6 +58,11 @@ export async function createCheckoutSession(items: CompactItem[]): Promise<Check
   }
 
   const origin = await getOrigin()
+  if (!origin) {
+    // No trusted canonical origin configured (prod) — never build a Stripe
+    // redirect from an unvalidated Host header.
+    return { error: 'Checkout is temporarily unavailable. Please contact us to complete your purchase.', code: 'unavailable' }
+  }
   const stripe = getStripe()
   const stripeCustomerId = await getOrCreateStripeCustomer(
     customer.userId,
