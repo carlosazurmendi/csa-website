@@ -6,6 +6,41 @@
 #   prod:  docker compose -f docker-compose.yml up -d   (requires external `web` network)
 #   local: docker compose up -d                         (docker-compose.override.yml merges)
 # ============================================================================
+
+# Full app/migrator container environment. Each value is resolved from ${...}, which
+# Compose fills from EITHER the stack manager's env vars (dockhand, Portainer, …) OR a
+# .env file in the project dir (manual deploys / scripts/deploy.sh — Compose auto-loads
+# it). There is deliberately NO `env_file:` directive, so a missing .env never blocks a
+# stack-manager deploy. Optional values default to empty / a sane default.
+x-csa-env: &csa-env
+  NODE_ENV: ${NODE_ENV:-production}
+  PAYLOAD_SECRET: ${PAYLOAD_SECRET:-}
+  DATABASE_URI: ${DATABASE_URI:-}
+  DATABASE_SSL: ${DATABASE_SSL:-true}
+  DATABASE_SSL_REJECT_UNAUTHORIZED: ${DATABASE_SSL_REJECT_UNAUTHORIZED:-false}
+  NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
+  SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+  SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-}
+  NEXT_PUBLIC_AUTH_GOOGLE: ${NEXT_PUBLIC_AUTH_GOOGLE:-}
+  SUPABASE_S3_ENDPOINT: ${SUPABASE_S3_ENDPOINT:-}
+  SUPABASE_S3_REGION: ${SUPABASE_S3_REGION:-us-east-1}
+  SUPABASE_S3_ACCESS_KEY_ID: ${SUPABASE_S3_ACCESS_KEY_ID:-}
+  SUPABASE_S3_SECRET_ACCESS_KEY: ${SUPABASE_S3_SECRET_ACCESS_KEY:-}
+  S3_PUBLIC_BUCKET: ${S3_PUBLIC_BUCKET:-marketing}
+  S3_PROTECTED_BUCKET: ${S3_PROTECTED_BUCKET:-course-assets}
+  REDIS_URL: ${REDIS_URL:-}
+  NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-}
+  CHECKOUT_ALLOWED_ORIGINS: ${CHECKOUT_ALLOWED_ORIGINS:-}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+  STRIPE_AUTOMATIC_TAX: ${STRIPE_AUTOMATIC_TAX:-false}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  SAFETY_CHAT_MODEL: ${SAFETY_CHAT_MODEL:-claude-sonnet-4-6}
+  SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
+  SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+
 services:
   app:
     build:
@@ -13,7 +48,7 @@ services:
       dockerfile: Dockerfile
     image: csa-website:latest
     restart: unless-stopped
-    env_file: .env
+    environment: *csa-env
     depends_on:
       redis:
         condition: service_healthy
@@ -73,7 +108,7 @@ services:
       dockerfile: Dockerfile
       target: builder
     image: csa-website-migrator:latest
-    env_file: .env
+    environment: *csa-env
     command: ["npm", "run", "migrate"]
     networks:
       - internal
