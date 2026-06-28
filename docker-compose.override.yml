@@ -61,7 +61,10 @@ services:
     volumes:
       - minio-data:/data
 
-  # One-off: create the public marketing bucket once MinIO is up, then exit.
+  # One-off: create the buckets once MinIO is up, then exit. The PUBLIC bucket is
+  # anonymous-download (mirrors the public Supabase Storage bucket); the PROTECTED
+  # bucket is left PRIVATE (no anonymous policy) — it stands in for the private
+  # Supabase bucket and is reached only via presigned URLs (src/lib/protectedMedia.ts).
   minio-init:
     image: minio/mc:latest
     depends_on:
@@ -70,6 +73,7 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin12345}
       S3_PUBLIC_BUCKET: ${S3_PUBLIC_BUCKET:-marketing}
+      S3_PROTECTED_BUCKET: ${S3_PROTECTED_BUCKET:-course-assets}
     entrypoint:
       - /bin/sh
       - -c
@@ -79,7 +83,8 @@ services:
         done;
         mc mb -p "local/$$S3_PUBLIC_BUCKET" || true;
         mc anonymous set download "local/$$S3_PUBLIC_BUCKET" || true;
-        echo "minio bucket $$S3_PUBLIC_BUCKET ready";
+        mc mb -p "local/$$S3_PROTECTED_BUCKET" || true;
+        echo "minio buckets ready: $$S3_PUBLIC_BUCKET (public), $$S3_PROTECTED_BUCKET (private)";
     networks:
       - internal
 

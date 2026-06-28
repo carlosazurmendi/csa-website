@@ -52,6 +52,29 @@ services:
       retries: 5
       start_period: 5s
 
+  # One-off MIGRATION runner (production). NOT a long-running service — it is gated
+  # behind the `tools` profile so a normal `up` never starts it. Run it explicitly
+  # BEFORE bringing the app up, and again after any deploy that adds migrations:
+  #
+  #   docker compose -f docker-compose.yml --profile tools run --rm migrator
+  #
+  # Built from the `builder` stage (full deps + Payload CLI + src — the slim runner
+  # image has none of these), so it shares the app's build cache. It connects to the
+  # SAME external Supabase DATABASE_URI as the app (via .env) and applies the
+  # committed, additive migrations only — it never runs `push`. First deploy only:
+  # follow with `... run --rm migrator npm run seed:admin` to create the first admin.
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: csa-website-migrator:latest
+    env_file: .env
+    command: ["npm", "run", "migrate"]
+    networks:
+      - internal # bridge network has egress to the external Supabase host
+    profiles: ["tools"]
+
 volumes:
   redis-data:
 
