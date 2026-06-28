@@ -63,7 +63,12 @@ services:
       # Creates the `auth` schema (+ extensions) GoTrue needs, once, on a fresh volume.
       - ./deploy/db-init:/docker-entrypoint-initdb.d:ro
     networks:
-      - internal # never published; only the stack reaches it
+      - internal
+    # Bound to LOOPBACK only — reachable on the box itself + over an SSH tunnel for a
+    # desktop DB GUI (TablePlus/DBeaver/…), but NEVER exposed to the internet. Connect
+    # with:  ssh -L 5432:localhost:5432 <user>@<box>  then GUI -> localhost:5432.
+    ports:
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 5s
@@ -164,6 +169,14 @@ services:
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
       GOTRUE_DISABLE_SIGNUP: "false"
+      # Google OAuth. Inert until you set GOTRUE_EXTERNAL_GOOGLE_ENABLED=true +
+      # GOOGLE_OAUTH_CLIENT_ID/SECRET (and NEXT_PUBLIC_AUTH_GOOGLE=true to show the
+      # button). In Google Cloud Console add this exact Authorized redirect URI:
+      #   https://${APP_DOMAIN}/auth/v1/callback
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOTRUE_EXTERNAL_GOOGLE_ENABLED:-false}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_OAUTH_SECRET:-}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: https://${APP_DOMAIN}/auth/v1/callback
       # Email confirmation. Set GOTRUE_MAILER_AUTOCONFIRM=true temporarily to unblock
       # signup before SMTP is ready, then switch back to false.
       GOTRUE_MAILER_AUTOCONFIRM: ${GOTRUE_MAILER_AUTOCONFIRM:-false}

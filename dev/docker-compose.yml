@@ -43,9 +43,8 @@ services:
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
       DATABASE_SSL: "false"
 
-  db:
-    ports:
-      - "${LOCAL_DB_PORT:-5432}:5432" # host-run seed/inspection convenience
+  # db: the base already binds 127.0.0.1:5432 (loopback) — reachable on the host for a
+  # local GUI without an override here.
 
   minio:
     ports:
