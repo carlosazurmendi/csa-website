@@ -112,7 +112,7 @@ services:
     command: ["bash", "scripts/bootstrap.sh"]
     networks:
       - internal
-      - supabase_default # reach the self-hosted Supabase Postgres (DATABASE_URI host = db)
+      - supabase_default # reach the self-hosted Supabase Postgres (DATABASE_URI host = supabase-db)
 
 volumes:
   redis-data:
