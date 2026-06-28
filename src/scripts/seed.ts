@@ -82,6 +82,11 @@ const draftEnabled = (slug: string): boolean =>
   !!(payload.collections as Record<string, { config?: { versions?: { drafts?: unknown } } }>)[slug]
     ?.config?.versions?.drafts
 
+// Wrap the whole run so a failure is LOUD and NON-ZERO. `payload run` catches a
+// thrown error but still exits 0, which once let a half-applied schema slip through
+// to a silent, half-built site. Catching here + process.exit(1) makes the bootstrap
+// (set -e) abort with the real error instead.
+try {
 let created = 0
 let updated = 0
 
@@ -153,7 +158,14 @@ for (const [slug, data] of Object.entries(globals)) {
   globalCount++
 }
 
-payload.logger.info(
-  `Seed complete — ${created} created, ${updated} updated across ${MODULES.length} collections; ${globalCount} globals set.`,
-)
+const summary = `Seed complete — ${created} created, ${updated} updated across ${MODULES.length} collections; ${globalCount} globals set.`
+payload.logger.info(summary)
+// Synchronous write too, so the line isn't lost to the immediate process.exit below
+// (payload's async logger can be truncated by exit) — this is the success sentinel.
+console.log(summary)
 process.exit(0)
+} catch (err) {
+  console.error('[seed] FAILED — the content seed did not complete:')
+  console.error(err instanceof Error ? (err.stack ?? err.message) : err)
+  process.exit(1)
+}

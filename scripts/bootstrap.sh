@@ -21,6 +21,9 @@ node scripts/wait-for-db.mjs
 echo "[bootstrap] applying migrations…"
 npm run migrate
 
+echo "[bootstrap] verifying schema…"
+node scripts/assert-schema.mjs
+
 echo "[bootstrap] ensuring storage buckets…"
 node scripts/ensure-buckets.mjs \
   || echo "[bootstrap] WARN: bucket provisioning failed — create them in Supabase Studio; continuing"
@@ -30,7 +33,9 @@ if node scripts/is-seeded.mjs; then
 else
   echo "[bootstrap] fresh database — seeding initial content…"
   npm run seed:admin
-  npm run seed
+  # The CONTENT seed is load-bearing (the site renders from it). seed.ts now exits
+  # non-zero on failure, so make that fatal + obvious instead of half-building the site.
+  npm run seed || { echo "[bootstrap] FATAL: content seed failed — aborting (see the error above)."; exit 1; }
   npm run seed:media      || echo "[bootstrap] WARN: seed:media failed (S3/bucket?) — replace media in /admin; continuing"
   npm run seed:lessons    || echo "[bootstrap] WARN: seed:lessons failed — continuing"
   npm run seed:assessment || echo "[bootstrap] WARN: seed:assessment failed — continuing"
