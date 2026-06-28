@@ -5,3 +5,8 @@ Dockerfile text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 .env.example text eol=lf
+# Env files are parsed by `docker compose --env-file`; a trailing CR corrupts values.
+*.env text eol=lf
+dev/dev.env text eol=lf
+# SQL run by the Postgres init entrypoint on the Linux box.
+*.sql text eol=lf
