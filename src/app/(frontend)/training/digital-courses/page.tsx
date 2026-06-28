@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
+import { CmsImage } from '@/app/(frontend)/_components/CmsImage'
 
 export const dynamic = 'force-dynamic'
 
@@ -244,7 +245,7 @@ export default async function DigitalCoursesPage() {
           <div className="ch-instr__left" data-reveal="right">
             <div className="ch-portrait" data-metal="silver">
               <span className="ch-portrait__tag">{page.instrPortraitTag}</span>
-              {benAvatar && <img src={benAvatar} alt={ben?.name ?? ''} />}
+              <CmsImage src={benAvatar} alt={ben?.name ?? ''} sizes="(max-width: 900px) 100vw, 420px" />
               <div className="ch-portrait__plate">
                 <p className="ch-portrait__name">{ben?.name}</p>
                 <p className="ch-portrait__role">

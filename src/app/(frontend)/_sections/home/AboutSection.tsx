@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { lexicalToParagraphs } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
 import { attachTilt } from '../../_components/tilt'
+import { CmsImage } from '../../_components/CmsImage'
 import type { HomeDoc } from './types'
 
 /**
@@ -66,7 +67,7 @@ export function AboutSection({ home }: { home: HomeDoc }) {
               ref={tiltRef}
               data-metal="silver">
 
-              {portrait && <img src={portrait} alt={home.abName ?? ''} />}
+              <CmsImage src={portrait} alt={home.abName ?? ''} sizes="(max-width: 900px) 100vw, 440px" />
               <div className="ab-portrait__scrim" />
               <span className="ab-callout"><span className="ab-callout__node" />{home.abCallout}</span>
               <div className="ab-portrait__gloss" />

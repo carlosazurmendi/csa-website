@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from '../../_components/Chevron'
 import { attachTilt } from '../../_components/tilt'
 import { mediaUrl } from '@/lib/media'
+import { CmsImage } from '../../_components/CmsImage'
 import type { CaseStudyCard, HomeDoc } from './types'
 
 /**
@@ -137,7 +138,7 @@ function Card({
             Only the active card mounts it (1 WebGL context). */}
         {active && !isMobile && <MetalRing />}
         <div className="cs-card__cover">
-          {cover && <img src={cover} alt={data.name ?? ''} />}
+          <CmsImage src={cover} alt={data.name ?? ''} sizes="(max-width: 900px) 100vw, 800px" />
         </div>
         <div className="cs-card__scrim" />
         <div className={'cs-card__body' + (active ? ' cs-anim' : '')} key={'body' + data.id}>

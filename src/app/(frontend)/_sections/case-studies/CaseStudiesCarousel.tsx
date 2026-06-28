@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { attachTilt } from '../../_components/tilt'
+import { CmsImage } from '../../_components/CmsImage'
 
 /**
  * CaseStudiesCarousel — faithful port of design-reference/project/assets/case-studies.jsx
@@ -148,7 +149,7 @@ function Card({
       >
         {active && <MetalRing kind="silver" />}
         <div className="cs-card__cover">
-          {data.cover && <img src={data.cover} alt={data.name} />}
+          <CmsImage src={data.cover} alt={data.name} sizes="(max-width: 900px) 100vw, 800px" />
         </div>
         <div className="cs-card__scrim" />
         <div className={'cs-card__body' + (active ? ' cs-anim' : '')} key={'body' + data.id}>

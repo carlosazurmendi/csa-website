@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { mediaUrl, type MediaLike } from '@/lib/media'
 import { lexicalToParagraphs } from '@/lib/lexical'
+import { CmsImage } from '@/app/(frontend)/_components/CmsImage'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,7 @@ export const dynamic = 'force-dynamic'
    tags (the Problem/Solution/Result chrome) are design constants the CMS
    doesn't carry, kept inline exactly as the export's SECTION_META. The
    client logo + hero image + related covers render from CMS media (client.logo,
-   heroImage) via plain <img>. Global nav/footer are rendered by the layout.
+   heroImage) via next/image (CmsImage, M8). Global nav/footer are rendered by the layout.
    ============================================================ */
 
 /* ---------- CMS shapes ---------- */
@@ -157,7 +158,7 @@ function RelatedCard({ c }: { c: RelatedStudy }) {
   return (
     <Link className="csd-rcard" href={href}>
       <div className="csd-rcard__cover">
-        {cover && <img src={cover} alt={c.title ?? ''} />}
+        <CmsImage src={cover} alt={c.title ?? ''} sizes="(max-width: 700px) 100vw, 360px" />
         <span className="csd-rcard__sector">{c.sector}</span>
       </div>
       <div className="csd-rcard__body">
@@ -247,7 +248,13 @@ export default async function CaseStudyDetailPage({ params }: { params: Promise<
             </p>
             <div className="csd-hero__client">
               <div className="csd-hero__logo">
-                {logoUrl && <img src={logoUrl} alt={(data.client?.clientName ?? '') + ' logo'} />}
+                <CmsImage
+                  src={logoUrl}
+                  alt={(data.client?.clientName ?? '') + ' logo'}
+                  width={132}
+                  height={56}
+                  objectFit="contain"
+                />
               </div>
               <div className="csd-hero__client-txt">
                 <div className="csd-hero__client-name">{data.client?.clientName}</div>
@@ -256,7 +263,7 @@ export default async function CaseStudyDetailPage({ params }: { params: Promise<
             </div>
           </div>
           <div className="csd-hero__media" data-reveal="scale" data-reveal-delay="120">
-            {heroUrl && <img src={heroUrl} alt={data.title ?? ''} />}
+            <CmsImage src={heroUrl} alt={data.title ?? ''} sizes="(max-width: 900px) 100vw, 620px" priority />
             <div className="csd-hero__media-scrim" aria-hidden="true"></div>
             {data.heroBadge && (
               <div className="csd-hero__badge csa-glass">

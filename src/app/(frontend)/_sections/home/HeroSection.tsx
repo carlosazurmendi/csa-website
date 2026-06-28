@@ -213,6 +213,12 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
         return (
           <div className="char" key={sys.id} data-sys={sys.id} style={style} aria-hidden={abs !== 0}>
             {sys.gif ? (
+              // M8 exception — kept as a plain <img>, NOT next/image: the optimizer
+              // freezes animated GIFs to a single frame, and this is eager
+              // above-the-fold hero art (lazy-loading it would hurt LCP). It is also
+              // ref-controlled for playback and shares its ref type with the <video>
+              // branch below.
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="char__img"
                 ref={(el) => {

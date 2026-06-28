@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
+import { CmsImage } from '@/app/(frontend)/_components/CmsImage'
 import { ArticleShare, ArticleToc, type TocSection } from './ArticleInteractive'
 
 export const dynamic = 'force-dynamic'
@@ -322,7 +323,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
           <div className="ad-byline">
             <div className="ad-byline__author">
               <div className="ad-byline__avatar">
-                {authorPhoto && <img src={authorPhoto} alt={authorName} />}
+                <CmsImage src={authorPhoto} alt={authorName} width={48} height={48} />
               </div>
               <div className="ad-byline__who">
                 <div className="ad-byline__name">{authorName}</div>
@@ -344,7 +345,12 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
         </div>
         <div className="ad-hero">
           <div className="ad-hero__frame">
-            {heroUrl && <img src={heroUrl} alt={article.title ?? ''} />}
+            <CmsImage
+              src={heroUrl}
+              alt={article.title ?? ''}
+              sizes="(max-width: 1180px) 100vw, 1100px"
+              priority
+            />
             <div className="ad-hero__scrim" aria-hidden="true"></div>
           </div>
           {article.heroCaption && (
@@ -368,7 +374,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
         <div className="ad-bio-wrap">
           <div className="ad-bio csa-glass">
             <div className="ad-bio__avatar">
-              {authorPhoto && <img src={authorPhoto} alt={authorName} />}
+              <CmsImage src={authorPhoto} alt={authorName} width={76} height={76} />
             </div>
             <div className="ad-bio__body">
               <p className="ad-bio__kicker">Written by</p>
@@ -414,7 +420,7 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
                   key={a.slug ?? i}
                 >
                   <div className="ad-rcard__cover">
-                    {mediaUrl(a.heroImage) && <img src={mediaUrl(a.heroImage)} alt={a.title ?? ''} />}
+                    <CmsImage src={mediaUrl(a.heroImage)} alt={a.title ?? ''} sizes="(max-width: 700px) 100vw, 360px" />
                   </div>
                   <div className="ad-rcard__body">
                     <p className="ad-rcard__meta">

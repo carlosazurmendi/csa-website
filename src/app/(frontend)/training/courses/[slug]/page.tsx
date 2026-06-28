@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs, lexicalToText } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
+import { CmsImage } from '@/app/(frontend)/_components/CmsImage'
 import { isEnrolled } from '@/lib/lms'
 import { CourseCurriculum, type CurriculumModule } from '../../../_sections/training/CourseCurriculum'
 import { CourseEnroll } from '../../../_components/commerce/CourseEnroll'
@@ -313,7 +314,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
         </div>
         <div className="cl-instr">
           <div className="cl-instr__portrait" data-metal="silver">
-            {instructorAvatar && <img src={instructorAvatar} alt={instructor.name ?? ''} />}
+            <CmsImage src={instructorAvatar} alt={instructor.name ?? ''} sizes="(max-width: 900px) 100vw, 360px" />
             <div className="cl-instr__plate">
               <p className="cl-instr__name">{instructor.name}</p>
               <p className="cl-instr__role">{instructor.role}</p>

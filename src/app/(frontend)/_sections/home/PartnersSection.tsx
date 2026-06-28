@@ -16,6 +16,11 @@ import type { Customer, HomeDoc, Partner } from './types'
  * not in the map renders the monogram directly.
  */
 
+// Brand marks load as third-party .ico favicons from the DuckDuckGo icon service.
+// M8 exception — these stay plain <img>, NOT next/image: sharp can't decode .ico so
+// the optimizer would hard-fail (and trip the onError → monogram fallback for every
+// tile), and there is no responsive benefit at logo size. `loading="lazy"` + the
+// onError fallback already cover the relevant perf/resilience concerns.
 const icon = (domain: string): string => 'https://icons.duckduckgo.com/ip3/' + domain + '.ico'
 
 // Design-only: partner-logo domains (not in the CMS Partner type), keyed by name.
@@ -31,6 +36,7 @@ function CustomerLogo({ customer }: { customer: Customer }) {
   const [ok, setOk] = useState(true)
   if (!ok || !customer.domain) return <span className="pt-logo__mark">{customer.mark}</span>
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- see `icon` note above
     <img
       className="pt-logo__img"
       src={icon(customer.domain)}
@@ -47,6 +53,7 @@ function PartnerLogo({ partner }: { partner: Partner }) {
   return (
     <span className="pt-card__logo">
       {ok && logo ? (
+        // eslint-disable-next-line @next/next/no-img-element -- see `icon` note above
         <img src={logo} alt={partner.name + ' logo'} loading="lazy" onError={() => setOk(false)} />
       ) : (
         <span className="pt-card__mono">{partner.mono}</span>

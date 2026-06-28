@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useCallback, useState } from 'react'
 
 import type { CertData, LockedState } from '@/lib/certificate'
+import { BrandLogo } from '@/app/(frontend)/_components/BrandLogo'
 import { Ic } from './CertificateIcon'
 
 /**
@@ -354,7 +355,7 @@ export function CertificateClient({ data: payload }: { data: CertificateData }) 
       <header className="ct-top" data-screen-label="Certificate Header">
         <div className="ct-top__brand">
           <a href={DASHBOARD} aria-label="CSA Academy — Dashboard">
-            <img className="ct-top__logo" src="/csa/logo-white.png" alt="CSA" />
+            <BrandLogo className="ct-top__logo" alt="CSA" priority />
           </a>
           <span className="ct-top__div"></span>
           <div>

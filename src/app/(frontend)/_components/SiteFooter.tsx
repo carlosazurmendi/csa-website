@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BackToTop } from './BackToTop'
+import { BrandLogo } from './BrandLogo'
 
 /**
  * SiteFooter — faithful port of design-reference/project/assets/footer.jsx.
@@ -138,7 +139,7 @@ export function SiteFooter({ data }: { data: FooterData }) {
       <div className="ft__main">
         <div className="ft__brand" data-reveal="up">
           <Link href="/" className="ft__logo-link" aria-label="CSA — home">
-            <img className="ft__logo" src="/csa/logo-white.png" alt="CSA — Critical Systems Analysis" />
+            <BrandLogo className="ft__logo" />
           </Link>
           <p className="ft__blurb">{blurb}</p>
           <div className="ft__socials">

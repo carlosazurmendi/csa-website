@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { toEmbedUrl } from '@/lib/video'
+import { BrandLogo } from '@/app/(frontend)/_components/BrandLogo'
 import { markLessonComplete } from '../actions'
 import { Ic } from './PlayerIcon'
 
@@ -550,7 +551,7 @@ export function CoursePlayer({ data, userInitials }: { data: PlayerData; userIni
         </button>
         <div className="cp-top__brand">
           <Link href="/dashboard" aria-label="CSA Academy — Dashboard">
-            <img className="cp-top__logo" src="/csa/logo-white.png" alt="CSA" />
+            <BrandLogo className="cp-top__logo" alt="CSA" priority />
           </Link>
           <span className="cp-top__div"></span>
           <div className="cp-top__course">

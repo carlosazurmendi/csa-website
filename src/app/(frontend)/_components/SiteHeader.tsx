@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/client'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
+import { BrandLogo } from './BrandLogo'
 import { CheckoutButton } from './commerce/CheckoutButton'
 import { subscribeStore } from './commerce/store-client'
 
@@ -401,7 +402,7 @@ export function SiteHeader({ data, initialUser = null }: { data: HeaderData; ini
       <nav className={'navx' + (solid ? ' is-solid' : '') + (suppressDrops ? ' navx--drops-suppressed' : '')}>
         <div className="navx__inner">
           <Link className="navx__logo" href="/" aria-label="CSA — home">
-            <img src="/csa/logo-white.png" alt="CSA — Critical Systems Analysis" />
+            <BrandLogo priority />
           </Link>
 
           <div className="navx__primary" style={{ textAlign: 'right', justifyContent: 'flex-end' }}>

@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useCallback, useMemo, useState } from 'react'
 
 import type { ClientAssessment, PriorAttempt } from '@/lib/assessment'
+import { BrandLogo } from '@/app/(frontend)/_components/BrandLogo'
 import { submitAssessment } from '../actions'
 import { Ic } from './AssessmentIcon'
 
@@ -182,7 +183,7 @@ function AssessmentRunner({
       <header className="as-top" data-screen-label="Assessment Header">
         <div className="as-top__brand">
           <a href="/dashboard" aria-label="CSA Academy — Dashboard">
-            <img className="as-top__logo" src="/csa/logo-white.png" alt="CSA" />
+            <BrandLogo className="as-top__logo" alt="CSA" priority />
           </a>
           <span className="as-top__div"></span>
           <div className="as-top__course">
