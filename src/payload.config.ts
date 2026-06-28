@@ -7,6 +7,8 @@ import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig, type Plugin } from 'payload'
 import sharp from 'sharp'
 
+import { withRevalidate, withRevalidateGlobal } from './lib/revalidate'
+
 // --- Nav page-collections (sub-pages = rows, tabbed section copy + SEO) ---
 import { Home } from './collections/pages/Home'
 import { Consulting } from './collections/pages/Consulting'
@@ -126,6 +128,24 @@ plugins.push(
   }),
 )
 
+// Owner/app-data collections — NOT public content, so they get no public-cache
+// revalidate hook (an order/enrollment write must not purge the marketing cache).
+// Everything else is public content and gets revalidate-on-publish (M8).
+const APP_DATA_SLUGS = new Set([
+  'enrollments',
+  'course-progress',
+  'quiz-attempts',
+  'certificates',
+  'chat-projects',
+  'chat-threads',
+  'orders',
+  'entitlements',
+  'customer-profiles',
+  'stripe-customers',
+  'processed-stripe-events',
+  'users',
+])
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -175,7 +195,7 @@ export default buildConfig({
     ProcessedStripeEvents,
     // Administration
     Users,
-  ],
+  ].map((c) => (APP_DATA_SLUGS.has(c.slug) ? c : withRevalidate(c))),
   globals: [
     SiteSettings,
     Header,
@@ -186,7 +206,7 @@ export default buildConfig({
     CheckoutPage,
     ThankYouPage,
     AuthPages,
-  ],
+  ].map(withRevalidateGlobal),
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
