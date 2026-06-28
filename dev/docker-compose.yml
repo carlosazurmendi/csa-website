@@ -1,166 +1,93 @@
 # ============================================================================
-# LOCAL development overrides — NOT for production.
+# LOCAL development overrides for the self-contained bundle. The production
+# docker-compose.yml ALREADY defines db + redis + minio + gotrue + auth-proxy +
+# init + app; this file only adjusts them for a no-Traefik, no-TLS, localhost box:
+#   • build the app/init images locally instead of pulling from GHCR
+#   • publish ports (app 3000, minio 9000/9001, gotrue-proxy 8000, db 5432)
+#   • point browser-facing URLs at localhost and turn email auto-confirm ON
+#   • make `proxy` a local bridge (no external Traefik network needed)
 #
-# This lives in dev/ (NOT the repo root, NOT named docker-compose.override.yml) ON
-# PURPOSE: it must NOT be auto-merged. A bare `docker compose up` auto-merges a root
-# override file, and stack managers (dockhand) glob root `docker-compose*.yml` — either
-# would wrongly spin up the throwaway Postgres/MinIO/GoTrue and turn the external
-# `proxy`/`supabase_default` networks into empty local bridges in production. Keeping it
-# in dev/ hides it from both. Use it explicitly, only locally, from the repo root:
+# It lives in dev/ (NOT named docker-compose.override.yml) so a bare `docker compose
+# up` and stack managers (dockhand) use ONLY the production file. Run it explicitly:
 #
-#   docker compose -f docker-compose.yml -f dev/docker-compose.yml build
-#   docker compose -f docker-compose.yml -f dev/docker-compose.yml up -d
-#   # generate a migration in node22 (host Node 26 breaks migrate:create):
-#   docker compose -f docker-compose.yml -f dev/docker-compose.yml --profile tools \
-#     run --rm migrator npm run migrate:create -- <name>
+#   docker compose --env-file dev/dev.env -f docker-compose.yml -f dev/docker-compose.yml up -d --build
 #
-# - Adds a throwaway Postgres (prod uses the EXTERNAL self-hosted Supabase; never bundled).
-# - Publishes the app port so the stack is reachable without Traefik.
-# - Redefines `proxy`/`supabase_default` as local bridges (no external nets needed locally).
+# Generate a migration in node22 (host Node 26 breaks migrate:create):
+#   docker compose --env-file dev/dev.env -f docker-compose.yml -f dev/docker-compose.yml \
+#     --profile tools run --rm migrator npm run migrate:create -- <name>
 # ============================================================================
 services:
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: csa-website:latest
     ports:
       - "${APP_PORT:-3000}:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      minio:
-        condition: service_started
-
-  postgres:
-    image: postgres:16-bookworm
-    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-postgres}
-      POSTGRES_DB: postgres
-    ports:
-      - "${LOCAL_DB_PORT:-5432}:5432"
-    networks:
-      - internal
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      # Browser reaches GoTrue via the published auth-proxy and MinIO directly.
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:8000
+      SUPABASE_S3_PUBLIC_ENDPOINT: http://localhost:9000
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      DATABASE_SSL: "false"
 
-  # Local S3-compatible media store (stands in for Supabase Storage in dev).
-  # Same Payload s3Storage code path; prod swaps the env to real Supabase.
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    image: csa-website-init:latest
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:8000
+      SUPABASE_S3_PUBLIC_ENDPOINT: http://localhost:9000
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      DATABASE_SSL: "false"
+
+  db:
+    ports:
+      - "${LOCAL_DB_PORT:-5432}:5432" # host-run seed/inspection convenience
+
   minio:
-    image: minio/minio:latest
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin12345}
     ports:
-      - "9000:9000" # S3 API (host-run seed reaches it at localhost:9000)
-      - "9001:9001" # web console
-    networks:
-      - internal
-    volumes:
-      - minio-data:/data
+      - "9000:9000" # S3 API (browser reaches presigned URLs at localhost:9000)
+      - "9001:9001" # web console (dev-only)
 
-  # One-off: create the buckets once MinIO is up, then exit. The PUBLIC bucket is
-  # anonymous-download (mirrors the public Supabase Storage bucket); the PROTECTED
-  # bucket is left PRIVATE (no anonymous policy) — it stands in for the private
-  # Supabase bucket and is reached only via presigned URLs (src/lib/protectedMedia.ts).
-  minio-init:
-    image: minio/mc:latest
-    depends_on:
-      - minio
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin12345}
-      S3_PUBLIC_BUCKET: ${S3_PUBLIC_BUCKET:-marketing}
-      S3_PROTECTED_BUCKET: ${S3_PROTECTED_BUCKET:-course-assets}
-    entrypoint:
-      - /bin/sh
-      - -c
-      - >
-        until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do
-          echo 'waiting for minio...'; sleep 2;
-        done;
-        mc mb -p "local/$$S3_PUBLIC_BUCKET" || true;
-        mc anonymous set download "local/$$S3_PUBLIC_BUCKET" || true;
-        mc mb -p "local/$$S3_PROTECTED_BUCKET" || true;
-        echo "minio buckets ready: $$S3_PUBLIC_BUCKET (public), $$S3_PROTECTED_BUCKET (private)";
-    networks:
-      - internal
-
-  # Local Supabase Auth (GoTrue) — stands in for self-hosted Supabase Auth in dev.
-  # Manages the `auth` schema in the dev Postgres. Demo JWT secret/keys (LOCAL ONLY).
-  gotrue:
-    image: supabase/gotrue:v2.151.0
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      GOTRUE_API_HOST: 0.0.0.0
-      PORT: "9999"
-      GOTRUE_API_EXTERNAL_URL: http://localhost:8000
-      API_EXTERNAL_URL: http://localhost:8000
-      GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://postgres:${LOCAL_DB_PASSWORD:-postgres}@postgres:5432/postgres?search_path=auth
-      GOTRUE_SITE_URL: http://localhost:3000
-      GOTRUE_URI_ALLOW_LIST: "http://localhost:3000,http://localhost:3000/**"
-      GOTRUE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
-      GOTRUE_JWT_EXP: "3600"
-      GOTRUE_JWT_AUD: authenticated
-      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
-      GOTRUE_MAILER_AUTOCONFIRM: "true" # dev: skip email confirmation (enforced at deploy)
-      GOTRUE_DISABLE_SIGNUP: "false"
-    networks:
-      - internal
-
-  # Routes ${SUPABASE_URL}/auth/v1/* → GoTrue (the only Supabase surface we use).
   auth-proxy:
-    image: nginx:1.27-alpine
-    restart: unless-stopped
-    depends_on:
-      - gotrue
-    volumes:
-      - ./supabase/nginx-auth.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "8000:8000" # browser reaches Supabase Auth at localhost:8000
-    networks:
-      - internal
 
+  gotrue:
+    environment:
+      API_EXTERNAL_URL: http://localhost:8000
+      GOTRUE_API_EXTERNAL_URL: http://localhost:8000
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_URI_ALLOW_LIST: "http://localhost:3000,http://localhost:3000/**"
+      GOTRUE_MAILER_AUTOCONFIRM: "true" # dev: skip email confirmation (prod sets false + SMTP)
+
+  # Profile-gated migration generator — Payload introspects the schema diff in node22
+  # (the host's Node 26 breaks migrate:create). Writes the SQL back to ./src/migrations.
   migrator:
     build:
       context: .
       dockerfile: Dockerfile
       target: builder
-    env_file: .env
+    image: csa-website-init:latest
+    environment:
+      DATABASE_URI: postgres://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/postgres
+      DATABASE_SSL: "false"
     command: ["npm", "run", "migrate"]
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
     networks:
       - internal
     volumes:
-      # Persist generated migration SQL back to the host (plain text — no native binaries).
       - ./src/migrations:/app/src/migrations
-      # Live-mount seed/maintenance scripts so they can be iterated without an image rebuild.
       - ./src/scripts:/app/src/scripts
     profiles: ["tools"]
 
-volumes:
-  pg-data:
-  minio-data:
-
-# Locally there is no external Traefik / Supabase — override the base's external
-# networks (proxy, supabase_default) to plain local bridges so `docker compose up`
-# resolves them. The app uses the throwaway `postgres` service for the DB, not `db`.
+# No external Traefik locally — make `proxy` a plain local bridge so the app/minio/
+# auth-proxy services (which join it in the base) resolve without an external network.
 networks:
   proxy:
-    external: false
-  supabase_default:
     external: false

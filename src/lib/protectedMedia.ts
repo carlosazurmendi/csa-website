@@ -11,11 +11,16 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
  * enrollment check is enforced server-side BEFORE the URL is issued, and the URL
  * itself expires, so it is never a durable public link.
  *
- * The S3 client reuses the SAME endpoint/credentials as the Payload `s3Storage`
- * plugin (src/payload.config.ts) — wherever uploads land, presigning points at the
- * same place. NOTE for self-hosted Supabase Storage: presigned GET must be
- * reachable by the browser at SUPABASE_S3_ENDPOINT with path-style addressing —
- * verify against the live endpoint at deploy time (see docs/deployment.md).
+ * The S3 client reuses the SAME credentials as the Payload `s3Storage` plugin
+ * (src/payload.config.ts), but signs against the BROWSER-REACHABLE endpoint: the
+ * presigned URL is handed to the browser, so its host must be publicly resolvable.
+ * In the bundled deploy, uploads/reads use the internal endpoint (http://minio:9000)
+ * while presigning uses SUPABASE_S3_PUBLIC_ENDPOINT (the Traefik-exposed storage
+ * subdomain, e.g. https://files.<domain>). getSignedUrl computes the signature
+ * offline, so the presign endpoint never has to be reachable FROM the container —
+ * only from the browser. forcePathStyle keeps the bucket in the path so SigV4 still
+ * validates through the proxy. Falls back to SUPABASE_S3_ENDPOINT when no separate
+ * public endpoint is set (e.g. when both are the same external Supabase URL).
  */
 
 // Default presign lifetimes. One-shot downloads get a short window; video gets a
@@ -29,7 +34,10 @@ let _client: S3Client | null = null
 function client(): S3Client {
   if (_client) return _client
   _client = new S3Client({
-    endpoint: process.env.SUPABASE_S3_ENDPOINT || 'http://localhost:9000',
+    endpoint:
+      process.env.SUPABASE_S3_PUBLIC_ENDPOINT ||
+      process.env.SUPABASE_S3_ENDPOINT ||
+      'http://localhost:9000',
     region: process.env.SUPABASE_S3_REGION || 'us-east-1',
     forcePathStyle: true,
     credentials: {

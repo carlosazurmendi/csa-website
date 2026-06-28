@@ -1,36 +1,44 @@
 # ============================================================================
-# CSA — production stack (Traefik ingress + Redis). Postgres is EXTERNAL:
-# the app connects to the existing self-hosted Supabase via DATABASE_URI.
-# Postgres is therefore deliberately NOT a service here.
+# CSA — self-contained production stack behind an EXISTING Traefik.
+# This deployment brings its OWN Supabase: Postgres (db), Auth (gotrue + auth-proxy),
+# and S3 storage (minio). Nothing external is required except the Traefik `proxy`
+# network. The app + init images are PREBUILT in CI and pulled from GHCR — the box
+# never builds (see .github/workflows/build-images.yml).
 #
-#   prod:  docker compose -f docker-compose.yml up -d   (needs external `proxy` + `supabase_default` nets)
-#   local: docker compose -f docker-compose.yml -f dev/docker-compose.yml up -d
+#   prod:  docker compose -f docker-compose.yml up -d         (needs external `proxy` net)
+#   local: docker compose -f docker-compose.yml -f dev/docker-compose.yml up -d --build
 # ============================================================================
 
-# Full app/migrator container environment. Each value is resolved from ${...}, which
-# Compose fills from EITHER the stack manager's env vars (dockhand, Portainer, …) OR a
-# .env file in the project dir (manual deploys / scripts/deploy.sh — Compose auto-loads
-# it). There is deliberately NO `env_file:` directive, so a missing .env never blocks a
-# stack-manager deploy. Optional values default to empty / a sane default.
+# Shared app/init container environment. Each value is resolved from ${...}, which
+# Compose fills from EITHER the stack manager's env vars (dockhand) OR a .env file.
+# There is deliberately NO `env_file:` so a missing .env never blocks a deploy.
+# Internal hostnames (db, minio, auth-proxy) are HARDCODED to the service names —
+# everything is one compose project now, so service-name DNS just works.
 x-csa-env: &csa-env
   NODE_ENV: ${NODE_ENV:-production}
   PAYLOAD_SECRET: ${PAYLOAD_SECRET:-}
-  DATABASE_URI: ${DATABASE_URI:-}
-  DATABASE_SSL: ${DATABASE_SSL:-true}
+  # DB is the bundled `db` service; URI is built from POSTGRES_PASSWORD (single source).
+  DATABASE_URI: postgres://postgres:${POSTGRES_PASSWORD:-}@db:5432/postgres
+  DATABASE_SSL: ${DATABASE_SSL:-false}
   DATABASE_SSL_REJECT_UNAUTHORIZED: ${DATABASE_SSL_REJECT_UNAUTHORIZED:-false}
-  NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+  # Browser reaches Auth at the app origin (Traefik routes /auth/v1 -> auth-proxy);
+  # server reaches it internally. Same GoTrue either way.
+  NEXT_PUBLIC_SUPABASE_URL: https://${APP_DOMAIN}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-}
   SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
-  SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-}
+  SUPABASE_INTERNAL_URL: http://auth-proxy:8000
   NEXT_PUBLIC_AUTH_GOOGLE: ${NEXT_PUBLIC_AUTH_GOOGLE:-}
-  SUPABASE_S3_ENDPOINT: ${SUPABASE_S3_ENDPOINT:-}
+  # Internal S3 endpoint for uploads + public-media proxy reads; presigning uses the
+  # browser-reachable PUBLIC endpoint (Traefik storage subdomain). S3 creds = MinIO root.
+  SUPABASE_S3_ENDPOINT: http://minio:9000
+  SUPABASE_S3_PUBLIC_ENDPOINT: https://${STORAGE_DOMAIN}
   SUPABASE_S3_REGION: ${SUPABASE_S3_REGION:-us-east-1}
-  SUPABASE_S3_ACCESS_KEY_ID: ${SUPABASE_S3_ACCESS_KEY_ID:-}
-  SUPABASE_S3_SECRET_ACCESS_KEY: ${SUPABASE_S3_SECRET_ACCESS_KEY:-}
+  SUPABASE_S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-}
+  SUPABASE_S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-}
   S3_PUBLIC_BUCKET: ${S3_PUBLIC_BUCKET:-marketing}
   S3_PROTECTED_BUCKET: ${S3_PROTECTED_BUCKET:-course-assets}
   REDIS_URL: ${REDIS_URL:-}
-  NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL:-}
+  NEXT_PUBLIC_SERVER_URL: https://${APP_DOMAIN}
   CHECKOUT_ALLOWED_ORIGINS: ${CHECKOUT_ALLOWED_ORIGINS:-}
   STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
   STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
@@ -42,11 +50,182 @@ x-csa-env: &csa-env
   SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
 
 services:
+  # ---- Bundled Postgres (system of record — persistent volume) -----------------
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      # Creates the `auth` schema (+ extensions) GoTrue needs, once, on a fresh volume.
+      - ./deploy/db-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - internal # never published; only the stack reaches it
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ---- Redis -------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    networks:
+      - internal # internal-only: no published ports
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ---- Object storage (Supabase Storage stand-in) ------------------------------
+  # MinIO holds ALL media. The public `marketing` bucket is proxied to the browser
+  # THROUGH the app (/api/media/file/**) over the internal network. The private
+  # `course-assets` bucket is reached only via presigned URLs, which the browser
+  # fetches through Traefik at STORAGE_DOMAIN -> this service. Console (9001) is NOT
+  # exposed. Persistent volume — this is the only copy of uploaded media.
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio-data:/data
+    networks:
+      - internal
+      - proxy # Traefik routes the storage subdomain (presigned, signature-gated) here
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.csa-files.rule=Host(`${STORAGE_DOMAIN}`)"
+      - "traefik.http.routers.csa-files.entrypoints=${TRAEFIK_ENTRYPOINT_HTTPS:-websecure}"
+      - "traefik.http.routers.csa-files.tls=true"
+      - "traefik.http.routers.csa-files.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.services.csa-files.loadbalancer.server.port=9000"
+
+  # One-off: create the two buckets once MinIO is up, then exit. Public bucket gets
+  # anonymous download (harmless — public media is proxied through the app anyway);
+  # private bucket is left with no anonymous policy (presigned-only).
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      S3_PUBLIC_BUCKET: ${S3_PUBLIC_BUCKET:-marketing}
+      S3_PROTECTED_BUCKET: ${S3_PROTECTED_BUCKET:-course-assets}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        until mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"; do
+          echo 'waiting for minio...'; sleep 2;
+        done;
+        mc mb -p "local/$$S3_PUBLIC_BUCKET" || true;
+        mc anonymous set download "local/$$S3_PUBLIC_BUCKET" || true;
+        mc mb -p "local/$$S3_PROTECTED_BUCKET" || true;
+        echo "minio buckets ready: $$S3_PUBLIC_BUCKET (public), $$S3_PROTECTED_BUCKET (private)";
+    networks:
+      - internal
+
+  # ---- Supabase Auth (GoTrue) --------------------------------------------------
+  # Manages the `auth` schema in the bundled db. Reached only via auth-proxy.
+  # Production: real JWT secret (must match the app's anon/service keys — generate all
+  # three with scripts/gen-supabase-keys.mjs), email confirmation ON (needs SMTP).
+  gotrue:
+    image: supabase/gotrue:v2.151.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      PORT: "9999"
+      API_EXTERNAL_URL: https://${APP_DOMAIN}
+      GOTRUE_API_EXTERNAL_URL: https://${APP_DOMAIN}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres?search_path=auth
+      GOTRUE_SITE_URL: https://${APP_DOMAIN}
+      GOTRUE_URI_ALLOW_LIST: "https://${APP_DOMAIN},https://${APP_DOMAIN}/**"
+      GOTRUE_JWT_SECRET: ${GOTRUE_JWT_SECRET}
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_DISABLE_SIGNUP: "false"
+      # Email confirmation. Set GOTRUE_MAILER_AUTOCONFIRM=true temporarily to unblock
+      # signup before SMTP is ready, then switch back to false.
+      GOTRUE_MAILER_AUTOCONFIRM: ${GOTRUE_MAILER_AUTOCONFIRM:-false}
+      GOTRUE_SMTP_HOST: ${GOTRUE_SMTP_HOST:-}
+      GOTRUE_SMTP_PORT: ${GOTRUE_SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${GOTRUE_SMTP_USER:-}
+      GOTRUE_SMTP_PASS: ${GOTRUE_SMTP_PASS:-}
+      GOTRUE_SMTP_ADMIN_EMAIL: ${GOTRUE_SMTP_ADMIN_EMAIL:-}
+      GOTRUE_SMTP_SENDER_NAME: ${GOTRUE_SMTP_SENDER_NAME:-Critical Systems Analysis}
+      # GoTrue builds email links as ${API_EXTERNAL_URL}${URLPATH}?... — keep the
+      # /auth/v1 prefix so Traefik routes them here (auth-proxy strips it for GoTrue).
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+    networks:
+      - internal
+
+  # nginx gateway: exposes ONLY ${SUPABASE_URL}/auth/v1/* -> gotrue:9999 (the only
+  # Supabase surface the app uses). Traefik routes Host(APP_DOMAIN) && /auth/v1 here.
+  auth-proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - gotrue
+    volumes:
+      - ./supabase/nginx-auth.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - internal
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      # Higher priority than the app router so /auth/v1/* wins over the catch-all Host rule.
+      - "traefik.http.routers.csa-auth.rule=Host(`${APP_DOMAIN}`) && PathPrefix(`/auth/v1`)"
+      - "traefik.http.routers.csa-auth.priority=100"
+      - "traefik.http.routers.csa-auth.entrypoints=${TRAEFIK_ENTRYPOINT_HTTPS:-websecure}"
+      - "traefik.http.routers.csa-auth.tls=true"
+      - "traefik.http.routers.csa-auth.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
+      - "traefik.http.services.csa-auth.loadbalancer.server.port=8000"
+
+  # ---- Auto-init job — migrate + seed BEFORE the app, every deploy ---------------
+  # Pulled from GHCR (the `builder` image: Payload CLI + src + pg). Idempotent +
+  # first-run-guarded: redeploys re-migrate but never re-seed over CMS edits.
+  # Buckets come from minio-init; bootstrap's ensure-buckets is a non-fatal no-op here.
+  #   Ad-hoc reseed:  docker compose -f docker-compose.yml run --rm init npm run seed
+  init:
+    image: ghcr.io/carlosazurmendi/csa-website-init:${IMAGE_TAG:-latest}
+    restart: "no"
+    environment: *csa-env
+    command: ["bash", "scripts/bootstrap.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks:
+      - internal
+
+  # ---- App ---------------------------------------------------------------------
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: csa-website:latest
+    image: ghcr.io/carlosazurmendi/csa-website:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment: *csa-env
     depends_on:
@@ -54,14 +233,14 @@ services:
         condition: service_completed_successfully # migrate + seed must finish first
       redis:
         condition: service_healthy
+      gotrue:
+        condition: service_started
     networks:
       - proxy
       - internal
-      - supabase_default # reach the self-hosted Supabase Postgres + Auth on its own network
     labels:
-      # Traefik entrypoints + cert resolver are parameterised (set TRAEFIK_ENTRYPOINT_HTTP(S)
-      # / TRAEFIK_CERTRESOLVER in .env; defaults web / websecure / letsencrypt). The shared
-      # network name is the `proxy:` external network (below) + this docker.network label.
+      # Traefik entrypoints + cert resolver are parameterised (defaults web / websecure
+      # / letsencrypt). The shared network name is the `proxy:` external network below.
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
       - "traefik.http.routers.csa.rule=Host(`${APP_DOMAIN}`)"
@@ -78,55 +257,16 @@ services:
       - "traefik.http.middlewares.csa-https-redirect.redirectscheme.permanent=true"
       - "traefik.http.middlewares.csa-compress.compress=true"
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
-    networks:
-      - internal # internal-only: no published ports
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
-
-  # Auto-init job — runs to completion BEFORE the app every deploy (the app's
-  # depends_on gates on it). On a fresh database it brings Supabase up to the built
-  # state: wait-for-db → migrate → create buckets → seed admin + content + media +
-  # course (see scripts/bootstrap.sh). Idempotent + first-run-guarded, so a redeploy
-  # only re-migrates and never re-seeds over CMS edits. Built from the `builder` stage
-  # (Payload CLI + src + pg — the slim runner image has none of these), sharing the
-  # app's build cache. It never runs `push`. Ad-hoc ops, e.g. force a content reseed:
-  #   docker compose -f docker-compose.yml run --rm init npm run seed
-  init:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: builder
-    image: csa-website-init:latest
-    restart: "no" # one-shot job, not a long-running service
-    environment: *csa-env
-    command: ["bash", "scripts/bootstrap.sh"]
-    networks:
-      - internal
-      - supabase_default # reach the self-hosted Supabase Postgres (DATABASE_URI host = supabase-db)
-
 volumes:
+  pg-data: # Postgres — the system of record. NEVER `docker compose down -v`.
+  minio-data: # all uploaded media (public + private). NEVER `down -v`.
   redis-data:
 
 networks:
-  # External networks are referenced by their REAL names as the keys (no key→name
-  # remap). This is the most portable form and sidesteps the
-  # "network … has incorrect label com.docker.compose.network" error you hit when a
-  # service joins ANOTHER compose project's network (e.g. Supabase's `supabase_default`).
-  # If your Traefik / Supabase networks are named differently, rename these keys AND the
-  # matching service `networks:` entries (and the `traefik.docker.network` label).
+  # Only ONE external network now: the existing Traefik `proxy`. Everything else is a
+  # private bridge created by this project — no cross-project network coupling, so the
+  # `db`/`supabase-db` resolution problems are gone.
   proxy:
     external: true # your existing Traefik network
-  supabase_default:
-    external: true # the self-hosted Supabase stack's network (must already exist)
   internal:
     driver: bridge

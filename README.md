@@ -1,189 +1,189 @@
 # CSA — Critical Systems Analysis
 
 Functional-safety marketing site, e-learning (LMS) and e-commerce, built on
-**Next.js 16** (App Router) with an embedded **Payload CMS 3**, **self-hosted
-Supabase** (Postgres + Auth + Storage), **Stripe** hosted checkout, and **Redis**,
-deployed as a single standalone container behind **Traefik** on **AWS Lightsail**.
+**Next.js 16** (App Router) with an embedded **Payload CMS 3**. The deployment is a
+**self-contained bundle** — it ships its own **Postgres**, **Supabase Auth (GoTrue)**
+and **S3 storage (MinIO)** alongside the app and **Redis**, and runs behind an
+**existing Traefik** on a single Docker host (AWS Lightsail). Nothing external is
+required except the Traefik network. Images are **built in CI and pulled from GHCR** —
+the box never builds.
 
-This README is the operator runbook: prerequisites, configuration, and the exact
-clean-machine sequence to **build → migrate → seed → serve**. Deeper references:
+This README is the operator runbook. Deeper references:
 
-- [docs/deployment.md](docs/deployment.md) — env-var inventory, secrets, encryption-at-rest, DB TLS hardening.
+- [docs/deployment.md](docs/deployment.md) — env-var inventory, secrets, persistence/backups, security guarantees.
 - [docs/cloudflare-cdn.md](docs/cloudflare-cdn.md) — optional Cloudflare edge in front of Traefik.
 - [docs/performance.md](docs/performance.md) — rendering / caching / compression reference.
 
-> **Secrets by reference.** Never commit `.env`. All live secret values are set by
-> the operator in the real environment. [.env.example](.env.example) documents every
-> variable; copy it to `.env` and fill it in.
+> **Secrets by reference.** Never commit `.env`. All live secret values are set by the
+> operator in the real environment (or dockhand's env editor). [.env.example](.env.example)
+> documents every variable.
 
 ---
 
-## 1. Prerequisites (the box)
+## 1. Architecture
 
-A single Linux host (AWS Lightsail or similar) with:
+One Docker Compose project, behind your existing Traefik:
 
-- **Docker** + the Compose plugin.
-- A reachable **self-hosted Supabase**: Postgres (`DATABASE_URI`), Auth (GoTrue), and
-  Storage (S3-compatible). Postgres is **external** to this stack — `docker-compose.yml`
-  deliberately does **not** run a database.
-- A running **Traefik** instance on a shared external Docker network. The app attaches
-  to it via labels (it does **not** ship Traefik). The names are configurable in `.env`
-  (`scripts/deploy.sh` prompts for them); defaults: network `proxy`, HTTPS entrypoint
-  `websecure`, cert resolver `letsencrypt`. The HTTP→HTTPS redirect router uses
-  `TRAEFIK_ENTRYPOINT_HTTP` (default `web`) and is ignored if your Traefik redirects
-  globally or has no `:80` entrypoint.
-- A **DNS A/AAAA record** for `APP_DOMAIN` pointing at the host (needed before Traefik
-  can issue the TLS cert).
+| Service | Image | Role |
+|---|---|---|
+| `app` | `ghcr.io/<owner>/csa-website` | Next.js + Payload (the site + `/admin`) |
+| `init` | `ghcr.io/<owner>/csa-website-init` | one-shot: migrate + first-run seed, then exits |
+| `db` | `postgres:16` | Postgres — **the system of record** (persistent volume) |
+| `redis` | `redis:7` | cache + rate-limit counters |
+| `minio` + `minio-init` | `minio/minio`, `minio/mc` | S3 storage; creates the two buckets |
+| `gotrue` + `auth-proxy` | `supabase/gotrue`, `nginx` | Supabase Auth + its `/auth/v1` gateway |
 
-The shared network normally already exists (created by Traefik). If not:
+Traefik routes three things on your host:
 
-```bash
-docker network create proxy
-```
+- `Host(APP_DOMAIN)` → the app (port 3000).
+- `Host(APP_DOMAIN) && PathPrefix(/auth/v1)` → auth-proxy → GoTrue (higher priority).
+- `Host(STORAGE_DOMAIN)` → MinIO — used **only** for presigned (signature-gated)
+  protected downloads/videos. Public marketing media is proxied **through the app**, so
+  MinIO is otherwise private.
 
-Supabase setup (one-time, in Supabase Studio):
-
-1. Create two Storage buckets — a **public** one (`S3_PUBLIC_BUCKET`, e.g. `marketing`)
-   and a **private** one (`S3_PROTECTED_BUCKET`, e.g. `course-assets`). The private
-   bucket holds purchased deliverables + lesson videos; it must **not** be public.
-2. Generate **S3 access keys** (Storage → Settings → S3 access keys).
-3. Use the **direct** Postgres connection on **port 5432** in `DATABASE_URI` — not the
-   6543 transaction pooler (Payload runs DDL + prepared statements the pooler breaks).
+Only one external network is used: the existing Traefik `proxy`. Everything else talks
+on a private `internal` bridge created by the project.
 
 ---
 
-## 2. Configure
+## 2. Prerequisites (the box)
+
+- **Docker** + the Compose v2/v5 plugin.
+- A running **Traefik** on a shared external Docker network (default name `proxy`,
+  HTTPS entrypoint `websecure`, cert resolver `letsencrypt` — all configurable in `.env`).
+  Create the network if it doesn't exist: `docker network create proxy`.
+- **Two DNS A records → the box:** `APP_DOMAIN` (the site) **and** `STORAGE_DOMAIN`
+  (e.g. `files.<domain>`, for presigned protected downloads/videos). Traefik issues both
+  certs automatically.
+
+No external database, auth, or storage is needed — the bundle provides them.
+
+---
+
+## 3. Configure
+
+Generate the three **linked** Supabase keys (the anon + service JWTs must be signed by
+the same secret GoTrue uses):
 
 ```bash
-cp .env.example .env
-# then edit .env — see docs/deployment.md for the full variable table.
+node scripts/gen-supabase-keys.mjs
+# -> prints GOTRUE_JWT_SECRET, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 ```
 
-Generate the secrets that must not ship with template defaults:
+Then set every value from [.env.example](.env.example) — in dockhand's env editor, or in
+a `.env` file. Generate the remaining secrets:
 
 ```bash
 openssl rand -hex 32      # PAYLOAD_SECRET
-openssl rand -base64 32   # REDIS_PASSWORD  (also update the password embedded in REDIS_URL to match)
+openssl rand -base64 30   # POSTGRES_PASSWORD, MINIO_ROOT_PASSWORD, REDIS_PASSWORD (one each)
 ```
 
-Set a strong `SEED_ADMIN_PASSWORD` before seeding (else the first admin is created
-with a publicly-known default — see §3.3).
-
-> `.env` must live in the compose project directory so Compose can interpolate
-> `${APP_DOMAIN}` / `${REDIS_PASSWORD}` into `docker-compose.yml`.
+Keep `REDIS_PASSWORD` and the password embedded in `REDIS_URL` identical. Set a strong
+`SEED_ADMIN_PASSWORD` before the first deploy. For email confirmation, fill the
+`GOTRUE_SMTP_*` values (or set `GOTRUE_MAILER_AUTOCONFIRM=true` to launch before SMTP is
+ready, then switch back). Several vars (`DATABASE_URI`, `NEXT_PUBLIC_SUPABASE_URL`,
+`SUPABASE_INTERNAL_URL`, `SUPABASE_S3_ENDPOINT`/`_PUBLIC_ENDPOINT`, `NEXT_PUBLIC_SERVER_URL`)
+are **derived automatically** from `APP_DOMAIN` / `STORAGE_DOMAIN` / `POSTGRES_PASSWORD` —
+do not set them.
 
 ---
 
-## 3. First deploy (clean machine)
+## 4. Build (CI → GHCR)
 
-On `docker compose up`, an **`init` job runs to completion before the app starts**: it
-waits for the database, applies migrations (schema `push` is off in production),
-creates the storage buckets, and — on a **fresh** database only — seeds the first
-admin, the real CMS content, placeholder media, and the flagship course
-(`scripts/bootstrap.sh`). It is idempotent and first-run-guarded, so redeploys only
-re-migrate and **never re-seed over your CMS edits**. A clean box therefore comes up
-fully populated with no manual migrate/seed step.
+Pushing to `main` triggers [.github/workflows/build-images.yml](.github/workflows/build-images.yml),
+which builds both images on GitHub's runners (no OOM) and pushes them to GHCR:
 
-### 3.0 Guided deploy (recommended)
+```
+ghcr.io/<owner>/csa-website        (the app)
+ghcr.io/<owner>/csa-website-init   (the migrate/seed job)
+```
 
-One interactive script prompts for every value (generating `PAYLOAD_SECRET` +
-`REDIS_PASSWORD`), writes a locked-down `.env`, then builds and brings the stack up —
-the init job migrates + seeds automatically:
+Make those two GHCR packages **public** so the box pulls with no credentials (they hold
+compiled app code, not secrets). If you keep them private, give dockhand a token with
+`read:packages`. Tags: `latest` follows `main`; pin `IMAGE_TAG=sha-xxxxxxx` for an
+immutable deploy.
+
+---
+
+## 5. First deploy (clean box)
+
+On `up`, the **`init` job runs to completion before the app starts**: it waits for the
+database, applies migrations, and — on a **fresh** database only — seeds the first admin,
+the real CMS content, placeholder media, and the flagship course. It is idempotent and
+first-run-guarded, so redeploys only re-migrate and **never re-seed over CMS edits**.
+
+### Guided (SSH on the box)
 
 ```bash
 git clone https://github.com/carlosazurmendi/csa-website && cd csa-website
-bash scripts/deploy.sh
+bash scripts/deploy.sh   # prompts for the few non-generated values, mints the rest,
+                         # writes .env, pulls the images, brings the stack up
 ```
 
-It asks for your Traefik network / entrypoint / cert-resolver names so it binds to an
-existing Traefik, and is re-runnable (reuse `.env` → rebuild → redeploy).
+### Via dockhand
 
-### 3.1 Manual equivalent
+Point the stack at this repo's `docker-compose.yml`, set the env from
+[.env.example](.env.example) (incl. the generated keys), and deploy. dockhand pulls the
+GHCR images and runs the init job, then the app. Watch `init` logs for migrate + seed.
 
-```bash
-docker compose -f docker-compose.yml build
-docker compose -f docker-compose.yml up -d
-```
-
-`up` runs the **init** job to completion (wait-for-db → migrate → create buckets →
-first-run seed of admin + content + media + course), then starts the app. Follow it
-with `docker compose -f docker-compose.yml logs -f init`.
-
-> `seed:admin` creates the Payload **/admin** login (`SEED_ADMIN_EMAIL` /
-> `SEED_ADMIN_PASSWORD`) — not a Supabase end-user (those self-register at signup).
-> **Change the admin password on first login.** Replace the placeholder media with real
-> brand assets in /admin. To re-run one seed by hand:
-> `docker compose -f docker-compose.yml run --rm init npm run seed:media`.
-
-Wait for health, then it's live at `https://APP_DOMAIN` (via Traefik):
+Verify health once it's up:
 
 ```bash
 docker compose -f docker-compose.yml exec app curl -fsS http://127.0.0.1:3000/api/health
 # {"status":"ok","redis":"up","db":"up",...}
 ```
 
-`/api/health` is fail-closed on **both** Redis and Postgres, so an unmigrated /
-unreachable database keeps the container unhealthy and out of rotation.
+`/api/health` is fail-closed on **both** Redis and Postgres.
+
+> **First-login tasks:** change the `/admin` password, replace placeholder media with
+> real brand assets.
 
 ---
 
-## 4. Subsequent deploys
+## 6. Subsequent deploys
 
-```bash
-git pull
-docker compose -f docker-compose.yml build
-docker compose -f docker-compose.yml up -d
+```
+push to main  →  CI builds + pushes images  →  on the box:
+  docker compose -f docker-compose.yml pull
+  docker compose -f docker-compose.yml up -d
 ```
 
-The init job re-runs on deploy: it applies any **new** migrations (additive,
-idempotent) and, because content already exists, **skips seeding** — your CMS edits are
-preserved. Hashed static assets self-bust (new filenames each build), so no CDN purge
-is needed for `_next/static`.
-
-> The dev stack lives in **`dev/docker-compose.yml`** — deliberately **not** named
-> `docker-compose.override.yml`, so a bare `docker compose up` (and stack managers like
-> dockhand) use **only** `docker-compose.yml` (production). Running the dev stack is
-> opt-in (§5). This prevents the dev Postgres/MinIO/GoTrue and local-bridge networks
-> from ever leaking into a production deploy.
+The init job re-runs: it applies any **new** migrations and, because content already
+exists, **skips seeding** — CMS edits are preserved.
 
 ---
 
-## 5. Local development
+## 7. Local development
 
-The dev stack (`dev/docker-compose.yml`) provides a complete self-contained
-environment — throwaway Postgres, MinIO (stands in for Supabase Storage), and a demo
-GoTrue — so nothing external is required. **You must pass both files** (it is not
-auto-merged):
+The same bundle runs locally with a dev override (build instead of pull, published
+ports, localhost URLs, email auto-confirm). Demo, non-secret values live in
+[dev/dev.env](dev/dev.env):
 
 ```bash
-docker compose -f docker-compose.yml -f dev/docker-compose.yml build
-docker compose -f docker-compose.yml -f dev/docker-compose.yml up -d
+docker compose --env-file dev/dev.env -f docker-compose.yml -f dev/docker-compose.yml up -d --build
 # init migrates + seeds the local Postgres, then the app starts on http://localhost:3000
 ```
 
-When you change a collection, generate a migration for production with the
-profile-gated migrator (Payload introspects the diff in node22 — the host's Node 26
+Generate a migration for production (Payload introspects in node22 — the host's Node 26
 breaks `migrate:create`), then commit it:
 
 ```bash
-docker compose -f docker-compose.yml -f dev/docker-compose.yml --profile tools \
-  run --rm migrator npm run migrate:create -- <name>
+docker compose --env-file dev/dev.env -f docker-compose.yml -f dev/docker-compose.yml \
+  --profile tools run --rm migrator npm run migrate:create -- <name>
 ```
-
-(In dev the app also uses Payload schema `push` to auto-sync local schema edits; the
-committed migrations are what production applies via the init job.)
 
 ---
 
-## 6. Operations notes
+## 8. Operations notes
 
-- **Migrations are additive-only** and must apply cleanly on an empty database (the
-  committed chain is verified to replay from scratch). Never edit an applied migration;
-  add a new one.
+- **Persistent volumes are the system of record:** `pg-data` (Postgres) and `minio-data`
+  (all uploaded media). **Never** `docker compose down -v` — it deletes the database and
+  every media file. Back up regularly (`pg_dump` + a MinIO mirror) — see
+  [docs/deployment.md](docs/deployment.md).
+- **Migrations are additive-only** and must apply cleanly on an empty database.
 - **Money & access**: order/enrollment/entitlement grants happen **only** from the
-  signature-verified Stripe webhook (`/stripe/webhook`), never from the client. DB
-  unique constraints make duplicate-delivery idempotent.
+  signature-verified Stripe webhook (`/stripe/webhook`), never from the client.
 - **Protected deliverables** (template files, lesson videos) live in the private bucket
-  and are served only via short-lived presigned URLs after an entitlement / enrollment
-  check — see [docs/deployment.md](docs/deployment.md).
-- **Logs**: `docker compose -f docker-compose.yml logs -f app`.
+  and are served only via short-lived presigned URLs (via `STORAGE_DOMAIN`) after an
+  entitlement / enrollment check.
+- **Logs**: `docker compose -f docker-compose.yml logs -f app` (or `init`, `gotrue`).
