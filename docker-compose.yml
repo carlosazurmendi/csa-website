@@ -20,6 +20,7 @@ services:
     networks:
       - web
       - internal
+      - supabase # reach the self-hosted Supabase Postgres + Auth on its own network
     labels:
       # Traefik coupling is parameterised so it can match an existing Traefik
       # install — set TRAEFIK_NETWORK / TRAEFIK_ENTRYPOINT_HTTP(S) / TRAEFIK_CERTRESOLVER
@@ -75,7 +76,8 @@ services:
     env_file: .env
     command: ["npm", "run", "migrate"]
     networks:
-      - internal # bridge network has egress to the external Supabase host
+      - internal
+      - supabase # must reach the self-hosted Supabase Postgres (DATABASE_URI host = db)
     profiles: ["tools"]
 
 volumes:
@@ -85,5 +87,8 @@ networks:
   web:
     external: true # shared with Traefik (the real network name = ${TRAEFIK_NETWORK})
     name: ${TRAEFIK_NETWORK:-proxy}
+  supabase:
+    external: true # the self-hosted Supabase stack's network (must already exist)
+    name: ${SUPABASE_NETWORK:-supabase_default}
   internal:
     driver: bridge

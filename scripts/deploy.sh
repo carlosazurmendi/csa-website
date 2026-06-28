@@ -77,10 +77,13 @@ if [ "$REUSE_ENV" -eq 0 ]; then
   ask TRAEFIK_ENTRYPOINT_HTTPS "Traefik HTTPS entrypoint name" "websecure"
   ask TRAEFIK_CERTRESOLVER "Traefik cert resolver name" "letsencrypt"
 
-  echo; echo "${c_bold}Database (self-hosted Supabase Postgres — use port 5432, NOT the 6543 pooler)${c_rst}"
-  ask_secret DATABASE_URI "DATABASE_URI (postgres://user:pass@host:5432/db)"
+  echo; echo "${c_bold}Database (self-hosted Supabase Postgres — host = db, port 5432, NOT the 6543 pooler)${c_rst}"
+  echo "  ${c_dim}The app joins the Supabase docker network, so the host is the 'db' container.${c_rst}"
+  echo "  ${c_dim}PASSWORD = POSTGRES_PASSWORD from the Supabase stack's own .env.${c_rst}"
+  ask SUPABASE_NETWORK "Supabase stack's docker network name" "supabase_default"
+  ask_secret DATABASE_URI "DATABASE_URI (postgres://postgres:PASSWORD@db:5432/postgres)"
   [ -n "${DATABASE_URI:-}" ] || die "DATABASE_URI is required."
-  ask DATABASE_SSL "DATABASE_SSL (true/false)" "true"
+  ask DATABASE_SSL "DATABASE_SSL (true works with supabase/postgres; try false if it errors)" "true"
   ask DATABASE_SSL_REJECT_UNAUTHORIZED "Verify DB server cert? (true once a CA is trusted)" "false"
 
   echo; echo "${c_bold}Supabase Auth + Storage${c_rst}"
@@ -156,6 +159,7 @@ SAFETY_CHAT_MODEL=${SAFETY_CHAT_MODEL}
 
 APP_DOMAIN=${APP_DOMAIN}
 APP_PORT=3000
+SUPABASE_NETWORK=${SUPABASE_NETWORK}
 TRAEFIK_NETWORK=${TRAEFIK_NETWORK}
 TRAEFIK_ENTRYPOINT_HTTP=${TRAEFIK_ENTRYPOINT_HTTP}
 TRAEFIK_ENTRYPOINT_HTTPS=${TRAEFIK_ENTRYPOINT_HTTPS}
@@ -174,15 +178,20 @@ set -a; # shellcheck disable=SC1090
 . "$ENV_FILE"; set +a
 
 # ---------------------------------------------------------------------------
-# 2. Traefik network
+# 2. Networks — Traefik (may be created) + Supabase (must already exist)
 # ---------------------------------------------------------------------------
-say "Ensuring Traefik network '${TRAEFIK_NETWORK:-web}' exists"
-if docker network inspect "${TRAEFIK_NETWORK:-web}" >/dev/null 2>&1; then ok "network exists"
+say "Ensuring Traefik network '${TRAEFIK_NETWORK:-proxy}' exists"
+if docker network inspect "${TRAEFIK_NETWORK:-proxy}" >/dev/null 2>&1; then ok "network exists"
 else
-  warn "network '${TRAEFIK_NETWORK:-web}' not found."
-  if yesno "Create it now?" Y; then docker network create "${TRAEFIK_NETWORK:-web}" >/dev/null && ok "created"; \
+  warn "network '${TRAEFIK_NETWORK:-proxy}' not found."
+  if yesno "Create it now?" Y; then docker network create "${TRAEFIK_NETWORK:-proxy}" >/dev/null && ok "created"; \
   else die "Traefik network missing — create it or fix TRAEFIK_NETWORK in .env."; fi
 fi
+
+say "Checking Supabase network '${SUPABASE_NETWORK:-supabase_default}' exists"
+docker network inspect "${SUPABASE_NETWORK:-supabase_default}" >/dev/null 2>&1 \
+  && ok "network exists (app + migrator will reach Postgres at 'db' on it)" \
+  || die "Supabase network '${SUPABASE_NETWORK:-supabase_default}' not found — is the Supabase stack up? Fix SUPABASE_NETWORK in .env."
 
 # ---------------------------------------------------------------------------
 # 3. Supabase Storage buckets (optional, via the Storage REST API + service key)
