@@ -26,15 +26,19 @@ A single Linux host (AWS Lightsail or similar) with:
 - A reachable **self-hosted Supabase**: Postgres (`DATABASE_URI`), Auth (GoTrue), and
   Storage (S3-compatible). Postgres is **external** to this stack — `docker-compose.yml`
   deliberately does **not** run a database.
-- A running **Traefik** instance on a shared external Docker network named `web`,
-  with entrypoints named `web` (:80) and `websecure` (:443) and a cert resolver named
-  `letsencrypt`. The app attaches to it via labels (it does **not** ship Traefik).
-- A **DNS A/AAAA record** for `APP_DOMAIN` pointing at the host.
+- A running **Traefik** instance on a shared external Docker network. The app attaches
+  to it via labels (it does **not** ship Traefik). The names are configurable in `.env`
+  (`scripts/deploy.sh` prompts for them); defaults: network `proxy`, HTTPS entrypoint
+  `websecure`, cert resolver `letsencrypt`. The HTTP→HTTPS redirect router uses
+  `TRAEFIK_ENTRYPOINT_HTTP` (default `web`) and is ignored if your Traefik redirects
+  globally or has no `:80` entrypoint.
+- A **DNS A/AAAA record** for `APP_DOMAIN` pointing at the host (needed before Traefik
+  can issue the TLS cert).
 
-Create the shared network once (if Traefik didn't already):
+The shared network normally already exists (created by Traefik). If not:
 
 ```bash
-docker network create web
+docker network create proxy
 ```
 
 Supabase setup (one-time, in Supabase Studio):

@@ -72,7 +72,7 @@ if [ "$REUSE_ENV" -eq 0 ]; then
   [ -n "${APP_DOMAIN:-}" ] || die "APP_DOMAIN is required."
   ask NEXT_PUBLIC_SERVER_URL "Canonical URL (NEXT_PUBLIC_SERVER_URL)" "https://${APP_DOMAIN}"
   ask CHECKOUT_ALLOWED_ORIGINS "Extra allowed origins, comma-sep (optional)" ""
-  ask TRAEFIK_NETWORK "Traefik shared docker network name" "web"
+  ask TRAEFIK_NETWORK "Traefik shared docker network name" "proxy"
   ask TRAEFIK_ENTRYPOINT_HTTP "Traefik HTTP entrypoint name" "web"
   ask TRAEFIK_ENTRYPOINT_HTTPS "Traefik HTTPS entrypoint name" "websecure"
   ask TRAEFIK_CERTRESOLVER "Traefik cert resolver name" "letsencrypt"

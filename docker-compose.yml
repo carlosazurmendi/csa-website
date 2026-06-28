@@ -25,7 +25,7 @@ services:
       # install — set TRAEFIK_NETWORK / TRAEFIK_ENTRYPOINT_HTTP(S) / TRAEFIK_CERTRESOLVER
       # in .env (defaults: web / web / websecure / letsencrypt). scripts/deploy.sh prompts for these.
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-web}"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
       - "traefik.http.routers.csa.rule=Host(`${APP_DOMAIN}`)"
       - "traefik.http.routers.csa.entrypoints=${TRAEFIK_ENTRYPOINT_HTTPS:-websecure}"
       - "traefik.http.routers.csa.tls=true"
@@ -84,6 +84,6 @@ volumes:
 networks:
   web:
     external: true # shared with Traefik (the real network name = ${TRAEFIK_NETWORK})
-    name: ${TRAEFIK_NETWORK:-web}
+    name: ${TRAEFIK_NETWORK:-proxy}
   internal:
     driver: bridge
