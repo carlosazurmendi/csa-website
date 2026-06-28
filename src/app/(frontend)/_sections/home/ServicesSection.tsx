@@ -191,7 +191,6 @@ export function ServicesSection({ home }: { home: HomeDoc }) {
   return (
     <section className="sv" data-screen-label="Services">
       <div className="sv__haze" />
-      <csa-grain className="rv-grain" intensity="0.18" speed="0.4"></csa-grain>
 
       <div className="sv__head">
         <p className="csa-eyebrow" data-reveal="up" data-scramble>

@@ -130,7 +130,6 @@ export function NewsSection({ home }: { home: HomeDoc }) {
   return (
     <section className="nw" data-screen-label="Latest News">
       <div className="nw__haze" />
-      <csa-grain className="rv-grain" intensity="0.2" speed="0.4"></csa-grain>
       <div className="nw__inner">
         <div className="nw__intro">
           <p className="csa-eyebrow" data-reveal="up" data-scramble>
