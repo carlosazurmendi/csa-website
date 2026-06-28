@@ -7,6 +7,7 @@ import { lexicalToParagraphs, lexicalToText } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
 import { isEnrolled } from '@/lib/lms'
 import { CourseCurriculum, type CurriculumModule } from '../../../_sections/training/CourseCurriculum'
+import { CourseEnroll } from '../../../_components/commerce/CourseEnroll'
 
 export const dynamic = 'force-dynamic'
 
@@ -117,6 +118,20 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   const standards = (c.standards ?? []).map((s) => s.code ?? '')
   const formatPrimary = (c.format ?? [])[0] ?? ''
 
+  // A paid seat as a cart line (M7) — only for priced, purchasable courses.
+  const courseItem =
+    !isQuote && typeof c.price === 'number' && c.price > 0
+      ? {
+          id: 'crs_' + slug,
+          name: c.title,
+          meta: `Course · ${formatPrimary || 'On-Demand'}`,
+          kind: 'COURSE' as const,
+          fmt: 'COURSE',
+          price: c.price,
+          qty: 1,
+        }
+      : null
+
   // Curriculum modules → client-component props (flatten lessons to titles).
   const modules: CurriculumModule[] = (c.modules ?? []).map((m) => ({
     n: m.n ?? '',
@@ -213,15 +228,12 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 <Link className="btn btn--gold-solid btn--lg" href="/dashboard">
                   Go to My Courses <i data-lucide="arrow-right"></i>
                 </Link>
+              ) : courseItem ? (
+                <CourseEnroll item={courseItem} label={enrollLabel} />
               ) : (
-                <>
-                  <Link className="btn btn--gold-solid btn--lg" href="/cart">
-                    {enrollLabel} <i data-lucide="arrow-right"></i>
-                  </Link>
-                  <Link className="cl-enroll__secondary" href="/cart">
-                    <i data-lucide="shopping-cart"></i> Add to Cart
-                  </Link>
-                </>
+                <Link className="btn btn--gold-solid btn--lg" href="/cart">
+                  {enrollLabel} <i data-lucide="arrow-right"></i>
+                </Link>
               )}
             </div>
 

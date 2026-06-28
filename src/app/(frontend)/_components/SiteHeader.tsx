@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/client'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
+import { CheckoutButton } from './commerce/CheckoutButton'
+import { subscribeStore } from './commerce/store-client'
 
 /**
  * SiteHeader — faithful port of design-reference/project/assets/nav.jsx.
@@ -217,9 +219,7 @@ function CartDrawer({
               <p className="mc__note">
                 Taxes calculated at checkout. Digital delivery — instant download after purchase.
               </p>
-              <Link className="btn btn--gold-solid btn--block mc__checkout" href="/checkout">
-                Checkout <i data-lucide="arrow-right"></i>
-              </Link>
+              <CheckoutButton className="btn btn--gold-solid btn--block mc__checkout" />
               <Link className="btn btn--silver-pill btn--block" href="/cart">
                 View Cart
               </Link>
@@ -315,12 +315,13 @@ export function SiteHeader({ data, initialUser = null }: { data: HeaderData; ini
   const [cartOpen, setCartOpen] = useState(false)
   const [suppressDrops, setSuppressDrops] = useState(false)
 
-  // Cart still comes from the localStorage store stub (commerce is M7).
+  // Cart comes from the localStorage store (window.CSAStore). subscribeStore is
+  // resilient to the store script loading after this effect (afterInteractive),
+  // so the badge + drawer stay live from first add — see store-client.ts.
   useEffect(() => {
-    const Store = getStore()
-    const sync = () => setCart(Store.getCart())
+    const sync = () => setCart(getStore().getCart() as CartItem[])
     sync()
-    return Store.subscribe(sync)
+    return subscribeStore(sync)
   }, [])
 
   // Auth comes from Supabase: hydrate from the current session, then stay live on

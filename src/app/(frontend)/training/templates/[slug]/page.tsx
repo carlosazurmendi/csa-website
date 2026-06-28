@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs } from '@/lib/lexical'
 import { TemplateGallery } from '../../../_sections/training/TemplateGallery'
+import { TemplateBuy } from '../../../_components/commerce/TemplateBuy'
+import { ExpressBuyButton } from '../../../_components/commerce/ExpressBuyButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -178,6 +180,22 @@ export default async function TemplateDetailPage({
   const pages = galleryPages(p)
   const buyIncludes = included.slice(0, 4)
 
+  // Cart line (M7) for a priced product — meta mirrors cartItem() in templates-data.js.
+  const buyItem =
+    typeof p.price === 'number' && p.price > 0
+      ? {
+          id: (isBundle ? 'bnd_' : 'tpl_') + p.slug,
+          name: p.title,
+          meta: isBundle
+            ? `${members.length} documents · ${standards[0] ?? 'Multi-standard'}`
+            : `${standards[0] ?? 'Generic'} · ${p.format ?? ''}`,
+          kind: (isBundle ? 'BUNDLE' : 'TEMPLATE') as 'BUNDLE' | 'TEMPLATE',
+          fmt: isBundle ? 'BUNDLE' : isXls ? 'XLSX' : 'DOCX',
+          price: p.price,
+          qty: 1,
+        }
+      : null
+
   return (
     <main className="td-main">
       {/* Hero */}
@@ -269,16 +287,15 @@ export default async function TemplateDetailPage({
               </div>
               <p className="td-price__note">Price managed in Payload CMS · instant digital delivery.</p>
 
-              <div className="td-buy__actions">
-                {/* M7: one-click Buy (ExpressBuy) deferred — disabled stub, still shows price */}
-                <button className="btn btn--gold-solid btn--lg" disabled>
-                  <i data-lucide="zap"></i> Buy Now — one-click
-                </button>
-                {/* M7: Add to Cart (store.js) deferred — links to /cart shell */}
-                <Link className="td-buy__secondary" href="/cart">
-                  <i data-lucide="shopping-cart"></i> Add to Cart
-                </Link>
-              </div>
+              {buyItem ? (
+                <TemplateBuy item={buyItem} />
+              ) : (
+                <div className="td-buy__actions">
+                  <Link className="btn btn--gold-solid btn--lg" href="/book-a-consultation">
+                    <i data-lucide="mail"></i> Request this template
+                  </Link>
+                </div>
+              )}
               <p className="td-buy__secure">
                 <i data-lucide="shield-check"></i> 14-day refund policy · free updates for 12 months
               </p>
@@ -496,10 +513,7 @@ export default async function TemplateDetailPage({
             </p>
           </div>
           <div className="td-cta__actions">
-            {/* M7: one-click Buy (ExpressBuy) deferred — disabled stub, still shows price */}
-            <button className="btn btn--gold-solid btn--lg" disabled>
-              <i data-lucide="zap"></i> Buy Now &middot; {priceLabel(p)}
-            </button>
+            {buyItem && <ExpressBuyButton item={buyItem} label={`Buy Now · ${priceLabel(p)}`} />}
             <Link className="btn btn--link" href="/book-a-consultation">
               Need a custom set? Talk to us <i data-lucide="arrow-right"></i>
             </Link>

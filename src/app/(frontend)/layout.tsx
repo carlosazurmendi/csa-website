@@ -11,6 +11,7 @@ import { SiteHeader, type HeaderData } from './_components/SiteHeader'
 import { SiteFooter, type FooterData } from './_components/SiteFooter'
 import { CsaIcons } from './_components/CsaIcons'
 import { Shell } from './_components/Shell'
+import { ExpressBuy } from './_components/commerce/ExpressBuy'
 
 export const metadata: Metadata = {
   // No title.template — the seeded page metaTitles already carry their own branding
@@ -76,6 +77,10 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         <SiteHeader data={header} initialUser={initialUser} />
         <Shell>{children}</Shell>
         <SiteFooter data={footer} />
+
+        {/* One-click Express checkout slide-over — opened from any Buy-Now button
+            via the csa:express-buy window event. signedIn gates the express flow. */}
+        <ExpressBuy signedIn={Boolean(initialUser)} />
 
         <CsaIcons />
       </body>

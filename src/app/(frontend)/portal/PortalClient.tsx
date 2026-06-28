@@ -32,6 +32,58 @@ export type PortalProfile = {
   memberSince: string
 }
 
+export type PortalOrder = {
+  id: string | number
+  orderNumber: string
+  date: string
+  itemsSummary: string
+  itemCount: number
+  total: string
+  status: string
+  receiptUrl: string | null
+}
+
+export type PortalTemplate = {
+  id: string | number
+  code: string
+  title: string
+  fileType: string
+  version: string
+  standards: string[]
+  downloadHref: string
+  downloadable: boolean
+}
+
+/** Map an order status to its portal status-chip modifier (classes in portal.css). */
+function statusClass(status: string): string {
+  switch (status) {
+    case 'paid':
+      return 'cp-status--safe'
+    case 'pending':
+      return 'cp-status--warn'
+    case 'failed':
+      return 'cp-status--critical'
+    default:
+      return 'cp-status--muted'
+  }
+}
+
+/** Presentation-cased label for an order status (mirrors the design's statusMeta). */
+function statusLabel(status: string): string {
+  switch (status) {
+    case 'paid':
+      return 'Paid'
+    case 'pending':
+      return 'Pending'
+    case 'failed':
+      return 'Failed'
+    case 'refunded':
+      return 'Refunded'
+    default:
+      return status ? status.charAt(0).toUpperCase() + status.slice(1) : '—'
+  }
+}
+
 const SECTIONS = [
   { id: 'account', label: 'Account Settings', icon: 'user-cog' },
   { id: 'billing', label: 'Billing', icon: 'credit-card' },
@@ -110,9 +162,13 @@ function CpEmpty({
 export function PortalClient({
   profile,
   billing,
+  orders = [],
+  templates = [],
 }: {
   profile: PortalProfile
   billing: { configured: boolean; card: DisplayCard }
+  orders?: PortalOrder[]
+  templates?: PortalTemplate[]
 }) {
   const router = useRouter()
   const [active, setActive] = useState<SectionId>('account')
@@ -549,21 +605,73 @@ export function PortalClient({
                     storage and you always get the latest revision you&rsquo;re entitled to.
                   </p>
                 </div>
-                <CpEmpty
-                  icon="folder-open"
-                  title="Your library is empty"
-                  sub="Templates and bundles you purchase appear here as downloadable Word and Excel files — with version and format details, re-downloadable whenever you need them."
-                  actions={
-                    <>
-                      <Link className="btn btn--gold-solid" href="/training/purchase-templates" data-metal="none">
-                        Browse templates <i data-lucide="arrow-right"></i>
-                      </Link>
-                      <Link className="btn btn--silver-pill" href="/training/browse-all-templates" data-metal="silver">
-                        See all documents
-                      </Link>
-                    </>
-                  }
-                />
+                {templates.length === 0 ? (
+                  <CpEmpty
+                    icon="folder-open"
+                    title="Your library is empty"
+                    sub="Templates and bundles you purchase appear here as downloadable Word and Excel files — with version and format details, re-downloadable whenever you need them."
+                    actions={
+                      <>
+                        <Link className="btn btn--gold-solid" href="/training/purchase-templates" data-metal="none">
+                          Browse templates <i data-lucide="arrow-right"></i>
+                        </Link>
+                        <Link className="btn btn--silver-pill" href="/training/browse-all-templates" data-metal="silver">
+                          See all documents
+                        </Link>
+                      </>
+                    }
+                  />
+                ) : (
+                  <div className="cp-lib" data-reveal="up">
+                    {templates.map((t) => (
+                      <article className="cp-tpl" key={t.id}>
+                        <div className="cp-tpl__media">
+                          <div className="cp-tpl__grid"></div>
+                          <span className="cp-tpl__fmt">{t.fileType}</span>
+                          <span className="cp-tpl__mark">
+                            <i data-lucide="file-text"></i>
+                          </span>
+                        </div>
+                        <div className="cp-tpl__body">
+                          {t.code && <p className="cp-tpl__code">{t.code}</p>}
+                          <h3 className="cp-tpl__title">{t.title}</h3>
+                          {t.standards.length > 0 && (
+                            <div className="cp-tpl__stds">
+                              {t.standards.map((s) => (
+                                <span className="cp-tpl__std" key={s}>
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <div className="cp-tpl__specs">
+                            <span className="cp-tpl__spec">
+                              <i data-lucide="git-branch"></i> {t.version}
+                            </span>
+                          </div>
+                          <div className="cp-tpl__foot">
+                            {t.downloadable ? (
+                              <a
+                                className="btn btn--gold-solid btn--dl cp-tpl__dl"
+                                href={t.downloadHref}
+                                data-metal="none"
+                              >
+                                Download <i data-lucide="download"></i>
+                              </a>
+                            ) : (
+                              <span className="btn btn--silver-pill cp-tpl__dl" aria-disabled="true">
+                                Preparing…
+                              </span>
+                            )}
+                          </div>
+                          <span className="cp-dl-meta">
+                            <i data-lucide="shield-check"></i> Owner-only, secure download
+                          </span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </>
             )}
 
@@ -590,16 +698,62 @@ export function PortalClient({
                     </div>
                   </header>
                   <div className="cp-card__body">
-                    <CpEmpty
-                      icon="receipt"
-                      title="No orders yet"
-                      sub="Once you make your first purchase, it’ll show up here with the date, order number, items, total, and a receipt you can download."
-                      actions={
-                        <Link className="btn btn--gold-solid" href="/training" data-metal="none">
-                          Explore training &amp; templates <i data-lucide="arrow-right"></i>
-                        </Link>
-                      }
-                    />
+                    {orders.length === 0 ? (
+                      <CpEmpty
+                        icon="receipt"
+                        title="No orders yet"
+                        sub="Once you make your first purchase, it’ll show up here with the date, order number, items, total, and a receipt you can download."
+                        actions={
+                          <Link className="btn btn--gold-solid" href="/training" data-metal="none">
+                            Explore training &amp; templates <i data-lucide="arrow-right"></i>
+                          </Link>
+                        }
+                      />
+                    ) : (
+                      <div className="cp-table-wrap">
+                        <table className="cp-table">
+                          <thead>
+                            <tr>
+                              <th>Order</th>
+                              <th>Date</th>
+                              <th>Items</th>
+                              <th className="cp-num">Total</th>
+                              <th>Status</th>
+                              <th className="cp-num">Receipt</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {orders.map((o) => (
+                              <tr key={o.id}>
+                                <td className="cp-table__mono">{o.orderNumber}</td>
+                                <td>{o.date}</td>
+                                <td className="cp-table__strong">
+                                  {o.itemsSummary}
+                                  <span className="cp-table__sub">
+                                    {o.itemCount} item{o.itemCount === 1 ? '' : 's'}
+                                  </span>
+                                </td>
+                                <td className="cp-table__amount cp-num">{o.total}</td>
+                                <td>
+                                  <span className={'cp-status ' + statusClass(o.status)}>
+                                    {statusLabel(o.status)}
+                                  </span>
+                                </td>
+                                <td className="cp-num">
+                                  {o.receiptUrl ? (
+                                    <a className="cp-receipt" href={o.receiptUrl} target="_blank" rel="noreferrer">
+                                      <i data-lucide="download"></i> Receipt
+                                    </a>
+                                  ) : (
+                                    '—'
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </section>
               </>

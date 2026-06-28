@@ -46,7 +46,12 @@ export const Orders: CollectionConfig = {
     {
       name: 'stripeSessionId',
       type: 'text',
-      admin: { description: 'Stripe Checkout Session id (opaque reference).' },
+      unique: true,
+      index: true,
+      admin: {
+        description:
+          'Stripe Checkout Session id (opaque reference). Unique — the idempotency key that prevents a re-delivered webhook from creating a duplicate order (M7).',
+      },
     },
     {
       name: 'stripePaymentIntentId',
