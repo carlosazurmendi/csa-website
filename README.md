@@ -140,23 +140,25 @@ idempotent) and, because content already exists, **skips seeding** — your CMS 
 preserved. Hashed static assets self-bust (new filenames each build), so no CDN purge
 is needed for `_next/static`.
 
-> ⚠️ Always pass **`-f docker-compose.yml`** in production. A bare `docker compose up`
-> auto-merges `docker-compose.override.yml`, which spins up a throwaway Postgres,
-> MinIO, and a demo GoTrue with hardcoded dev secrets — a serious footgun on a prod
-> host. The override is **local-development only**.
+> The dev stack lives in **`docker-compose.dev.yml`** — deliberately **not** named
+> `docker-compose.override.yml`, so a bare `docker compose up` (and stack managers like
+> dockhand) use **only** `docker-compose.yml` (production). Running the dev stack is
+> opt-in (§5). This prevents the dev Postgres/MinIO/GoTrue and local-bridge networks
+> from ever leaking into a production deploy.
 
 ---
 
 ## 5. Local development
 
-The dev override (`docker-compose.override.yml`, auto-merged by a bare `docker compose`)
-provides a complete self-contained stack — throwaway Postgres, MinIO (stands in for
-Supabase Storage), and a demo GoTrue — so nothing external is required:
+The dev stack (`docker-compose.dev.yml`) provides a complete self-contained
+environment — throwaway Postgres, MinIO (stands in for Supabase Storage), and a demo
+GoTrue — so nothing external is required. **You must pass both files** (it is not
+auto-merged):
 
 ```bash
-docker compose build
-docker compose up -d    # the init job migrates + seeds the local Postgres, then the app starts
-# app on http://localhost:3000 (published directly, no Traefik needed)
+docker compose -f docker-compose.yml -f docker-compose.dev.yml build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# init migrates + seeds the local Postgres, then the app starts on http://localhost:3000
 ```
 
 When you change a collection, generate a migration for production with the
@@ -164,7 +166,8 @@ profile-gated migrator (Payload introspects the diff in node22 — the host's No
 breaks `migrate:create`), then commit it:
 
 ```bash
-docker compose --profile tools run --rm migrator npm run migrate:create -- <name>
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile tools \
+  run --rm migrator npm run migrate:create -- <name>
 ```
 
 (In dev the app also uses Payload schema `push` to auto-sync local schema edits; the

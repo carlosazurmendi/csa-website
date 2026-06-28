@@ -3,8 +3,8 @@
 # the app connects to the existing self-hosted Supabase via DATABASE_URI.
 # Postgres is therefore deliberately NOT a service here.
 #
-#   prod:  docker compose -f docker-compose.yml up -d   (requires external `web` network)
-#   local: docker compose up -d                         (docker-compose.override.yml merges)
+#   prod:  docker compose -f docker-compose.yml up -d   (needs external `proxy` + `supabase_default` nets)
+#   local: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 # ============================================================================
 
 # Full app/migrator container environment. Each value is resolved from ${...}, which
