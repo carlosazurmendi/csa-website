@@ -6,13 +6,12 @@ import { attachTilt } from '../../_components/tilt'
 import { CmsImage } from '../../_components/CmsImage'
 
 /**
- * CaseStudiesCarousel — faithful port of design-reference/project/assets/case-studies.jsx
- * (the same component the standalone Case Studies.html page mounts). The carousel
- * cards + pull-quote come from the `case-studies` collection (mapped server-side in
- * the page and passed in as `cards`); each card's CTA links to its detail page at
- * /case-studies/<slug>. The per-card cover image slots, live liquid-metal rings,
- * tilt/parallax math, and the mobile-context guard are design-only behaviour
- * preserved inline from the export.
+ * CaseStudiesCarousel — faithful port of design-reference/project/assets/case-studies.jsx.
+ * The single implementation of the case-studies band: the home page renders it as a
+ * section (CMS heading copy via `heading`), sourced from the `case-studies` collection
+ * so each card's CTA links to its real detail page at /case-studies/<slug>. The per-card
+ * cover slots, live liquid-metal rings, tilt/parallax math, and the mobile-context guard
+ * are design-only behaviour preserved inline from the export.
  */
 
 export type CaseCard = {
@@ -21,11 +20,19 @@ export type CaseCard = {
   sector: string
   name: string
   desc: string
-  standards: string[]
   quote: string
   author: string
   affiliation: string | null
   cover?: string
+}
+
+/** CMS-driven section copy (the home record). */
+export type SectionHeading = {
+  eyebrow?: string
+  title?: string
+  sub?: string
+  ctaLabel?: string
+  ctaHref?: string
 }
 
 /* Mobile guard: on phones the carousel is swiped rapidly, and each swap
@@ -87,11 +94,13 @@ function Card({
   data,
   rel,
   active,
+  isMobile,
   onSelect,
 }: {
   data: CaseCard
   rel: number
   active: boolean
+  isMobile: boolean
   onSelect?: () => void
 }) {
   // rel is the wrapped offset in [-1, 0, 1]
@@ -147,7 +156,7 @@ function Card({
         ref={tiltRef}
         data-tilt-managed=""
       >
-        {active && <MetalRing kind="silver" />}
+        {active && !isMobile && <MetalRing kind="silver" />}
         <div className="cs-card__cover">
           <CmsImage src={data.cover} alt={data.name} sizes="(max-width: 900px) 100vw, 800px" />
         </div>
@@ -156,15 +165,6 @@ function Card({
           <p className="cs-card__sector">{data.sector}</p>
           <h3 className="cs-card__name">{data.name}</h3>
           <p className="cs-card__desc">{data.desc}</p>
-          {data.standards.length > 0 && (
-            <div className="cs-card__std">
-              {data.standards.map((s) => (
-                <span className="cs-card__chip" key={s}>
-                  {s}
-                </span>
-              ))}
-            </div>
-          )}
           <Link
             className="btn btn--gold-pill cs-card__cta"
             href={`/case-studies/${data.slug}`}
@@ -178,10 +178,10 @@ function Card({
   )
 }
 
-function Quote({ data, index }: { data: CaseCard; index: number }) {
+function Quote({ data, index, isMobile }: { data: CaseCard; index: number; isMobile: boolean }) {
   return (
     <div className="cs-quote csa-glass cs-anim" key={'q' + index}>
-      <MetalRing kind="silver" />
+      {!isMobile && <MetalRing kind="silver" />}
       <span className="cs-quote__mark">&ldquo;</span>
       <p className="cs-quote__text">{data.quote}</p>
       <div className="cs-quote__by">
@@ -193,7 +193,13 @@ function Quote({ data, index }: { data: CaseCard; index: number }) {
   )
 }
 
-export function CaseStudiesCarousel({ cards }: { cards: CaseCard[] }) {
+export function CaseStudiesCarousel({
+  cards,
+  heading,
+}: {
+  cards: CaseCard[]
+  heading?: SectionHeading
+}) {
   const [index, setIndex] = useState(0)
   const isMobile = useIsMobile()
   const count = cards.length
@@ -215,6 +221,12 @@ export function CaseStudiesCarousel({ cards }: { cards: CaseCard[] }) {
   const active = cards[index]
   if (!active) return null
 
+  const eyebrow = heading?.eyebrow ?? 'Proof, not promises.'
+  const title = heading?.title ?? 'Case studies.'
+  const sub = heading?.sub ?? 'Real results from teams shipping safety-critical systems.'
+  const ctaLabel = heading?.ctaLabel ?? 'Read the Full Case Studies'
+  const ctaHref = heading?.ctaHref ?? '/company/experience'
+
   return (
     <section className="cs">
       <div className="cs__haze" />
@@ -234,22 +246,31 @@ export function CaseStudiesCarousel({ cards }: { cards: CaseCard[] }) {
 
       <div className="cs__head">
         <p className="csa-eyebrow" data-reveal="up" data-scramble>
-          Proof, not promises.
+          {eyebrow}
         </p>
         <h2 className="csa-h2 cs__title" data-reveal="up" data-reveal-delay="80">
-          Case studies.
+          {title}
         </h2>
         <p className="cs__sub" data-reveal="up" data-reveal-delay="160">
-          Real results from teams shipping safety-critical systems.
+          {sub}
         </p>
       </div>
 
       <div className="cs__stage">
         {cards.map((c, i) => {
           const rel = ((i - index + count + half) % count) - half
-          return <Card key={c.id} data={c} rel={rel} active={i === index} onSelect={() => setIndex(i)} />
+          return (
+            <Card
+              key={c.id}
+              data={c}
+              rel={rel}
+              active={i === index}
+              isMobile={isMobile}
+              onSelect={() => setIndex(i)}
+            />
+          )
         })}
-        <Quote data={active} index={index} />
+        <Quote data={active} index={index} isMobile={isMobile} />
       </div>
 
       <div className="cs__nav">
@@ -272,8 +293,8 @@ export function CaseStudiesCarousel({ cards }: { cards: CaseCard[] }) {
       </div>
 
       <div className="cs__cta-row">
-        <Link className="btn btn--gold-pill btn--lg" href="/company/experience">
-          Read the Full Case Studies <i data-lucide="arrow-right"></i>
+        <Link className="btn btn--gold-pill btn--lg" href={ctaHref}>
+          {ctaLabel} <i data-lucide="arrow-right"></i>
         </Link>
       </div>
     </section>

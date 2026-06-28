@@ -354,7 +354,7 @@ export default async function CaseStudyDetailPage({ params }: { params: Promise<
                   Related case studies.
                 </h2>
               </div>
-              <Link className="btn btn--link" href="/case-studies">
+              <Link className="btn btn--link" href="/company/experience">
                 All case studies <i data-lucide="arrow-right"></i>
               </Link>
             </div>

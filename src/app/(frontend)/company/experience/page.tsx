@@ -133,7 +133,7 @@ export default async function CompanyExperiencePage() {
     const relSlug = rel && typeof rel === 'object' ? rel.slug : rel != null ? slugById.get(rel) : undefined
     if (relSlug) return `/case-studies/${relSlug}`
     const slug = TITLE_ALIAS[norm(item.title)] ?? slugByTitle.get(norm(item.title))
-    return slug ? `/case-studies/${slug}` : '/case-studies'
+    return slug ? `/case-studies/${slug}` : '/company/experience'
   }
 
   return (
