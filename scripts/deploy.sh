@@ -173,9 +173,19 @@ EOF
   ok "$ENV_FILE written"
 fi
 
-# load .env so the rest of the script can read the values
-set -a; # shellcheck disable=SC1090
-. "$ENV_FILE"; set +a
+# Re-read ONLY the values this script needs for its own logic (network checks, bucket
+# provisioning, status messages). NEVER `source` the .env — a value may contain spaces or
+# shell-special characters that bash would try to execute. Docker Compose reads .env
+# itself for ${APP_DOMAIN}/${REDIS_PASSWORD}/${TRAEFIK_NETWORK}/${SUPABASE_NETWORK}.
+envget() { grep -E "^$1=" "$ENV_FILE" | head -n1 | cut -d= -f2-; }
+APP_DOMAIN=$(envget APP_DOMAIN)
+NEXT_PUBLIC_SUPABASE_URL=$(envget NEXT_PUBLIC_SUPABASE_URL)
+SUPABASE_SERVICE_ROLE_KEY=$(envget SUPABASE_SERVICE_ROLE_KEY)
+S3_PUBLIC_BUCKET=$(envget S3_PUBLIC_BUCKET)
+S3_PROTECTED_BUCKET=$(envget S3_PROTECTED_BUCKET)
+TRAEFIK_NETWORK=$(envget TRAEFIK_NETWORK)
+SUPABASE_NETWORK=$(envget SUPABASE_NETWORK)
+SEED_ADMIN_EMAIL=$(envget SEED_ADMIN_EMAIL)
 
 # ---------------------------------------------------------------------------
 # 2. Networks — Traefik (may be created) + Supabase (must already exist)
