@@ -55,15 +55,15 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - web
+      - proxy
       - internal
-      - supabase # reach the self-hosted Supabase Postgres + Auth on its own network
+      - supabase_default # reach the self-hosted Supabase Postgres + Auth on its own network
     labels:
-      # Traefik coupling is parameterised so it can match an existing Traefik
-      # install — set TRAEFIK_NETWORK / TRAEFIK_ENTRYPOINT_HTTP(S) / TRAEFIK_CERTRESOLVER
-      # in .env (defaults: web / web / websecure / letsencrypt). scripts/deploy.sh prompts for these.
+      # Traefik entrypoints + cert resolver are parameterised (set TRAEFIK_ENTRYPOINT_HTTP(S)
+      # / TRAEFIK_CERTRESOLVER in .env; defaults web / websecure / letsencrypt). The shared
+      # network name is the `proxy:` external network (below) + this docker.network label.
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_NETWORK:-proxy}"
+      - "traefik.docker.network=proxy"
       - "traefik.http.routers.csa.rule=Host(`${APP_DOMAIN}`)"
       - "traefik.http.routers.csa.entrypoints=${TRAEFIK_ENTRYPOINT_HTTPS:-websecure}"
       - "traefik.http.routers.csa.tls=true"
@@ -112,17 +112,21 @@ services:
     command: ["bash", "scripts/bootstrap.sh"]
     networks:
       - internal
-      - supabase # reach the self-hosted Supabase Postgres (DATABASE_URI host = db)
+      - supabase_default # reach the self-hosted Supabase Postgres (DATABASE_URI host = db)
 
 volumes:
   redis-data:
 
 networks:
-  web:
-    external: true # shared with Traefik (the real network name = ${TRAEFIK_NETWORK})
-    name: ${TRAEFIK_NETWORK:-proxy}
-  supabase:
+  # External networks are referenced by their REAL names as the keys (no key→name
+  # remap). This is the most portable form and sidesteps the
+  # "network … has incorrect label com.docker.compose.network" error you hit when a
+  # service joins ANOTHER compose project's network (e.g. Supabase's `supabase_default`).
+  # If your Traefik / Supabase networks are named differently, rename these keys AND the
+  # matching service `networks:` entries (and the `traefik.docker.network` label).
+  proxy:
+    external: true # your existing Traefik network
+  supabase_default:
     external: true # the self-hosted Supabase stack's network (must already exist)
-    name: ${SUPABASE_NETWORK:-supabase_default}
   internal:
     driver: bridge

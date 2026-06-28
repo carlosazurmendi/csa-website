@@ -151,11 +151,11 @@ volumes:
   pg-data:
   minio-data:
 
+# Locally there is no external Traefik / Supabase — override the base's external
+# networks (proxy, supabase_default) to plain local bridges so `docker compose up`
+# resolves them. The app uses the throwaway `postgres` service for the DB, not `db`.
 networks:
-  web:
+  proxy:
     external: false
-  # Locally there is no external Supabase stack — the app uses the throwaway `postgres`
-  # service, so make the `supabase` network a plain local bridge (overrides the base's
-  # external: true) just so `docker compose up` resolves it.
-  supabase:
+  supabase_default:
     external: false
