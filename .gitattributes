@@ -1,0 +1,7 @@
+# Shell scripts MUST stay LF — they run on Linux (a CRLF shebang = "bad interpreter").
+*.sh text eol=lf
+# Container/entrypoint + config files that Linux tooling reads line-by-line.
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+.env.example text eol=lf

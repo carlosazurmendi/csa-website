@@ -21,17 +21,20 @@ services:
       - web
       - internal
     labels:
+      # Traefik coupling is parameterised so it can match an existing Traefik
+      # install — set TRAEFIK_NETWORK / TRAEFIK_ENTRYPOINT_HTTP(S) / TRAEFIK_CERTRESOLVER
+      # in .env (defaults: web / web / websecure / letsencrypt). scripts/deploy.sh prompts for these.
       - "traefik.enable=true"
-      - "traefik.docker.network=web"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-web}"
       - "traefik.http.routers.csa.rule=Host(`${APP_DOMAIN}`)"
-      - "traefik.http.routers.csa.entrypoints=websecure"
+      - "traefik.http.routers.csa.entrypoints=${TRAEFIK_ENTRYPOINT_HTTPS:-websecure}"
       - "traefik.http.routers.csa.tls=true"
-      - "traefik.http.routers.csa.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.csa.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
       - "traefik.http.services.csa.loadbalancer.server.port=3000"
       - "traefik.http.routers.csa.middlewares=csa-compress@docker"
       # HTTP -> HTTPS redirect
       - "traefik.http.routers.csa-http.rule=Host(`${APP_DOMAIN}`)"
-      - "traefik.http.routers.csa-http.entrypoints=web"
+      - "traefik.http.routers.csa-http.entrypoints=${TRAEFIK_ENTRYPOINT_HTTP:-web}"
       - "traefik.http.routers.csa-http.middlewares=csa-https-redirect@docker"
       - "traefik.http.middlewares.csa-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.csa-https-redirect.redirectscheme.permanent=true"
@@ -80,6 +83,7 @@ volumes:
 
 networks:
   web:
-    external: true # shared with Traefik: `docker network create web`
+    external: true # shared with Traefik (the real network name = ${TRAEFIK_NETWORK})
+    name: ${TRAEFIK_NETWORK:-web}
   internal:
     driver: bridge

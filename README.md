@@ -75,6 +75,22 @@ with a publicly-known default — see §3.3).
 Production uses **migrations** (schema `push` is off in production), so the database
 schema is created by running the migration job — not by the app on boot.
 
+### 3.0 Guided deploy (recommended)
+
+One interactive script does the whole thing — prompts for every value (generating
+`PAYLOAD_SECRET` + `REDIS_PASSWORD` for you), writes a locked-down `.env`, optionally
+provisions the Supabase buckets, then builds → migrates → seeds → serves:
+
+```bash
+git clone https://github.com/carlosazurmendi/csa-website && cd csa-website
+bash scripts/deploy.sh
+```
+
+It asks for your Traefik network / entrypoint / cert-resolver names (so it works with
+an existing Traefik), and is re-runnable — on a later `git pull` it offers to reuse the
+existing `.env` and just rebuild + migrate + redeploy. The manual equivalents are
+§3.1–3.4 below.
+
 ### 3.1 Build
 
 ```bash
