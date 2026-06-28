@@ -154,3 +154,8 @@ volumes:
 networks:
   web:
     external: false
+  # Locally there is no external Supabase stack — the app uses the throwaway `postgres`
+  # service, so make the `supabase` network a plain local bridge (overrides the base's
+  # external: true) just so `docker compose up` resolves it.
+  supabase:
+    external: false

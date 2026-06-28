@@ -50,6 +50,8 @@ services:
     restart: unless-stopped
     environment: *csa-env
     depends_on:
+      init:
+        condition: service_completed_successfully # migrate + seed must finish first
       redis:
         condition: service_healthy
     networks:
@@ -91,29 +93,26 @@ services:
       retries: 5
       start_period: 5s
 
-  # One-off MIGRATION runner (production). NOT a long-running service — it is gated
-  # behind the `tools` profile so a normal `up` never starts it. Run it explicitly
-  # BEFORE bringing the app up, and again after any deploy that adds migrations:
-  #
-  #   docker compose -f docker-compose.yml --profile tools run --rm migrator
-  #
-  # Built from the `builder` stage (full deps + Payload CLI + src — the slim runner
-  # image has none of these), so it shares the app's build cache. It connects to the
-  # SAME external Supabase DATABASE_URI as the app (via .env) and applies the
-  # committed, additive migrations only — it never runs `push`. First deploy only:
-  # follow with `... run --rm migrator npm run seed:admin` to create the first admin.
-  migrator:
+  # Auto-init job — runs to completion BEFORE the app every deploy (the app's
+  # depends_on gates on it). On a fresh database it brings Supabase up to the built
+  # state: wait-for-db → migrate → create buckets → seed admin + content + media +
+  # course (see scripts/bootstrap.sh). Idempotent + first-run-guarded, so a redeploy
+  # only re-migrates and never re-seeds over CMS edits. Built from the `builder` stage
+  # (Payload CLI + src + pg — the slim runner image has none of these), sharing the
+  # app's build cache. It never runs `push`. Ad-hoc ops, e.g. force a content reseed:
+  #   docker compose -f docker-compose.yml run --rm init npm run seed
+  init:
     build:
       context: .
       dockerfile: Dockerfile
       target: builder
-    image: csa-website-migrator:latest
+    image: csa-website-init:latest
+    restart: "no" # one-shot job, not a long-running service
     environment: *csa-env
-    command: ["npm", "run", "migrate"]
+    command: ["bash", "scripts/bootstrap.sh"]
     networks:
       - internal
-      - supabase # must reach the self-hosted Supabase Postgres (DATABASE_URI host = db)
-    profiles: ["tools"]
+      - supabase # reach the self-hosted Supabase Postgres (DATABASE_URI host = db)
 
 volumes:
   redis-data:

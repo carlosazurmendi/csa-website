@@ -204,73 +204,29 @@ docker network inspect "${SUPABASE_NETWORK:-supabase_default}" >/dev/null 2>&1 \
   || die "Supabase network '${SUPABASE_NETWORK:-supabase_default}' not found — is the Supabase stack up? Fix SUPABASE_NETWORK in .env."
 
 # ---------------------------------------------------------------------------
-# 3. Supabase Storage buckets (optional, via the Storage REST API + service key)
+# 3. Build  (migrate + bucket-create + first-run seed all happen automatically in
+#    the `init` job when the app starts below — see scripts/bootstrap.sh)
 # ---------------------------------------------------------------------------
-if yesno "Provision the Supabase Storage buckets now (public + private)?" Y; then
-  say "Creating buckets via ${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/bucket"
-  mk_bucket() { # mk_bucket <id> <public:true|false>
-    local id=$1 pub=$2 code
-    code=$(curl -s -o /tmp/csa_bucket.out -w '%{http_code}' -X POST \
-      "${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/bucket" \
-      -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
-      -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
-      -H 'Content-Type: application/json' \
-      -d "{\"id\":\"${id}\",\"name\":\"${id}\",\"public\":${pub}}" || echo 000)
-    case "$code" in
-      200|201) ok "bucket '${id}' created (public=${pub})";;
-      409)     ok "bucket '${id}' already exists";;
-      *)       warn "bucket '${id}': HTTP ${code} — $(cat /tmp/csa_bucket.out 2>/dev/null). Create it in Supabase Studio (public=${pub}).";;
-    esac
-  }
-  mk_bucket "${S3_PUBLIC_BUCKET:-marketing}" true
-  mk_bucket "${S3_PROTECTED_BUCKET:-course-assets}" false
-  rm -f /tmp/csa_bucket.out
-else
-  warn "Skipping bucket provisioning — ensure '${S3_PUBLIC_BUCKET}' (public) and '${S3_PROTECTED_BUCKET}' (private) exist in Supabase."
-fi
+say "Building the images (runs next build + the CSS-fidelity check)"
+$COMPOSE build
+ok "images built"
 
 # ---------------------------------------------------------------------------
-# 4. Build
+# 4. Serve — `up` runs the init job (wait-for-db → migrate → buckets → first-run
+#    seed) to completion, THEN starts the app.
 # ---------------------------------------------------------------------------
-say "Building the production image (this runs next build + the CSS-fidelity check)"
-$COMPOSE build app
-ok "image built"
-
-# ---------------------------------------------------------------------------
-# 5. Migrate (schema) — must run before the app serves
-# ---------------------------------------------------------------------------
-say "Applying database migrations"
-$COMPOSE --profile tools run --rm migrator
-ok "migrations applied"
-
-# ---------------------------------------------------------------------------
-# 6. Seed
-# ---------------------------------------------------------------------------
-if yesno "Create the first /admin user now (seed:admin)?" Y; then
-  $COMPOSE --profile tools run --rm migrator npm run seed:admin && ok "admin user seeded (${SEED_ADMIN_EMAIL})"
-fi
-if yesno "Seed the site content (real marketing/storefront copy + globals)?" Y; then
-  $COMPOSE --profile tools run --rm migrator npm run seed && ok "content seeded"
-  if yesno "Also seed placeholder media (needs the public bucket; replace in /admin later)?" Y; then
-    $COMPOSE --profile tools run --rm migrator npm run seed:media && ok "placeholder media seeded" || warn "seed:media failed — check S3 creds/bucket."
-  fi
-fi
-
-# ---------------------------------------------------------------------------
-# 7. Serve + health
-# ---------------------------------------------------------------------------
-say "Starting the app"
+say "Starting the stack (the init job migrates + seeds first; a fresh DB can take a few minutes)…"
 $COMPOSE up -d
 say "Waiting for health (Redis + Postgres)…"
 healthy=0
-for i in $(seq 1 30); do
+for i in $(seq 1 45); do
   if $COMPOSE exec -T app curl -fsS http://127.0.0.1:3000/api/health >/tmp/csa_health.out 2>/dev/null; then
     healthy=1; break
   fi
   sleep 2
 done
 if [ "$healthy" -eq 1 ]; then ok "healthy: $(cat /tmp/csa_health.out)"; rm -f /tmp/csa_health.out
-else warn "health did not pass after 60s — check: $COMPOSE logs --tail 50 app"; fi
+else warn "app not healthy yet — check init + app logs: $COMPOSE logs --tail 80 init app"; fi
 
 # ---------------------------------------------------------------------------
 # 8. Done
@@ -281,9 +237,14 @@ cat <<EOF
   Site:   https://${APP_DOMAIN}      (once Traefik issues the TLS cert)
   Admin:  https://${APP_DOMAIN}/admin   login: ${SEED_ADMIN_EMAIL}  — change this password now.
 
+  The init job migrated the schema, created the buckets, and (on a fresh DB) seeded
+  the real content + placeholder media. Replace the placeholder images with real
+  brand assets in /admin.
+
   Still to do (outside this script):
     • Stripe webhook: add an endpoint https://${APP_DOMAIN}/stripe/webhook and put its
       signing secret in .env as STRIPE_WEBHOOK_SECRET, then re-run: $COMPOSE up -d
     • Confirm presigned downloads work against your Supabase S3 (a purchased template / lesson video).
-    • Redeploy after a 'git pull':  bash scripts/deploy.sh   (reuse .env -> rebuild -> migrate -> up)
+    • Redeploy after a 'git pull':  bash scripts/deploy.sh   (reuse .env -> rebuild -> up;
+      the init job re-migrates automatically and never re-seeds over your CMS edits)
 EOF

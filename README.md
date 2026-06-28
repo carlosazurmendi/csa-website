@@ -76,76 +76,44 @@ with a publicly-known default — see §3.3).
 
 ## 3. First deploy (clean machine)
 
-Production uses **migrations** (schema `push` is off in production), so the database
-schema is created by running the migration job — not by the app on boot.
+On `docker compose up`, an **`init` job runs to completion before the app starts**: it
+waits for the database, applies migrations (schema `push` is off in production),
+creates the storage buckets, and — on a **fresh** database only — seeds the first
+admin, the real CMS content, placeholder media, and the flagship course
+(`scripts/bootstrap.sh`). It is idempotent and first-run-guarded, so redeploys only
+re-migrate and **never re-seed over your CMS edits**. A clean box therefore comes up
+fully populated with no manual migrate/seed step.
 
 ### 3.0 Guided deploy (recommended)
 
-One interactive script does the whole thing — prompts for every value (generating
-`PAYLOAD_SECRET` + `REDIS_PASSWORD` for you), writes a locked-down `.env`, optionally
-provisions the Supabase buckets, then builds → migrates → seeds → serves:
+One interactive script prompts for every value (generating `PAYLOAD_SECRET` +
+`REDIS_PASSWORD`), writes a locked-down `.env`, then builds and brings the stack up —
+the init job migrates + seeds automatically:
 
 ```bash
 git clone https://github.com/carlosazurmendi/csa-website && cd csa-website
 bash scripts/deploy.sh
 ```
 
-It asks for your Traefik network / entrypoint / cert-resolver names (so it works with
-an existing Traefik), and is re-runnable — on a later `git pull` it offers to reuse the
-existing `.env` and just rebuild + migrate + redeploy. The manual equivalents are
-§3.1–3.4 below.
+It asks for your Traefik network / entrypoint / cert-resolver names so it binds to an
+existing Traefik, and is re-runnable (reuse `.env` → rebuild → redeploy).
 
-### 3.1 Build
+### 3.1 Manual equivalent
 
 ```bash
 docker compose -f docker-compose.yml build
-```
-
-### 3.2 Migrate (apply the schema) — run BEFORE the app
-
-The migration runner is a one-off service behind the `tools` profile (it is **not**
-started by a normal `up`):
-
-```bash
-docker compose -f docker-compose.yml --profile tools run --rm migrator
-```
-
-This applies the committed, **additive** migrations to the external Supabase Postgres.
-Re-running it is safe (already-applied migrations are skipped).
-
-### 3.3 Seed the first admin + content
-
-```bash
-# 1. First Payload /admin user (uses SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD).
-docker compose -f docker-compose.yml --profile tools run --rm migrator npm run seed:admin
-
-# 2. Marketing + storefront content, pages, and globals (no file uploads).
-docker compose -f docker-compose.yml --profile tools run --rm migrator npm run seed
-
-# 3. Placeholder media — REQUIRES the public bucket to exist + S3 keys set.
-docker compose -f docker-compose.yml --profile tools run --rm migrator npm run seed:media
-
-# 4. (Optional) richer course-player content for the flagship course.
-#    Must run AFTER `seed` (depends on the iec-61508-ifsp course existing).
-docker compose -f docker-compose.yml --profile tools run --rm migrator npm run seed:lessons
-docker compose -f docker-compose.yml --profile tools run --rm migrator npm run seed:assessment
-```
-
-> **Order matters.** `seed` must run before `seed:media` (it patches image fields on
-> existing content) and before `seed:lessons` / `seed:assessment`. Do **not** re-run
-> `npm run seed` after `seed:lessons` / `seed:assessment` — the generic seed would
-> overwrite the richer lesson keyPoints / quiz / resources. `npm run reseed:globals`
-> is a safe re-push of header/footer/site-settings only.
->
-> `seed:admin` creates the Payload **/admin** content-team login only — it does **not**
-> create Supabase end-users (those self-register at signup). **Change the admin
-> password on first login** if you used the default.
-
-### 3.4 Serve
-
-```bash
 docker compose -f docker-compose.yml up -d
 ```
+
+`up` runs the **init** job to completion (wait-for-db → migrate → create buckets →
+first-run seed of admin + content + media + course), then starts the app. Follow it
+with `docker compose -f docker-compose.yml logs -f init`.
+
+> `seed:admin` creates the Payload **/admin** login (`SEED_ADMIN_EMAIL` /
+> `SEED_ADMIN_PASSWORD`) — not a Supabase end-user (those self-register at signup).
+> **Change the admin password on first login.** Replace the placeholder media with real
+> brand assets in /admin. To re-run one seed by hand:
+> `docker compose -f docker-compose.yml run --rm init npm run seed:media`.
 
 Wait for health, then it's live at `https://APP_DOMAIN` (via Traefik):
 
@@ -164,12 +132,13 @@ unreachable database keeps the container unhealthy and out of rotation.
 ```bash
 git pull
 docker compose -f docker-compose.yml build
-docker compose -f docker-compose.yml --profile tools run --rm migrator   # apply any new migrations first
-docker compose -f docker-compose.yml up -d --force-recreate app
+docker compose -f docker-compose.yml up -d
 ```
 
-Migrations are **additive** and idempotent; hashed static assets self-bust (new
-filenames each build), so no CDN purge is needed for `_next/static`.
+The init job re-runs on deploy: it applies any **new** migrations (additive,
+idempotent) and, because content already exists, **skips seeding** — your CMS edits are
+preserved. Hashed static assets self-bust (new filenames each build), so no CDN purge
+is needed for `_next/static`.
 
 > ⚠️ Always pass **`-f docker-compose.yml`** in production. A bare `docker compose up`
 > auto-merges `docker-compose.override.yml`, which spins up a throwaway Postgres,
@@ -182,23 +151,24 @@ filenames each build), so no CDN purge is needed for `_next/static`.
 
 The dev override (`docker-compose.override.yml`, auto-merged by a bare `docker compose`)
 provides a complete self-contained stack — throwaway Postgres, MinIO (stands in for
-Supabase Storage), a demo GoTrue, and the migration runner — so nothing external is
-required:
+Supabase Storage), and a demo GoTrue — so nothing external is required:
 
 ```bash
 docker compose build
-docker compose run --rm migrator                 # apply migrations to the local Postgres
-docker compose run --rm migrator npm run seed:admin
-docker compose run --rm migrator npm run seed
-docker compose up -d                             # app + redis + postgres + minio + gotrue
+docker compose up -d    # the init job migrates + seeds the local Postgres, then the app starts
 # app on http://localhost:3000 (published directly, no Traefik needed)
 ```
 
-In development the app uses Payload schema `push` (auto-sync) instead of migrations,
-so the local DB tracks collection changes without a migration step. When you change a
-collection, generate a migration for production with
-`docker compose run --rm migrator npm run migrate:create -- <name>` (Payload
-introspects the diff), then commit it.
+When you change a collection, generate a migration for production with the
+profile-gated migrator (Payload introspects the diff in node22 — the host's Node 26
+breaks `migrate:create`), then commit it:
+
+```bash
+docker compose --profile tools run --rm migrator npm run migrate:create -- <name>
+```
+
+(In dev the app also uses Payload schema `push` to auto-sync local schema edits; the
+committed migrations are what production applies via the init job.)
 
 ---
 
