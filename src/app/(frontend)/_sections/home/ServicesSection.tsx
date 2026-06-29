@@ -245,7 +245,7 @@ export function ServicesSection({ home }: { home: HomeDoc }) {
       </div>
 
       <div className="sv__cta-row">
-        <Link className="btn btn--lg rv-glass-btn" data-metal="gold" data-metal-mode="hover" href={active.ctaHref}>
+        <Link className="btn btn--lg rv-glass-btn" data-metal="gold" data-metal-mode="always" href={active.ctaHref}>
           {active.cta} <i data-lucide="arrow-right"></i>
         </Link>
       </div>

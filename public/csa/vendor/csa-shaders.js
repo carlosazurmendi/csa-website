@@ -431,14 +431,15 @@
       });
     }
 
-    /* ---- data-metal-mode="hover" : hold a WebGL context ONLY while the pointer
-       (or keyboard focus) is on the host. The resting state is the static CSS
-       foil edge; the live liquid-metal ring is mounted on pointerenter/focusin
-       and suspended (context released) on pointerleave/focusout. Used on
-       secondary CTAs that don't need to animate continuously, so they stop
-       burning a WebGL context at rest. The ring element is host-managed
-       (host.__ring), so the viewport lazy-loader never touches it — these
-       handlers own its full lifecycle. */
+    /* ---- HOVER-ACTIVATED liquid metal (the DEFAULT for metal edges) ----
+       Hold a WebGL context ONLY while the pointer (or keyboard focus) is on the
+       host. The resting state is the static CSS foil edge; the live liquid-metal
+       ring is mounted on pointerenter/focusin and suspended (context released)
+       on pointerleave/focusout. This is the default for every metal edge so the
+       site carries ZERO idle WebGL contexts; only the hosts that must animate
+       continuously opt back in to always-on (see metalForcedAlways). The ring
+       element is host-managed (host.__ring), so the viewport lazy-loader never
+       touches it — these handlers own its full lifecycle. */
     function wireMetalHoverHandlers(el) {
       if (el.__metalHoverWired) return;
       el.__metalHoverWired = true;
@@ -457,12 +458,23 @@
       el.addEventListener('focusout', off);
     }
 
-    /* ---- data-metal : register a host for a lazily-loaded liquid-metal ring.
-       The CSS foil edge is the no-WebGL FALLBACK; the live ring is injected by
-       the lazy-loader once the host scrolls into view and suspended when it
-       leaves. Opt out per element with data-metal="none". Hosts marked
-       data-metal-mode="hover" get a hover-activated ring instead of an
-       always-on (while-visible) one — see wireMetalHoverHandlers above. */
+    /* A metal edge animates CONTINUOUSLY (always-on, while visible) only if it
+       opts in; otherwise it is hover-activated. Opt-in is either an explicit
+       data-metal-mode="always", or the host being a "Book a Consultation" CTA
+       (its link points at the consultation route) — those primary conversion
+       CTAs stay live without each page having to mark them. Everything else
+       (secondary CTAs, card/glass edges, decorative rings) is hover-only. */
+    function metalForcedAlways(el) {
+      if ((el.getAttribute('data-metal-mode') || '') === 'always') return true;
+      var href = el.getAttribute('href') || '';
+      if (href.indexOf('book-a-consultation') >= 0) return true;
+      return false;
+    }
+
+    /* ---- data-metal : register a host for a liquid-metal ring. The CSS foil
+       edge is the no-WebGL FALLBACK. Always-on hosts (metalForcedAlways) get the
+       viewport lazy-loader (ring injected on scroll-in, suspended on scroll-out);
+       all others are hover-activated. Opt out entirely with data-metal="none". */
     function wireMetal(root) {
       (root || document).querySelectorAll('[data-metal]').forEach(function (el) {
         if (el.__metal) return;
@@ -476,8 +488,8 @@
         if (!isNaN(mtn) && mtn > 2) mt = '2px';
         el.__metalThick = mt;
         if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
-        if ((el.getAttribute('data-metal-mode') || '') === 'hover') wireMetalHoverHandlers(el);
-        else metalHosts.push(el);
+        if (metalForcedAlways(el)) metalHosts.push(el);
+        else wireMetalHoverHandlers(el);
       });
       syncLazyShaders();
     }
@@ -492,11 +504,13 @@
        The numerous frosted .csa-glass cards intentionally keep their reliable
        CSS silver-foil edge — give a specific one a live edge with an explicit
        data-metal="silver" in the markup (still honoured below). */
-    // Auto-wire a bounded number of gold buttons to live liquid metal (the rest
-    // keep the CSS gold-foil fallback). The viewport lazy-loader keeps only
-    // ON-SCREEN edges holding a WebGL context, so many edges can be authored
-    // without ever exceeding the ~16-context budget.
-    var AUTO_METAL_MAX = 10;
+    // Auto-wire gold buttons to liquid metal. Since metal is now HOVER-ACTIVATED
+    // by default (metalForcedAlways gates the few always-on hosts), authored
+    // edges cost ZERO idle WebGL contexts — so the cap is generous (cover every
+    // button on a page) rather than the old ~16-context safety budget. Concurrent
+    // live contexts are still bounded: always-on hosts by the viewport lazy-loader,
+    // hover hosts by how many are hovered at once (≈1).
+    var AUTO_METAL_MAX = 64;
     // The set of buttons WE auto-wired. The budget caps how many are LIVE at once,
     // NOT how many we ever wired: on client-side (SPA) navigation the previous
     // page's buttons are removed from the DOM, so we prune them here and free
