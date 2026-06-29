@@ -469,7 +469,7 @@ export function SiteHeader({ data, initialUser = null }: { data: HeaderData; ini
                 <Link className="navx__login" href={login.href}>
                   <i data-lucide="user"></i> {login.label}
                 </Link>
-                <Link className="btn btn--silver-pill navx__cta" href={consultation.href} data-metal="silver">
+                <Link className="btn btn--silver-pill navx__cta" href={consultation.href} data-metal="silver" data-metal-mode="hover">
                   {consultation.label} <i data-lucide="arrow-right"></i>
                 </Link>
               </>

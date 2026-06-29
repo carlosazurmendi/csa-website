@@ -454,6 +454,16 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display:
   html:not([data-csa-motion]) .csa-metal-on::before { animation: none; }
 }
 
+/* ---------- data-metal-mode="hover" : edge animates only on hover ----------
+   These hosts hold the static CSS foil at rest — no continuous foil sheen and
+   no always-on WebGL ring (csa-shaders.js mounts the live liquid-metal ring on
+   pointerenter/focus and releases its context on leave). Freezing the resting
+   sheen keeps the resting edge genuinely static; it resumes on hover alongside
+   the live ring. Used on secondary CTAs so they stop burning GPU at rest. */
+[data-metal-mode="hover"]::before { animation: none !important; }
+[data-metal-mode="hover"]:hover::before,
+[data-metal-mode="hover"]:focus-visible::before { animation: csa-gold-sheen 8s linear infinite !important; }
+
 /* Some hosts carry a JSX-declared liquid-metal ring that never receives the
    .csa-metal-on class (data-no-lazy, React-owned) AND place that ring at a high
    z-index (e.g. carousel cards put it at z-index:3 to clear cover art) — which

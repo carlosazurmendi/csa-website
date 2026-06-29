@@ -116,7 +116,7 @@ export function AboutSection({ home }: { home: HomeDoc }) {
           </div>
 
           <div className="ab__cta">
-            <Link className="btn btn--lg rv-glass-btn" data-metal="gold" href="/company/experience">
+            <Link className="btn btn--lg rv-glass-btn" data-metal="gold" data-metal-mode="hover" href="/company/experience">
               {home.abCtaLabel} <i data-lucide="arrow-right"></i>
             </Link>
           </div>

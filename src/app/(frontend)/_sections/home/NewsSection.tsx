@@ -145,6 +145,7 @@ export function NewsSection({ home }: { home: HomeDoc }) {
             className="btn btn--lg nw__cta rv-glass-btn"
             href="/resources"
             data-metal="gold"
+            data-metal-mode="hover"
             data-reveal="up"
             data-reveal-delay="240"
           >

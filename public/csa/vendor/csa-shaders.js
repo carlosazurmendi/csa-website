@@ -431,10 +431,38 @@
       });
     }
 
+    /* ---- data-metal-mode="hover" : hold a WebGL context ONLY while the pointer
+       (or keyboard focus) is on the host. The resting state is the static CSS
+       foil edge; the live liquid-metal ring is mounted on pointerenter/focusin
+       and suspended (context released) on pointerleave/focusout. Used on
+       secondary CTAs that don't need to animate continuously, so they stop
+       burning a WebGL context at rest. The ring element is host-managed
+       (host.__ring), so the viewport lazy-loader never touches it — these
+       handlers own its full lifecycle. */
+    function wireMetalHoverHandlers(el) {
+      if (el.__metalHoverWired) return;
+      el.__metalHoverWired = true;
+      var on = function () {
+        var ring = ensureMetalRing(el);
+        if (ring._suspended && typeof ring.resume === 'function') ring.resume();
+        revealMetalRing(ring, el);
+      };
+      var off = function () {
+        if (el.__ring && typeof el.__ring.suspend === 'function') el.__ring.suspend();
+        el.classList.remove('csa-metal-on');
+      };
+      el.addEventListener('pointerenter', on);
+      el.addEventListener('focusin', on);
+      el.addEventListener('pointerleave', off);
+      el.addEventListener('focusout', off);
+    }
+
     /* ---- data-metal : register a host for a lazily-loaded liquid-metal ring.
        The CSS foil edge is the no-WebGL FALLBACK; the live ring is injected by
        the lazy-loader once the host scrolls into view and suspended when it
-       leaves. Opt out per element with data-metal="none". */
+       leaves. Opt out per element with data-metal="none". Hosts marked
+       data-metal-mode="hover" get a hover-activated ring instead of an
+       always-on (while-visible) one — see wireMetalHoverHandlers above. */
     function wireMetal(root) {
       (root || document).querySelectorAll('[data-metal]').forEach(function (el) {
         if (el.__metal) return;
@@ -448,7 +476,8 @@
         if (!isNaN(mtn) && mtn > 2) mt = '2px';
         el.__metalThick = mt;
         if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
-        metalHosts.push(el);
+        if ((el.getAttribute('data-metal-mode') || '') === 'hover') wireMetalHoverHandlers(el);
+        else metalHosts.push(el);
       });
       syncLazyShaders();
     }

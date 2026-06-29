@@ -168,6 +168,8 @@ function Card({
           <Link
             className="btn btn--gold-pill cs-card__cta"
             href={`/case-studies/${data.slug}`}
+            data-metal="gold"
+            data-metal-mode="hover"
             onClick={(e) => e.stopPropagation()}
           >
             Read case study <i data-lucide="arrow-right"></i>
@@ -293,7 +295,7 @@ export function CaseStudiesCarousel({
       </div>
 
       <div className="cs__cta-row">
-        <Link className="btn btn--gold-pill btn--lg" href={ctaHref}>
+        <Link className="btn btn--gold-pill btn--lg" href={ctaHref} data-metal="gold" data-metal-mode="hover">
           {ctaLabel} <i data-lucide="arrow-right"></i>
         </Link>
       </div>
