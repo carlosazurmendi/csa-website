@@ -64,12 +64,10 @@ function Stage({
   slides,
   index,
   active,
-  heavyOk,
 }: {
   slides: Slide[]
   index: number
   active: boolean
-  heavyOk: boolean
 }) {
   const count = slides.length
   const half = Math.floor(count / 2)
@@ -77,8 +75,9 @@ function Stage({
   // ONLY the centered slide (abs===0) is ever a <video>; every other slide renders as a
   // cheap static poster <img>. So exactly one video element exists at a time — a
   // non-selected clip can't play, buffer, or sit as a composited video layer. Playback
-  // also stops when the hero is off-screen / the tab is hidden (`active`) and is skipped
-  // entirely on weak/reduce-motion devices (`heavyOk`).
+  // stops only when the hero is off-screen / the tab is hidden (`active`). No
+  // reduce-motion gate — on Windows it's also tripped by "animation effects off" /
+  // battery saver, which wrongly froze the hero for users who hadn't asked for that.
   useEffect(() => {
     const focused = slides[index]
     slides.forEach((sys, i) => {
@@ -89,7 +88,7 @@ function Stage({
     })
     const v = focused ? (vids.current[focused.id] as HTMLVideoElement | null) : null
     if (!v || typeof v.play !== 'function') return
-    if (active && heavyOk) {
+    if (active) {
       // Set the muted PROPERTY, not just the attribute — React renders `muted` as an
       // attribute that does NOT reflect to the property, so the browser treats the video
       // as having sound and BLOCKS autoplay. This is why the focused clip never played.
@@ -110,7 +109,7 @@ function Stage({
         /* noop */
       }
     }
-  }, [index, slides, active, heavyOk])
+  }, [index, slides, active])
 
   return (
     <div className="stage">
@@ -160,7 +159,7 @@ function Stage({
         }
         return (
           <div className="char" key={sys.id} data-sys={sys.id} style={style} aria-hidden={abs !== 0}>
-            {heavyOk && abs === 0 && sys.video ? (
+            {abs === 0 && sys.video ? (
               <video
                 className="char__img"
                 ref={(el) => {
@@ -358,17 +357,6 @@ export function HeroSection({ home }: { home: HomeDoc }) {
   const activeRef = useRef(true)
   activeRef.current = active
 
-  // Accessibility / data fallback. Only the centered slide is ever a video now (one
-  // stream — cheap), so the old low-core gate was overkill and left weak machines fully
-  // static. Honor only the EXPLICIT user signals: OS "reduce motion" and data-saver.
-  const [heavyOk, setHeavyOk] = useState(true)
-  useEffect(() => {
-    const nav = navigator as Navigator & { connection?: { saveData?: boolean } }
-    setHeavyOk(
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !nav.connection?.saveData,
-    )
-  }, [])
-
   useEffect(() => {
     const el = heroRef.current
     let onScreen = true
@@ -391,12 +379,11 @@ export function HeroSection({ home }: { home: HomeDoc }) {
     }
   }, [])
 
-  // Background hero video — play only while the hero is active AND the device can
-  // afford motion; otherwise it shows its poster.
+  // Background hero video — play while the hero is active (on-screen, tab visible).
   useEffect(() => {
     const bg = bgRef.current
     if (!bg) return
-    if (active && heavyOk) {
+    if (active) {
       bg.muted = true // muted PROPERTY (not just the attribute) so autoplay isn't blocked
       const p = bg.play()
       if (p && p.catch) p.catch(() => {})
@@ -407,7 +394,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         /* noop */
       }
     }
-  }, [active, heavyOk])
+  }, [active])
 
   // Background wordmark marquee — rAF (auto-throttles on hidden tabs) gated on `active`;
   // `x` persists in a ref so re-entering the viewport resumes without a jump.
@@ -538,7 +525,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         </div>
 
         <div className="vhero__selector">
-          <Stage slides={slides} index={index} active={active} heavyOk={heavyOk} />
+          <Stage slides={slides} index={index} active={active} />
           <SelBar slides={slides} index={index} count={count} sys={sys} onDot={setIndex} onPrev={prev} onNext={next} />
         </div>
 
