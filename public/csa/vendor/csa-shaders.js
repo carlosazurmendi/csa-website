@@ -244,7 +244,27 @@
         try { this._ro = new ResizeObserver(this._sizeSq); this._ro.observe(this); } catch (e) {}
 
         this._sq = sq;
-        this._mountShader();
+        // data-no-lazy rings are React-owned decorative metal (hero/section/card
+        // edges) that the viewport lazy-loader deliberately leaves alone. Rather
+        // than burn a WebGL context on each one continuously, hover-gate them:
+        // start static (no shader mounted) and run only while the parent card /
+        // section is hovered or focused. Self-managed here so there's no flash
+        // and no race with the host React tree (unlike a vendor-side suspend).
+        if (this.hasAttribute('data-no-lazy')) this._hoverGate();
+        else this._mountShader();
+      }
+      _hoverGate() {
+        this._suspended = true; // never mounted at rest -> zero idle WebGL
+        var host = this.parentElement;
+        if (!host) { this.resume(); return; } // no host to hover -> fall back to live
+        var self = this;
+        this._hoverHost = host;
+        this._hoverOn = function () { self.resume(); };
+        this._hoverOff = function () { self.suspend(); };
+        host.addEventListener('pointerenter', this._hoverOn);
+        host.addEventListener('focusin', this._hoverOn);
+        host.addEventListener('pointerleave', this._hoverOff);
+        host.addEventListener('focusout', this._hoverOff);
       }
       suspend() { if (this._suspended) return; this._suspended = true; if (this._root) { try { this._root.unmount(); } catch (e) {} this._root = null; } }
       resume() { if (!this._suspended) return; this._suspended = false; if (this._sq) this._mountShader(); }
@@ -266,6 +286,15 @@
       }
       disconnectedCallback() {
         if (this._ro) try { this._ro.disconnect(); } catch (e) {}
+        if (this._hoverHost) {
+          try {
+            this._hoverHost.removeEventListener('pointerenter', this._hoverOn);
+            this._hoverHost.removeEventListener('focusin', this._hoverOn);
+            this._hoverHost.removeEventListener('pointerleave', this._hoverOff);
+            this._hoverHost.removeEventListener('focusout', this._hoverOff);
+          } catch (e) {}
+          this._hoverHost = null;
+        }
         if (this._root) try { this._root.unmount(); } catch (e) {}
         this._m = false;
       }
