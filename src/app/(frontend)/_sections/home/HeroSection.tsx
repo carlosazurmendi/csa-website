@@ -62,100 +62,69 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
   const count = slides.length
   const half = Math.floor(count / 2)
   const vids = useRef<Record<string, HTMLVideoElement | HTMLImageElement | null>>({})
+  const stageRef = useRef<HTMLDivElement>(null)
 
-  // Only the focused slide's video plays, in a boomerang loop (forward to end,
-  // then step currentTime backwards gated on the 'seeked' event). VP9-with-alpha
-  // is decode-heavy, so this self-throttles instead of seeking every frame.
+  // Play ONLY the focused slide's video, looping FORWARD natively (the <video loop>
+  // attribute) — never reverse. The old "boomerang" reversed by seeking currentTime
+  // backwards every frame, which forces continuous backward decode and pins the CPU
+  // (worse with the alpha-VP9 source, which most GPUs can't hardware-decode). On top
+  // of that, it now pauses when the hero is off-screen or the tab is hidden, and is
+  // skipped entirely (poster shows instead) under reduced-motion / Save-Data / very
+  // low-core devices — so it never tortures a weak machine or a background tab.
   useEffect(() => {
-    const active = slides[index]
-    if (!active) return
+    const focused = slides[index]
+    // Pause every non-focused video so at most one stream ever decodes.
     slides.forEach((sys, i) => {
       if (i !== index) {
         const o = vids.current[sys.id] as HTMLVideoElement | null
         if (o && typeof o.pause === 'function') o.pause()
       }
     })
-    const v = vids.current[active.id] as HTMLVideoElement | null
+    const v = focused ? (vids.current[focused.id] as HTMLVideoElement | null) : null
     if (!v || typeof v.play !== 'function') return
 
-    let cancelled = false
-    let mode: 'forward' | 'reverse' = 'forward'
-    let raf = 0
-    let revTimer = 0
-    let seeking = false
-    let seekStart = 0
-    const EPS = 0.08
-    const STEP = 1 / 24
-    const SEEK_WAIT = 230
+    const nav = navigator as Navigator & {
+      connection?: { saveData?: boolean }
+      hardwareConcurrency?: number
+    }
+    const allowMotion =
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+      !nav.connection?.saveData &&
+      (nav.hardwareConcurrency ?? 8) >= 3
 
-    const clearReverse = () => {
-      if (revTimer) {
-        clearInterval(revTimer)
-        revTimer = 0
-      }
-    }
-    const playForward = () => {
-      clearReverse()
-      mode = 'forward'
-      const p = v.play()
-      if (p && p.catch) p.catch(() => {})
-    }
-    const watch = () => {
-      if (cancelled || mode !== 'forward') return
-      const dur = v.duration || 0
-      if (dur && (v.ended || v.currentTime >= dur - EPS)) {
-        startReverse()
-        return
-      }
-      raf = requestAnimationFrame(watch)
-    }
-    function startReverse() {
-      mode = 'reverse'
-      try {
-        v!.pause()
-      } catch {
-        /* noop */
-      }
-      seeking = false
-      clearReverse()
-      revTimer = window.setInterval(() => {
-        if (cancelled || mode !== 'reverse') {
-          clearReverse()
-          return
-        }
-        if (seeking && performance.now() - seekStart < SEEK_WAIT) return
-        const t = v!.currentTime - STEP
-        if (t <= 0.02) {
-          try {
-            v!.currentTime = 0
-          } catch {
-            /* noop */
-          }
-          playForward()
-          raf = requestAnimationFrame(watch)
-          return
-        }
-        seeking = true
-        seekStart = performance.now()
+    let visible = true
+    const sync = () => {
+      if (!allowMotion || !visible || document.hidden) {
         try {
-          v!.currentTime = t
+          v.pause()
         } catch {
           /* noop */
         }
-      }, 33)
+        return
+      }
+      const p = v.play()
+      if (p && p.catch) p.catch(() => {})
     }
-    const onSeeked = () => {
-      seeking = false
+
+    // Pause when the hero scrolls out of view.
+    let io: IntersectionObserver | null = null
+    const stage = stageRef.current
+    if (stage && typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver(
+        (entries) => {
+          visible = entries[0]?.isIntersecting ?? true
+          sync()
+        },
+        { threshold: 0.15 },
+      )
+      io.observe(stage)
     }
-    v.addEventListener('seeked', onSeeked)
-    playForward()
-    raf = requestAnimationFrame(watch)
+    document.addEventListener('visibilitychange', sync)
+    sync()
 
     return () => {
-      cancelled = true
-      cancelAnimationFrame(raf)
-      clearReverse()
-      v.removeEventListener('seeked', onSeeked)
+      io?.disconnect()
+      document.removeEventListener('visibilitychange', sync)
       try {
         v.pause()
       } catch {
@@ -165,7 +134,7 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
   }, [index, slides])
 
   return (
-    <div className="stage">
+    <div className="stage" ref={stageRef}>
       <div className="stage__floor" />
       {slides.map((sys, i) => {
         let rel = ((i - index + count + half) % count) - half
@@ -236,8 +205,9 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
                 src={sys.video}
                 poster={sys.poster}
                 muted
+                loop
                 playsInline
-                preload="auto"
+                preload="none"
                 aria-label={sys.name}
               ></video>
             )}
