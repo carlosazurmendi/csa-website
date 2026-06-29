@@ -24,6 +24,7 @@
     "seed:assessment": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/seedAssessment.ts",
     "reseed:globals": "cross-env NODE_OPTIONS=--no-deprecation payload run src/scripts/reseed-globals.ts",
     "check:css": "node scripts/check-css-fidelity.mjs",
+    "purge:cache": "node scripts/purge-cache.mjs",
     "bundle:shaders": "cd scripts/shader-bundle && npm install --no-audit --no-fund && node build.mjs"
   },
   "browserslist": [

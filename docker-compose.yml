@@ -48,6 +48,12 @@ x-csa-env: &csa-env
   SAFETY_CHAT_MODEL: ${SAFETY_CHAT_MODEL:-claude-sonnet-4-6}
   SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-}
   SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+  # Cloudflare cache purge on every deploy (app boot). Flushes the CDN so fixed-name
+  # /csa/* assets (not hash-busted) actually update. SCOPED token (Zone → Cache Purge
+  # only). All empty/unset = feature disabled (no-op). Set values in dockhand env.
+  CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+  CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
+  CLOUDFLARE_PURGE_FILES: ${CLOUDFLARE_PURGE_FILES:-}
 
 services:
   # ---- Bundled Postgres (system of record — persistent volume) -----------------
