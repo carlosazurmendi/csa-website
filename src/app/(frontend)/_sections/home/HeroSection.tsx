@@ -28,7 +28,7 @@ type Media = {
 // Per-slide media + framing, in the same order as the seeded heroSystems.
 const HERO_MEDIA: Media[] = [
   { id: 'humanoid', video: '/csa/sys-1.webm', poster: '/csa/sys-1-fit.png', sizeK: 1.12, offsetY: 235 },
-  { id: 'rail', video: '/csa/sys-2.webm', sizeK: 1.22, activeRY: -19, offsetY: -260 },
+  { id: 'rail', video: '/csa/sys-2.webm', poster: '/csa/sys-2-fit.png', sizeK: 1.22, activeRY: -19, offsetY: -260 },
   { id: 'arm', video: '/csa/sys-3.webm', poster: '/csa/sys-3-fit.png', sizeK: 0.78, offsetY: -180 },
   { id: 'amr', video: '/csa/sys-4.webm', poster: '/csa/sys-4-fit.png', sizeK: 0.93, offsetY: -180 },
   { id: 'av', video: '/csa/sys-5.webm', poster: '/csa/sys-5-fit.png', sizeK: 0.83, offsetY: -180 },
@@ -58,15 +58,16 @@ const buildSlides = (systems: HeroSystem[]): Slide[] =>
   })
 
 /* ---------- Carousel stage ---------- */
-function Stage({ slides, index }: { slides: Slide[]; index: number }) {
+function Stage({ slides, index, active }: { slides: Slide[]; index: number; active: boolean }) {
   const count = slides.length
   const half = Math.floor(count / 2)
   const vids = useRef<Record<string, HTMLVideoElement | HTMLImageElement | null>>({})
-  // Play ONLY the focused slide's video, looping FORWARD natively (<video loop>). The
-  // clips have the boomerang baked in, so a native forward loop reproduces the full
-  // ping-pong at ordinary single-stream playback cost. It loops continuously with no
-  // off-screen / visibility pausing (per request); non-focused slides stay paused so
-  // at most one stream ever decodes.
+  // Only the focused slide is a PLAYING <video> (looping the baked-in boomerang). Its
+  // immediate neighbours (abs<=1) are mounted but paused; everything further off-axis
+  // (abs>=2, opacity:0) renders as a cheap static poster <img>, so at most ~3 video
+  // layers exist and only ONE ever decodes. Playback also pauses when the hero is
+  // off-screen / the tab is hidden (`active`) — invisible to a viewer, zero GPU when
+  // unseen.
   useEffect(() => {
     const focused = slides[index]
     slides.forEach((sys, i) => {
@@ -77,8 +78,16 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
     })
     const v = focused ? (vids.current[focused.id] as HTMLVideoElement | null) : null
     if (!v || typeof v.play !== 'function') return
-    const p = v.play()
-    if (p && p.catch) p.catch(() => {})
+    if (active) {
+      const p = v.play()
+      if (p && p.catch) p.catch(() => {})
+    } else {
+      try {
+        v.pause()
+      } catch {
+        /* noop */
+      }
+    }
     return () => {
       try {
         v.pause()
@@ -86,7 +95,7 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
         /* noop */
       }
     }
-  }, [index, slides])
+  }, [index, slides, active])
 
   return (
     <div className="stage">
@@ -136,22 +145,7 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
         }
         return (
           <div className="char" key={sys.id} data-sys={sys.id} style={style} aria-hidden={abs !== 0}>
-            {sys.gif ? (
-              // M8 exception — kept as a plain <img>, NOT next/image: the optimizer
-              // freezes animated GIFs to a single frame, and this is eager
-              // above-the-fold hero art (lazy-loading it would hurt LCP). It is also
-              // ref-controlled for playback and shares its ref type with the <video>
-              // branch below.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                className="char__img"
-                ref={(el) => {
-                  vids.current[sys.id] = el
-                }}
-                src={sys.gif}
-                alt={sys.name}
-              />
-            ) : (
+            {abs <= 1 && sys.video ? (
               <video
                 className="char__img"
                 ref={(el) => {
@@ -162,9 +156,16 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload={abs === 0 ? 'auto' : 'metadata'}
                 aria-label={sys.name}
               ></video>
+            ) : (
+              // Off-stage slide (opacity:0, far off-axis): a cheap static poster — no
+              // live video layer to decode or composite. Visually identical at this
+              // position. eslint-disable-next-line keeps the plain <img> (next/image
+              // would lazy-load + reframe this hero art).
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="char__img" src={sys.poster || sys.gif || sys.video} alt={sys.name} />
             )}
           </div>
         )
@@ -330,26 +331,78 @@ export function HeroSection({ home }: { home: HomeDoc }) {
   const next = useCallback(() => go(1), [go])
   const prev = useCallback(() => go(-1), [go])
 
-  // Background wordmark marquee (time-based so it scrolls even under forced reduced-motion).
-  const ghostRef = useRef<HTMLDivElement>(null)
+  // ---- Visibility / perf gating ----
+  // The hero stacks several always-on loops (a background video, the focused slide
+  // video, the wordmark marquee, the 15s auto-advance). Pause them all whenever the
+  // hero is scrolled off-screen or the tab is hidden — invisible to anyone looking at
+  // it, but it stops the machine churning on a section nobody can see.
+  const heroRef = useRef<HTMLElement>(null)
+  const bgRef = useRef<HTMLVideoElement>(null)
+  const [active, setActive] = useState(true)
+  const activeRef = useRef(true)
+  activeRef.current = active
   useEffect(() => {
+    const el = heroRef.current
+    let onScreen = true
+    const update = () => setActive(onScreen && !document.hidden)
+    let io: IntersectionObserver | null = null
+    if (el && typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver(
+        (entries) => {
+          onScreen = (entries[0]?.intersectionRatio ?? 0) > 0
+          update()
+        },
+        { threshold: 0 },
+      )
+      io.observe(el)
+    }
+    document.addEventListener('visibilitychange', update)
+    return () => {
+      io?.disconnect()
+      document.removeEventListener('visibilitychange', update)
+    }
+  }, [])
+
+  // Background hero video — play only while the hero is active.
+  useEffect(() => {
+    const bg = bgRef.current
+    if (!bg) return
+    if (active) {
+      const p = bg.play()
+      if (p && p.catch) p.catch(() => {})
+    } else {
+      try {
+        bg.pause()
+      } catch {
+        /* noop */
+      }
+    }
+  }, [active])
+
+  // Background wordmark marquee — rAF (auto-throttles on hidden tabs) gated on `active`;
+  // `x` persists in a ref so re-entering the viewport resumes without a jump.
+  const ghostRef = useRef<HTMLDivElement>(null)
+  const ghostX = useRef(0)
+  useEffect(() => {
+    if (!active) return
     const SPEED = 26
-    let x = 0
     let last = performance.now()
+    let raf = 0
     const step = () => {
       const now = performance.now()
-      x -= (SPEED * (now - last)) / 1000
+      ghostX.current -= (SPEED * (now - last)) / 1000
       last = now
       const el = ghostRef.current
       if (el) {
         const halfW = el.scrollWidth / 2
-        if (halfW > 0 && -x >= halfW) x += halfW
-        el.style.transform = `translateX(${x}px)`
+        if (halfW > 0 && -ghostX.current >= halfW) ghostX.current += halfW
+        el.style.transform = `translateX(${ghostX.current}px)`
       }
+      raf = requestAnimationFrame(step)
     }
-    const id = window.setInterval(step, 16)
-    return () => window.clearInterval(id)
-  }, [])
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [active])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -360,18 +413,23 @@ export function HeroSection({ home }: { home: HomeDoc }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [next, prev])
 
+  // Auto-advance every 15s — only while active and not hover-paused. `next` is read via
+  // a ref so the interval is built once instead of being torn down on every advance.
   const paused = useRef(false)
+  const nextRef = useRef(next)
+  nextRef.current = next
   useEffect(() => {
     const id = window.setInterval(() => {
-      if (!paused.current) next()
+      if (!paused.current && activeRef.current) nextRef.current()
     }, 15000)
     return () => window.clearInterval(id)
-  }, [next, index])
+  }, [])
 
   if (!sys) return null
 
   return (
     <header
+      ref={heroRef}
       className="vhero"
       onMouseEnter={() => {
         paused.current = true
@@ -380,7 +438,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         paused.current = false
       }}
     >
-      <video className="vhero__bg" src="/csa/hero.mp4" autoPlay muted loop playsInline></video>
+      <video ref={bgRef} className="vhero__bg" src="/csa/hero.mp4" autoPlay muted loop playsInline></video>
       <div className="vhero__scrim vhero__scrim--haze" />
       <div className="vhero__scrim vhero__scrim--v" />
       <div className="vhero__scrim vhero__scrim--h" />
@@ -441,7 +499,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         </div>
 
         <div className="vhero__selector">
-          <Stage slides={slides} index={index} />
+          <Stage slides={slides} index={index} active={active} />
           <SelBar slides={slides} index={index} count={count} sys={sys} onDot={setIndex} onPrev={prev} onNext={next} />
         </div>
 
