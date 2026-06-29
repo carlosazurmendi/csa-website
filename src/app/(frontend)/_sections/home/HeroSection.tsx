@@ -72,12 +72,11 @@ function Stage({
   const count = slides.length
   const half = Math.floor(count / 2)
   const vids = useRef<Record<string, HTMLVideoElement | HTMLImageElement | null>>({})
-  // Only the focused slide is a PLAYING <video> (looping the baked-in boomerang). Its
-  // immediate neighbours (abs<=1) are mounted but paused; everything further off-axis
-  // (abs>=2, opacity:0) renders as a cheap static poster <img>, so at most ~3 video
-  // layers exist and only ONE ever decodes. Playback also pauses when the hero is
-  // off-screen / the tab is hidden (`active`) — invisible to a viewer, zero GPU when
-  // unseen.
+  // ONLY the centered slide (abs===0) is ever a <video>; every other slide renders as a
+  // cheap static poster <img>. So exactly one video element exists at a time — a
+  // non-selected clip can't play, buffer, or sit as a composited video layer. Playback
+  // also stops when the hero is off-screen / the tab is hidden (`active`) and is skipped
+  // entirely on weak/reduce-motion devices (`heavyOk`).
   useEffect(() => {
     const focused = slides[index]
     slides.forEach((sys, i) => {
@@ -155,7 +154,7 @@ function Stage({
         }
         return (
           <div className="char" key={sys.id} data-sys={sys.id} style={style} aria-hidden={abs !== 0}>
-            {heavyOk && abs <= 1 && sys.video ? (
+            {heavyOk && abs === 0 && sys.video ? (
               <video
                 className="char__img"
                 ref={(el) => {
