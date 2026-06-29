@@ -162,10 +162,11 @@ function Stage({
                 }}
                 src={sys.video}
                 poster={sys.poster}
+                autoPlay
                 muted
                 loop
                 playsInline
-                preload={abs === 0 ? 'auto' : 'metadata'}
+                preload="auto"
                 aria-label={sys.name}
               ></video>
             ) : (
