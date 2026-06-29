@@ -28,7 +28,9 @@ type Media = {
 // Per-slide media + framing, in the same order as the seeded heroSystems.
 const HERO_MEDIA: Media[] = [
   { id: 'humanoid', video: '/csa/sys-1.webm', poster: '/csa/sys-1-fit.png', sizeK: 1.12, offsetY: 235 },
-  { id: 'rail', video: '/csa/sys-2.webm', poster: '/csa/sys-2-fit.png', sizeK: 1.22, activeRY: -19, offsetY: -260 },
+  // Train uses the TRANSPARENT gif (sys-2.webm provided was opaque/no-alpha → white box).
+  // A gif animates on its own; swap to a webm with a real alpha channel when available.
+  { id: 'rail', gif: '/csa/sys-2.gif', sizeK: 1.22, activeRY: -19, offsetY: -260 },
   { id: 'arm', video: '/csa/sys-3.webm', poster: '/csa/sys-3-fit.png', sizeK: 0.78, offsetY: -180 },
   { id: 'amr', video: '/csa/sys-4.webm', poster: '/csa/sys-4-fit.png', sizeK: 0.93, offsetY: -180 },
   { id: 'av', video: '/csa/sys-5.webm', poster: '/csa/sys-5-fit.png', sizeK: 0.83, offsetY: -180 },
@@ -88,6 +90,10 @@ function Stage({
     const v = focused ? (vids.current[focused.id] as HTMLVideoElement | null) : null
     if (!v || typeof v.play !== 'function') return
     if (active && heavyOk) {
+      // Set the muted PROPERTY, not just the attribute — React renders `muted` as an
+      // attribute that does NOT reflect to the property, so the browser treats the video
+      // as having sound and BLOCKS autoplay. This is why the focused clip never played.
+      v.muted = true
       const p = v.play()
       if (p && p.catch) p.catch(() => {})
     } else {
@@ -391,6 +397,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
     const bg = bgRef.current
     if (!bg) return
     if (active && heavyOk) {
+      bg.muted = true // muted PROPERTY (not just the attribute) so autoplay isn't blocked
       const p = bg.play()
       if (p && p.catch) p.catch(() => {})
     } else {
