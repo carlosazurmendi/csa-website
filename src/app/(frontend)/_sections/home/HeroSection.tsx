@@ -351,18 +351,14 @@ export function HeroSection({ home }: { home: HomeDoc }) {
   const activeRef = useRef(true)
   activeRef.current = active
 
-  // Weak-device / accessibility fallback: on reduce-motion, Save-Data, or very-low-core
-  // machines, play NO hero video (and skip the WebGL rings) — show static posters.
+  // Accessibility / data fallback. Only the centered slide is ever a video now (one
+  // stream — cheap), so the old low-core gate was overkill and left weak machines fully
+  // static. Honor only the EXPLICIT user signals: OS "reduce motion" and data-saver.
   const [heavyOk, setHeavyOk] = useState(true)
   useEffect(() => {
-    const nav = navigator as Navigator & {
-      connection?: { saveData?: boolean }
-      hardwareConcurrency?: number
-    }
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } }
     setHeavyOk(
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-        !nav.connection?.saveData &&
-        (nav.hardwareConcurrency ?? 8) > 4,
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !nav.connection?.saveData,
     )
   }, [])
 
