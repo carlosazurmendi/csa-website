@@ -28,7 +28,7 @@ type Media = {
 // Per-slide media + framing, in the same order as the seeded heroSystems.
 const HERO_MEDIA: Media[] = [
   { id: 'humanoid', video: '/csa/sys-1.webm', poster: '/csa/sys-1-fit.png', sizeK: 1.12, offsetY: 235 },
-  { id: 'rail', gif: '/csa/sys-2.gif', sizeK: 1.22, activeRY: -19, offsetY: -260 },
+  { id: 'rail', video: '/csa/sys-2.webm', sizeK: 1.22, activeRY: -19, offsetY: -260 },
   { id: 'arm', video: '/csa/sys-3.webm', poster: '/csa/sys-3-fit.png', sizeK: 0.78, offsetY: -180 },
   { id: 'amr', video: '/csa/sys-4.webm', poster: '/csa/sys-4-fit.png', sizeK: 0.93, offsetY: -180 },
   { id: 'av', video: '/csa/sys-5.webm', poster: '/csa/sys-5-fit.png', sizeK: 0.83, offsetY: -180 },
@@ -62,18 +62,13 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
   const count = slides.length
   const half = Math.floor(count / 2)
   const vids = useRef<Record<string, HTMLVideoElement | HTMLImageElement | null>>({})
-  const stageRef = useRef<HTMLDivElement>(null)
-
-  // Play ONLY the focused slide's video, looping FORWARD natively (the <video loop>
-  // attribute) — never reverse. The old "boomerang" reversed by seeking currentTime
-  // backwards every frame, which forces continuous backward decode and pins the CPU
-  // (worse with the alpha-VP9 source, which most GPUs can't hardware-decode). On top
-  // of that, it now pauses when the hero is off-screen or the tab is hidden, and is
-  // skipped entirely (poster shows instead) under reduced-motion / Save-Data / very
-  // low-core devices — so it never tortures a weak machine or a background tab.
+  // Play ONLY the focused slide's video, looping FORWARD natively (<video loop>). The
+  // clips have the boomerang baked in, so a native forward loop reproduces the full
+  // ping-pong at ordinary single-stream playback cost. It loops continuously with no
+  // off-screen / visibility pausing (per request); non-focused slides stay paused so
+  // at most one stream ever decodes.
   useEffect(() => {
     const focused = slides[index]
-    // Pause every non-focused video so at most one stream ever decodes.
     slides.forEach((sys, i) => {
       if (i !== index) {
         const o = vids.current[sys.id] as HTMLVideoElement | null
@@ -82,49 +77,9 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
     })
     const v = focused ? (vids.current[focused.id] as HTMLVideoElement | null) : null
     if (!v || typeof v.play !== 'function') return
-
-    const nav = navigator as Navigator & {
-      connection?: { saveData?: boolean }
-      hardwareConcurrency?: number
-    }
-    const allowMotion =
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
-      !nav.connection?.saveData &&
-      (nav.hardwareConcurrency ?? 8) >= 3
-
-    let visible = true
-    const sync = () => {
-      if (!allowMotion || !visible || document.hidden) {
-        try {
-          v.pause()
-        } catch {
-          /* noop */
-        }
-        return
-      }
-      const p = v.play()
-      if (p && p.catch) p.catch(() => {})
-    }
-
-    // Pause when the hero scrolls out of view.
-    let io: IntersectionObserver | null = null
-    const stage = stageRef.current
-    if (stage && typeof IntersectionObserver !== 'undefined') {
-      io = new IntersectionObserver(
-        (entries) => {
-          visible = entries[0]?.isIntersecting ?? true
-          sync()
-        },
-        { threshold: 0.15 },
-      )
-      io.observe(stage)
-    }
-    document.addEventListener('visibilitychange', sync)
-    sync()
-
+    const p = v.play()
+    if (p && p.catch) p.catch(() => {})
     return () => {
-      io?.disconnect()
-      document.removeEventListener('visibilitychange', sync)
       try {
         v.pause()
       } catch {
@@ -134,7 +89,7 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
   }, [index, slides])
 
   return (
-    <div className="stage" ref={stageRef}>
+    <div className="stage">
       <div className="stage__floor" />
       {slides.map((sys, i) => {
         let rel = ((i - index + count + half) % count) - half
@@ -207,7 +162,7 @@ function Stage({ slides, index }: { slides: Slide[]; index: number }) {
                 muted
                 loop
                 playsInline
-                preload="none"
+                preload="auto"
                 aria-label={sys.name}
               ></video>
             )}
