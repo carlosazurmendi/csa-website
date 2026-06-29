@@ -58,7 +58,17 @@ const buildSlides = (systems: HeroSystem[]): Slide[] =>
   })
 
 /* ---------- Carousel stage ---------- */
-function Stage({ slides, index, active }: { slides: Slide[]; index: number; active: boolean }) {
+function Stage({
+  slides,
+  index,
+  active,
+  heavyOk,
+}: {
+  slides: Slide[]
+  index: number
+  active: boolean
+  heavyOk: boolean
+}) {
   const count = slides.length
   const half = Math.floor(count / 2)
   const vids = useRef<Record<string, HTMLVideoElement | HTMLImageElement | null>>({})
@@ -78,7 +88,7 @@ function Stage({ slides, index, active }: { slides: Slide[]; index: number; acti
     })
     const v = focused ? (vids.current[focused.id] as HTMLVideoElement | null) : null
     if (!v || typeof v.play !== 'function') return
-    if (active) {
+    if (active && heavyOk) {
       const p = v.play()
       if (p && p.catch) p.catch(() => {})
     } else {
@@ -95,7 +105,7 @@ function Stage({ slides, index, active }: { slides: Slide[]; index: number; acti
         /* noop */
       }
     }
-  }, [index, slides, active])
+  }, [index, slides, active, heavyOk])
 
   return (
     <div className="stage">
@@ -145,7 +155,7 @@ function Stage({ slides, index, active }: { slides: Slide[]; index: number; acti
         }
         return (
           <div className="char" key={sys.id} data-sys={sys.id} style={style} aria-hidden={abs !== 0}>
-            {abs <= 1 && sys.video ? (
+            {heavyOk && abs <= 1 && sys.video ? (
               <video
                 className="char__img"
                 ref={(el) => {
@@ -341,6 +351,22 @@ export function HeroSection({ home }: { home: HomeDoc }) {
   const [active, setActive] = useState(true)
   const activeRef = useRef(true)
   activeRef.current = active
+
+  // Weak-device / accessibility fallback: on reduce-motion, Save-Data, or very-low-core
+  // machines, play NO hero video (and skip the WebGL rings) — show static posters.
+  const [heavyOk, setHeavyOk] = useState(true)
+  useEffect(() => {
+    const nav = navigator as Navigator & {
+      connection?: { saveData?: boolean }
+      hardwareConcurrency?: number
+    }
+    setHeavyOk(
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        !nav.connection?.saveData &&
+        (nav.hardwareConcurrency ?? 8) > 4,
+    )
+  }, [])
+
   useEffect(() => {
     const el = heroRef.current
     let onScreen = true
@@ -363,11 +389,12 @@ export function HeroSection({ home }: { home: HomeDoc }) {
     }
   }, [])
 
-  // Background hero video — play only while the hero is active.
+  // Background hero video — play only while the hero is active AND the device can
+  // afford motion; otherwise it shows its poster.
   useEffect(() => {
     const bg = bgRef.current
     if (!bg) return
-    if (active) {
+    if (active && heavyOk) {
       const p = bg.play()
       if (p && p.catch) p.catch(() => {})
     } else {
@@ -377,7 +404,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         /* noop */
       }
     }
-  }, [active])
+  }, [active, heavyOk])
 
   // Background wordmark marquee — rAF (auto-throttles on hidden tabs) gated on `active`;
   // `x` persists in a ref so re-entering the viewport resumes without a jump.
@@ -438,7 +465,16 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         paused.current = false
       }}
     >
-      <video ref={bgRef} className="vhero__bg" src="/csa/hero.mp4" autoPlay muted loop playsInline></video>
+      <video
+        ref={bgRef}
+        className="vhero__bg"
+        src="/csa/hero.mp4"
+        poster="/csa/hero-poster.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+      ></video>
       <div className="vhero__scrim vhero__scrim--haze" />
       <div className="vhero__scrim vhero__scrim--v" />
       <div className="vhero__scrim vhero__scrim--h" />
@@ -499,7 +535,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         </div>
 
         <div className="vhero__selector">
-          <Stage slides={slides} index={index} active={active} />
+          <Stage slides={slides} index={index} active={active} heavyOk={heavyOk} />
           <SelBar slides={slides} index={index} count={count} sys={sys} onDot={setIndex} onPrev={prev} onNext={next} />
         </div>
 
