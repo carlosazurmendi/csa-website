@@ -18,13 +18,20 @@ entryPoints:
     #     - "173.245.48.0/20"   # (example) Cloudflare ranges — replace with the live list
     #     - "103.21.244.0/22"
 
+# IMPORTANT: this resolver MUST exist in the LIVE Traefik static config, or every
+# router that sets `certresolver=letsencrypt` fails with "nonexistent certificate
+# resolver" and Traefik serves its self-signed default cert (site shows "not secure").
+# TLS-ALPN-01 (not httpChallenge) because the web entrypoint does a global
+# permanent :80->:443 redirect, which would 301 an HTTP-01 challenge. TLS-ALPN-01
+# validates on :443 and is immune to that. NOTE: it does NOT work for hosts behind
+# Cloudflare's proxy (orange-cloud) — CF strips the acme-tls/1 ALPN; use DNS-01 or
+# CF's own edge cert for those. Storage must be a persistent, writable volume.
 certificatesResolvers:
   letsencrypt:
     acme:
       email: cazurmendi@handistack.com
       storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
+      tlsChallenge: {}
 
 providers:
   docker:
