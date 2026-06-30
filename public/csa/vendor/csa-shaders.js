@@ -237,8 +237,21 @@
           // covers the host's true bounds (ring never crops while the card tilts)
           var w = self.offsetWidth || self.getBoundingClientRect().width;
           var hh = self.offsetHeight || self.getBoundingClientRect().height;
-          var side = Math.max(w, hh, 1) * 2;
-          sq.style.width = side + 'px'; sq.style.height = side + 'px';
+          var side = Math.max(w, hh, 1) * 2; // visual coverage size (unchanged)
+          // Cap the RENDERED resolution. The metal edge is a ~2px band, so a multi-
+          // megapixel canvas is wasted fill: render at <= CAP px on the longest side
+          // and CSS-scale the square up to the visual size. Paper sizes the canvas as
+          // (CSS px x devicePixelRatio), so divide by dpr to bound the *backing store*
+          // (not just the CSS box) — keeps the cap honest on retina too. Upscaling a
+          // thin metallic line is imperceptible; per-frame GPU fill drops ~4-5x on big
+          // hosts (measured idle home page was ~31 Mpx/frame across the contexts).
+          var CAP = 1400;
+          var dpr = window.devicePixelRatio || 1;
+          var rside = Math.min(side, CAP / dpr);
+          var k = side / rside;
+          sq.style.width = rside + 'px'; sq.style.height = rside + 'px';
+          sq.style.transform =
+            k > 1.001 ? 'translate(-50%,-50%) scale(' + k.toFixed(3) + ')' : 'translate(-50%,-50%)';
         };
         this._sizeSq();
         try { this._ro = new ResizeObserver(this._sizeSq); this._ro.observe(this); } catch (e) {}
