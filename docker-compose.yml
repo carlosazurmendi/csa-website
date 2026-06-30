@@ -225,7 +225,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
       # Higher priority than the app router so /auth/v1/* wins over the catch-all Host rule.
-      - "traefik.http.routers.csa-auth.rule=Host(`${APP_DOMAIN}`) && PathPrefix(`/auth/v1`)"
+      - "traefik.http.routers.csa-auth.rule=(Host(`${APP_DOMAIN}`) || Host(`www.${APP_DOMAIN}`)) && PathPrefix(`/auth/v1`)"
       - "traefik.http.routers.csa-auth.priority=100"
       - "traefik.http.routers.csa-auth.entrypoints=${TRAEFIK_ENTRYPOINT_HTTPS:-websecure}"
       - "traefik.http.routers.csa-auth.tls=true"
@@ -270,14 +270,14 @@ services:
       # / letsencrypt). The shared network name is the `proxy:` external network below.
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.csa.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.csa.rule=Host(`${APP_DOMAIN}`) || Host(`www.${APP_DOMAIN}`)"
       - "traefik.http.routers.csa.entrypoints=${TRAEFIK_ENTRYPOINT_HTTPS:-websecure}"
       - "traefik.http.routers.csa.tls=true"
       - "traefik.http.routers.csa.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}"
       - "traefik.http.services.csa.loadbalancer.server.port=3000"
       - "traefik.http.routers.csa.middlewares=csa-compress@docker"
       # HTTP -> HTTPS redirect
-      - "traefik.http.routers.csa-http.rule=Host(`${APP_DOMAIN}`)"
+      - "traefik.http.routers.csa-http.rule=Host(`${APP_DOMAIN}`) || Host(`www.${APP_DOMAIN}`)"
       - "traefik.http.routers.csa-http.entrypoints=${TRAEFIK_ENTRYPOINT_HTTP:-web}"
       - "traefik.http.routers.csa-http.middlewares=csa-https-redirect@docker"
       - "traefik.http.middlewares.csa-https-redirect.redirectscheme.scheme=https"
