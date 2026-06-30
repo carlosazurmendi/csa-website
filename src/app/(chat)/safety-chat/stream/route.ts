@@ -12,10 +12,30 @@ import {
   SAFETY_CHAT_ENDPOINT,
   SAFETY_CHAT_AWS_SERVICE,
   SAFETY_CHAT_REGION,
+  SAFETY_CHAT_MAX_TOKENS,
+  MAX_FILES,
+  MAX_PROMPT_CHARS,
+  HISTORY_TURNS,
   SAFE_EXT,
   MAX_BYTES,
   type ChatAtt,
 } from '@/lib/safetyChat'
+import { acquireChatTurn } from '@/lib/safetyChatLimit'
+
+/** One-shot 200 text/plain stream — used for refusals (rate limit) so the client,
+ *  which only renders 2xx bodies, shows the notice in the reply bubble. */
+function noticeStream(message: string): Response {
+  const enc = new TextEncoder()
+  return new Response(
+    new ReadableStream<Uint8Array>({
+      start(c) {
+        c.enqueue(enc.encode(message))
+        c.close()
+      },
+    }),
+    { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } },
+  )
+}
 
 /**
  * Safety Chat streaming endpoint. POST multipart/form-data:
@@ -60,9 +80,11 @@ export async function POST(req: Request): Promise<Response> {
   const projectIdRaw = String(form.get('projectId') ?? '')
   const projectId = projectIdRaw === '' ? null : Number(projectIdRaw)
 
-  // Accepted files only (allowlist + size), and their display metadata.
+  // Accepted files only (allowlist + size), capped in count, with display metadata.
   const files = form.getAll('files').filter((f): f is File => f instanceof File)
-  const accepted = files.filter((f) => SAFE_EXT.includes(extOf(f.name)) && f.size <= MAX_BYTES)
+  const accepted = files
+    .filter((f) => SAFE_EXT.includes(extOf(f.name)) && f.size <= MAX_BYTES)
+    .slice(0, MAX_FILES)
   const atts: ChatAtt[] = accepted.map((f) => ({
     name: f.name,
     ext: extOf(f.name),
@@ -70,6 +92,11 @@ export async function POST(req: Request): Promise<Response> {
   }))
 
   if (!text.trim() && accepted.length === 0) return new Response('Empty message.', { status: 400 })
+
+  // Rate limiting + concurrency (per user). A refused turn is NOT persisted — we stream
+  // the notice back as a 200 so the client renders it in the reply bubble.
+  const gate = await acquireChatTurn(customer.userId)
+  if (!gate.ok) return noticeStream(gate.message)
 
   // Persist the user turn (creates the thread on first send).
   let turn: { threadId: number; title: string; history: Awaited<ReturnType<typeof startTurn>>['history'] }
@@ -81,6 +108,7 @@ export async function POST(req: Request): Promise<Response> {
       atts,
     })
   } catch {
+    await gate.release()
     return new Response('Could not start the conversation.', { status: 500 })
   }
 
@@ -101,6 +129,7 @@ export async function POST(req: Request): Promise<Response> {
         controller.enqueue(encoder.encode(INERT_NOTICE))
         controller.close()
         await finishTurn(userId, turn.threadId, INERT_NOTICE).catch(() => {})
+        await gate.release()
         return
       }
 
@@ -114,10 +143,12 @@ export async function POST(req: Request): Promise<Response> {
           service: SAFETY_CHAT_AWS_SERVICE,
         })
 
-        const userText = await buildUserText(text, accepted)
+        // Guardrails: cap the assembled prompt length and how much history is replayed,
+        // so a single turn can't run up an unbounded token bill on the AWS model.
+        const userText = (await buildUserText(text, accepted)).slice(0, MAX_PROMPT_CHARS)
         const messages = [
           { role: 'system', content: SYSTEM_PROMPT },
-          ...historyToMessages(turn.history),
+          ...historyToMessages(turn.history.slice(-HISTORY_TURNS)),
           { role: 'user', content: userText },
         ]
 
@@ -128,7 +159,7 @@ export async function POST(req: Request): Promise<Response> {
             model: SAFETY_CHAT_MODEL || undefined,
             messages,
             stream: true,
-            max_tokens: 2048,
+            max_tokens: SAFETY_CHAT_MAX_TOKENS,
           }),
         })
 
@@ -195,6 +226,7 @@ export async function POST(req: Request): Promise<Response> {
       } finally {
         controller.close()
         await finishTurn(userId, turn.threadId, full).catch(() => {})
+        await gate.release()
       }
     },
   })

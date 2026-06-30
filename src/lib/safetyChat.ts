@@ -41,6 +41,18 @@ export const SAFETY_CHAT_AWS_SERVICE = process.env.SAFETY_CHAT_AWS_SERVICE || 'b
 export const SAFETY_CHAT_REGION = process.env.AWS_REGION || 'us-east-1'
 
 /**
+ * Per-request guardrails — bound the AWS token cost of any single turn:
+ *  - MAX_FILES: attachments forwarded per message,
+ *  - MAX_PROMPT_CHARS: hard cap on the assembled user text (typed + extracted files),
+ *  - HISTORY_TURNS: how many prior messages are replayed as context,
+ *  - SAFETY_CHAT_MAX_TOKENS: output cap requested from the model.
+ */
+export const MAX_FILES = 5
+export const MAX_PROMPT_CHARS = 24_000
+export const HISTORY_TURNS = 16
+export const SAFETY_CHAT_MAX_TOKENS = Number(process.env.SAFETY_CHAT_MAX_TOKENS) || 2048
+
+/**
  * True when the AWS-hosted assistant is fully configured — IAM creds + endpoint URL.
  * Otherwise Safety Chat stays inert (persists the turn, streams a configured-soon note).
  */
