@@ -39,6 +39,23 @@ const nextConfig = {
   // Disable Next's own gzip so it doesn't pre-encode responses — a gzip Content-
   // Encoding from the app makes Traefik pass it through and never apply brotli.
   compress: false,
+  // Every "Book a Consultation" CTA across the site links to the internal
+  // /book-a-consultation path (hardcoded in ~15 components + the CMS nav). Point them
+  // all at the external Microsoft Bookings page in ONE place via a redirect, so every
+  // CTA — hardcoded or CMS-driven — lands there. The links keep href="/book-a-consultation",
+  // which also preserves the always-on liquid-metal href rule in csa-shaders.js
+  // (metalForcedAlways matches 'book-a-consultation'). Non-permanent (307) so the booking
+  // URL can be swapped later without fighting browser-cached 308s.
+  async redirects() {
+    return [
+      {
+        source: '/book-a-consultation',
+        destination:
+          'https://bookings.cloud.microsoft/book/CSAISCBookings@criticalsa.com/?ismsaljsauthenabled',
+        permanent: false,
+      },
+    ]
+  },
   // M8: HTTP caching for assets Next doesn't already fingerprint. (/_next/static is
   // already immutable; dynamic pages stay private/no-store via the auth-reading layout.)
   async headers() {
