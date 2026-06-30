@@ -176,7 +176,28 @@
   }
 
   /* shared scan — triggers anything that has scrolled into view */
+  /* ---- pause CSS animations in off-screen sections ---------
+     The gold-foil sheens / glow pulses run `infinite`; off-screen they still
+     drive the compositor every frame for nothing (~37 animated elements on the
+     home page). Toggle .csa-anim-off on each major block once it's well out of
+     view (in-view band expanded by ~half a viewport, so nothing pops on return).
+     Only CSS `animation` is paused — reveals (transitions) and counters (rAF)
+     are untouched, and WebGL shaders are handled separately. */
+  var animBlocks = null;
+  function pauseOffscreenAnim() {
+    if (!animBlocks) animBlocks = $$('header, section, footer, .csa-block');
+    for (var a = 0; a < animBlocks.length; a++) {
+      var el = animBlocks[a];
+      if (!el || !el.isConnected) continue;
+      var off = !inView(el, -0.5);
+      if (off === !!el.__animOff) continue;
+      el.__animOff = off;
+      el.classList.toggle('csa-anim-off', off);
+    }
+  }
+
   function scan() {
+    pauseOffscreenAnim();
     for (var i = revealQ.length - 1; i >= 0; i--) {
       if (inView(revealQ[i], 0.08)) { showReveal(revealQ[i]); revealQ.splice(i, 1); }
     }
@@ -261,6 +282,7 @@
   }
 
   function init(root) {
+    animBlocks = null; // re-query major blocks (React may have mounted new sections)
     wireButtons(root); wireTilt(root); wireReveal(root); wireMagnetic(root);
     wireParallax(root); wireCounters(root); wireScramble(root);
     scan();

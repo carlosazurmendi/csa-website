@@ -465,6 +465,16 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display:
 [data-metal]:not([data-metal-mode="always"]):hover::before,
 [data-metal]:not([data-metal-mode="always"]):focus-visible::before { animation-play-state: running !important; }
 
+/* ---------- off-screen sections: pause continuous CSS animation ----------
+   interactions.js adds .csa-anim-off to a major block once it scrolls well out
+   of view. Freeze every infinite sheen/pulse inside it so it stops driving the
+   compositor while invisible; it resumes the moment the block returns to view.
+   Transitions (scroll reveals) and JS/rAF animations are unaffected. */
+.csa-anim-off, .csa-anim-off::before, .csa-anim-off::after,
+.csa-anim-off *, .csa-anim-off *::before, .csa-anim-off *::after {
+  animation-play-state: paused !important;
+}
+
 /* Some hosts carry a JSX-declared liquid-metal ring that never receives the
    .csa-metal-on class (data-no-lazy, React-owned) AND place that ring at a high
    z-index (e.g. carousel cards put it at z-index:3 to clear cover art) — which
