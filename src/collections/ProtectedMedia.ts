@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { editorWrite, adminOnly } from '@/access'
+import { normalizeUploadBuffers } from '@/lib/normalizeUploadBuffers'
 
 /**
  * Protected media — PRIVATE, purchase/enrolment-gated files: the actual template
@@ -34,6 +35,10 @@ export const ProtectedMedia: CollectionConfig = {
     create: editorWrite,
     update: editorWrite,
     delete: adminOnly,
+  },
+  hooks: {
+    // Normalize SharedArrayBuffer-backed upload buffers so the AWS SDK can hash them.
+    beforeChange: [normalizeUploadBuffers],
   },
   upload: {
     // Deliverables + lesson videos: office docs, PDFs, archives, video. NOT display

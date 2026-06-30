@@ -113,11 +113,10 @@ const s3ClientConfig = {
   region: process.env.SUPABASE_S3_REGION || 'us-east-1',
   forcePathStyle: true,
   // MinIO hygiene: only send a checksum when the operation mandates one, so the SDK
-  // doesn't emit the new aws-chunked checksum trailers MinIO is picky about. NOTE:
-  // this does NOT fix the admin-upload "input must be ArrayBuffer (SharedArrayBuffer)"
-  // crash — PutObject integrity is mandatory, so a checksum is still computed. That
-  // crash is fixed by `upload.useTempFiles` (buildConfig below), which makes the S3
-  // plugin stream the body from a temp file instead of the SharedArrayBuffer buffer.
+  // doesn't emit the new aws-chunked checksum trailers MinIO is picky about. (Not the
+  // upload fix — PutObject integrity is mandatory so a checksum is still computed; the
+  // SharedArrayBuffer upload crash is fixed by normalizeUploadBuffers, the beforeChange
+  // hook on the media / protected-media collections.)
   requestChecksumCalculation: 'WHEN_REQUIRED' as const,
   responseChecksumValidation: 'WHEN_REQUIRED' as const,
   credentials: {
@@ -197,15 +196,6 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
     meta: { titleSuffix: ' · CSA Admin' },
-  },
-  // Buffer uploads to a temp file instead of memory. REQUIRED for S3/MinIO: the
-  // in-memory upload buffer is SharedArrayBuffer-backed, and the AWS SDK's mandatory
-  // PutObject checksum (`fromArrayBuffer`) throws "input must be ArrayBuffer" on it.
-  // With a temp file, @payloadcms/storage-s3 streams via fs.createReadStream → normal
-  // Buffers → checksum succeeds. /tmp is always writable in the container.
-  upload: {
-    useTempFiles: true,
-    tempFileDir: '/tmp/payload-uploads',
   },
   collections: [
     // Nav pages (each nav item = a collection, sub-pages = rows)

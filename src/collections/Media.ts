@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { normalizeUploadBuffers } from '@/lib/normalizeUploadBuffers'
+
 /**
  * Public media (marketing imagery, thumbnails, partner logos).
  * Backed by the PUBLIC Supabase Storage bucket when S3 env is present, else local disk.
@@ -13,6 +15,10 @@ export const Media: CollectionConfig = {
   access: {
     // Marketing imagery is world-readable; mutations are admin-only by default (M5 refines).
     read: () => true,
+  },
+  hooks: {
+    // Normalize SharedArrayBuffer-backed upload buffers so the AWS SDK can hash them.
+    beforeChange: [normalizeUploadBuffers],
   },
   upload: {
     mimeTypes: ['image/*', 'video/*', 'application/pdf'],
