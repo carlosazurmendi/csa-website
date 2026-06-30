@@ -31,14 +31,20 @@ Authoritative instructions for any AI agent working in this project. Read fully 
 - Deploy flow: push to `main` → GitHub Actions builds images to **GHCR** → redeploy in
   **dockhand** (pull `latest` or pin `IMAGE_TAG=sha-<sha>`). There is **no local runtime**
   (the bundled Postgres/GoTrue/MinIO stack is the system of record; the old Supabase is gone).
-- **`/csa/*` static assets (incl. `/csa/vendor/*.js`, hero PNGs) are fixed-name and cached
-  `max-age=14400` (4h browser) + Cloudflare (~24h).** Changing one of these files does NOT
-  reach users until the cache expires or is purged. `_next/static/*` is hash-busted and
-  self-updates; `/csa/*` does NOT.
-  - Always check the *running* asset, not just origin: compare the page's loaded byte size
-    vs an origin cache-busted fetch (`?cb=<n>`), and `Cf-Cache-Status`.
-  - After any `/csa/` change: tell the user to purge Cloudflare / hard-reload, or the fix is
-    invisible. The real fix is to version the `/csa/` URLs (or drop `max-age` → ETag-only).
+- **`/csa/*` static assets are fixed-name and cached `max-age` (hours, browser) + Cloudflare
+  (~24h).** They are NOT hash-busted like `_next/static/*`, so historically a changed file
+  did not reach users until the cache expired — this masked multiple deploys.
+- **Now mostly fixed by URL versioning.** The vendored `<Script>` tags in the layouts append
+  `?v=<build>` via `va()` (`src/lib/assetVersion.ts`, stamped per build by
+  `NEXT_PUBLIC_ASSET_VERSION` in `next.config.mjs`), so each deploy ships fresh URLs that bust
+  the browser AND any CDN — no Cloudflare purge needed, on any domain. Hero posters are now
+  content-named `.webp`. **Two things stay unversioned on purpose:** `paper-shaders.bundle.js`
+  (its `<link modulepreload>` must match `csa-shaders.js`'s internal import path; the bundle is
+  stable), and any raw `/csa/*` asset referenced from a plain static file rather than a layout.
+  If you change one of those, bump it manually or rely on the boot-time Cloudflare purge
+  (`src/instrumentation.ts`, when CF creds are set).
+  - Still verify the *running* asset, not just origin, when debugging: compare the page's loaded
+    byte size vs an origin cache-busted fetch (`?cb=<n>`), and `Cf-Cache-Status`.
 
 ## WebGL / liquid-metal shaders (`public/csa/vendor/csa-shaders.js`)
 

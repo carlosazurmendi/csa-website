@@ -4,8 +4,20 @@ import { withPayload } from '@payloadcms/next/withPayload'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Cache-bust stamp for fixed-name /csa/* assets. These files (shader engine,
+// motion engine, vendored JS) are NOT hash-named, so without this a deploy's new
+// bytes sit behind the 4h browser cache + CDN until they expire — which has
+// masked multiple deploys. Appended as ?v= to the asset URLs (src/lib/assetVersion.ts)
+// so every build ships fresh URLs that bust the browser AND any CDN, with no
+// Cloudflare purge required. Prefer the deploy's image tag/sha; else a per-build
+// timestamp (next.config is evaluated once per `next build`).
+const ASSET_VERSION =
+  (process.env.IMAGE_TAG || process.env.GIT_SHA || '').replace(/[^a-zA-Z0-9_-]/g, '') ||
+  Date.now().toString(36)
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: { NEXT_PUBLIC_ASSET_VERSION: ASSET_VERSION },
   // Standalone output keeps the production Docker image lean (server + traced deps only).
   output: 'standalone',
   // Pin the workspace root: a stray lockfile elsewhere on the machine must not be inferred.

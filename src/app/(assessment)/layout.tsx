@@ -2,6 +2,7 @@ import '../(frontend)/styles/csa/assessment-bundle.css'
 
 import React from 'react'
 import Script from 'next/script'
+import { va } from '@/lib/assetVersion'
 import type { Metadata } from 'next'
 
 import { fontVariables } from '@/lib/fonts'
@@ -34,8 +35,8 @@ export default function AssessmentLayout({ children }: { children: React.ReactNo
             })}`,
           }}
         />
-        <Script src="/csa/vendor/lucide.min.js" strategy="afterInteractive" />
-        <Script src="/csa/vendor/interactions.js" strategy="afterInteractive" />
+        <Script src={va('/csa/vendor/lucide.min.js')} strategy="afterInteractive" />
+        <Script src={va('/csa/vendor/interactions.js')} strategy="afterInteractive" />
 
         {children}
 

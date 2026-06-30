@@ -2,6 +2,7 @@ import './styles/csa/index.css'
 
 import React from 'react'
 import Script from 'next/script'
+import { va } from '@/lib/assetVersion'
 import type { Metadata } from 'next'
 
 import { fontVariables } from '@/lib/fonts'
@@ -70,10 +71,10 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         {/* Vendored design-system runtime — load order mirrors the export shell.
             Lucide + store before the components that read them; the motion engine
             and shaders self-boot and re-scan React-rendered nodes. */}
-        <Script src="/csa/vendor/lucide.min.js" strategy="afterInteractive" />
-        <Script src="/csa/vendor/store.js" strategy="afterInteractive" />
-        <Script src="/csa/vendor/interactions.js" strategy="afterInteractive" />
-        <Script src="/csa/vendor/csa-shaders.js" type="module" strategy="afterInteractive" />
+        <Script src={va('/csa/vendor/lucide.min.js')} strategy="afterInteractive" />
+        <Script src={va('/csa/vendor/store.js')} strategy="afterInteractive" />
+        <Script src={va('/csa/vendor/interactions.js')} strategy="afterInteractive" />
+        <Script src={va('/csa/vendor/csa-shaders.js')} type="module" strategy="afterInteractive" />
 
         <SiteHeader data={header} initialUser={initialUser} />
         <Shell>{children}</Shell>
