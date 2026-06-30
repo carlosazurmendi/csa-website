@@ -27,13 +27,13 @@ type Media = {
 
 // Per-slide media + framing, in the same order as the seeded heroSystems.
 const HERO_MEDIA: Media[] = [
-  { id: 'humanoid', video: '/csa/sys-1.webm', poster: '/csa/sys-1-fit.png', sizeK: 1.12, offsetY: 235 },
+  { id: 'humanoid', video: '/csa/sys-1.webm', poster: '/csa/sys-1-fit.webp', sizeK: 1.12, offsetY: 235 },
   // Train: transparent VP9 webm (ALPHA_MODE=1) + a transparent poster for the off-center
   // (static <img>) positions, so it floats cut-out in every slot.
-  { id: 'rail', video: '/csa/sys-2.webm', poster: '/csa/sys-2-fit.png', sizeK: 1.22, activeRY: -19, offsetY: -260 },
-  { id: 'arm', video: '/csa/sys-3.webm', poster: '/csa/sys-3-fit.png', sizeK: 0.78, offsetY: -180 },
-  { id: 'amr', video: '/csa/sys-4.webm', poster: '/csa/sys-4-fit.png', sizeK: 0.93, offsetY: -180 },
-  { id: 'av', video: '/csa/sys-5.webm', poster: '/csa/sys-5-fit.png', sizeK: 0.83, offsetY: -180 },
+  { id: 'rail', video: '/csa/sys-2.webm', poster: '/csa/sys-2-fit.webp', sizeK: 1.22, activeRY: -19, offsetY: -260 },
+  { id: 'arm', video: '/csa/sys-3.webm', poster: '/csa/sys-3-fit.webp', sizeK: 0.78, offsetY: -180 },
+  { id: 'amr', video: '/csa/sys-4.webm', poster: '/csa/sys-4-fit.webp', sizeK: 0.93, offsetY: -180 },
+  { id: 'av', video: '/csa/sys-5.webm', poster: '/csa/sys-5-fit.webp', sizeK: 0.83, offsetY: -180 },
 ]
 
 type Slide = Media & {
