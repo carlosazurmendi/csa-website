@@ -1,27 +1,34 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { AwsClient } from 'aws4fetch'
 
 import { getCurrentCustomer } from '@/lib/customer'
 import {
   startTurn,
   finishTurn,
-  buildUserContent,
+  buildUserText,
   historyToMessages,
   chatConfigured,
   SYSTEM_PROMPT,
   SAFETY_CHAT_MODEL,
+  SAFETY_CHAT_ENDPOINT,
+  SAFETY_CHAT_AWS_SERVICE,
+  SAFETY_CHAT_REGION,
   SAFE_EXT,
   MAX_BYTES,
   type ChatAtt,
 } from '@/lib/safetyChat'
 
 /**
- * Safety Chat streaming endpoint (M6.5). POST multipart/form-data:
+ * Safety Chat streaming endpoint. POST multipart/form-data:
  *   text, threadId ("new" or numeric), projectId (numeric or ""), files[]
  * Owner-gated. Persists the user turn (creating the thread on first send), streams
  * the assistant reply token-by-token (text/plain), then persists the reply. The new
  * thread id + title come back as response headers so the client can adopt them.
- * SERVER-ONLY: the Anthropic key and all uploaded file content stay here. Without a
- * key the endpoint streams a configured-soon notice (and still persists it).
+ *
+ * The assistant is a CUSTOM LLM deployed on AWS, reached via an OpenAI-compatible
+ * /chat/completions endpoint and SigV4-signed with the IAM access key/secret (aws4fetch).
+ * SERVER-ONLY: the AWS credentials and all uploaded file content stay here. Until the
+ * endpoint + creds are configured the route streams a configured-soon notice (and
+ * still persists it). See src/lib/safetyChat.ts for the env contract.
  */
 
 export const runtime = 'nodejs'
@@ -99,26 +106,85 @@ export async function POST(req: Request): Promise<Response> {
 
       let full = ''
       try {
-        const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
-        const content = await buildUserContent(text, accepted)
-        const messages = [
-          ...historyToMessages(turn.history),
-          { role: 'user' as const, content: content as never },
-        ]
-
-        const modelStream = client.messages.stream({
-          model: SAFETY_CHAT_MODEL,
-          max_tokens: 2048,
-          system: SYSTEM_PROMPT,
-          messages: messages as never,
+        const aws = new AwsClient({
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+          sessionToken: process.env.AWS_SESSION_TOKEN,
+          region: SAFETY_CHAT_REGION,
+          service: SAFETY_CHAT_AWS_SERVICE,
         })
 
-        for await (const event of modelStream) {
-          if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-            full += event.delta.text
-            controller.enqueue(encoder.encode(event.delta.text))
+        const userText = await buildUserText(text, accepted)
+        const messages = [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...historyToMessages(turn.history),
+          { role: 'user', content: userText },
+        ]
+
+        const res = await aws.fetch(SAFETY_CHAT_ENDPOINT, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', accept: 'text/event-stream' },
+          body: JSON.stringify({
+            model: SAFETY_CHAT_MODEL || undefined,
+            messages,
+            stream: true,
+            max_tokens: 2048,
+          }),
+        })
+
+        if (!res.ok || !res.body) throw new Error(`assistant endpoint returned ${res.status}`)
+
+        // Parse an OpenAI-style SSE stream: lines "data: {json}", terminated by
+        // "data: [DONE]". Accumulate the raw body too, so a non-streaming JSON
+        // response (endpoint ignored stream:true) still yields the full reply.
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let buf = ''
+        let raw = ''
+        let sawDelta = false
+
+        for (;;) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value, { stream: true })
+          raw += chunk
+          buf += chunk
+          for (let nl = buf.indexOf('\n'); nl >= 0; nl = buf.indexOf('\n')) {
+            const line = buf.slice(0, nl).trim()
+            buf = buf.slice(nl + 1)
+            if (!line.startsWith('data:')) continue
+            const data = line.slice(5).trim()
+            if (data === '[DONE]') continue
+            try {
+              const json = JSON.parse(data)
+              const delta: string =
+                json?.choices?.[0]?.delta?.content ?? json?.choices?.[0]?.message?.content ?? ''
+              if (delta) {
+                sawDelta = true
+                full += delta
+                controller.enqueue(encoder.encode(delta))
+              }
+            } catch {
+              /* keep-alive / partial line — ignore */
+            }
           }
         }
+
+        // Non-streaming fallback: parse the whole body as one OpenAI completion.
+        if (!sawDelta) {
+          try {
+            const json = JSON.parse(raw)
+            const whole: string = json?.choices?.[0]?.message?.content ?? json?.choices?.[0]?.text ?? ''
+            if (whole) {
+              full += whole
+              controller.enqueue(encoder.encode(whole))
+            }
+          } catch {
+            /* not JSON either — handled by the empty-response guard below */
+          }
+        }
+
+        if (!full) throw new Error('empty response from assistant endpoint')
       } catch {
         const errNote =
           full.length > 0

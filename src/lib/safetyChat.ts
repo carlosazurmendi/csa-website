@@ -4,11 +4,20 @@ import mammoth from 'mammoth'
 import { getPayloadClient } from '@/lib/cms'
 
 /**
- * Safety Chat data + LLM helpers (server-only, M6.5). Owner-scoped reads/writes of
- * the chat-projects and chat-threads collections (locked on the public API) and the
- * Anthropic request-building used by the streaming route. The Anthropic API key is
- * server-only (ANTHROPIC_API_KEY) — it never reaches the browser; grading-style
- * isolation is not needed here, but the key and all file content stay on the server.
+ * Safety Chat data + LLM helpers (server-only). Owner-scoped reads/writes of the
+ * chat-projects and chat-threads collections (locked on the public API) and the
+ * request-building used by the streaming route.
+ *
+ * The assistant is a CUSTOM LLM deployed on AWS, reached through an OpenAI-compatible
+ * chat-completions endpoint and authenticated with AWS SigV4 (IAM access key/secret).
+ * All credentials and uploaded file content are server-only — they never reach the
+ * browser. Configured by env (the operator sets the real values in the deployment):
+ *   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY  IAM creds used to SigV4-sign the request
+ *   AWS_SESSION_TOKEN                          optional, for temporary credentials
+ *   AWS_REGION                                 region of the endpoint (default us-east-1)
+ *   SAFETY_CHAT_ENDPOINT                       full URL of the OpenAI /chat/completions endpoint
+ *   SAFETY_CHAT_AWS_SERVICE                    SigV4 service name (default "bedrock")
+ *   SAFETY_CHAT_MODEL                          model id to request
  */
 
 export type ChatAtt = { name: string; ext: string; sizeLabel: string }
@@ -26,10 +35,19 @@ export const SAFE_EXT = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt', 'md'
 export const MAX_BYTES = 25 * 1024 * 1024 // 25 MB
 const MAX_TEXT_CHARS = 200_000 // per-file extraction cap
 
-export const SAFETY_CHAT_MODEL = process.env.SAFETY_CHAT_MODEL || 'claude-sonnet-4-6'
+export const SAFETY_CHAT_MODEL = process.env.SAFETY_CHAT_MODEL || ''
+export const SAFETY_CHAT_ENDPOINT = process.env.SAFETY_CHAT_ENDPOINT || ''
+export const SAFETY_CHAT_AWS_SERVICE = process.env.SAFETY_CHAT_AWS_SERVICE || 'bedrock'
+export const SAFETY_CHAT_REGION = process.env.AWS_REGION || 'us-east-1'
 
-/** True when the Anthropic key is configured — otherwise Safety Chat stays inert. */
-export const chatConfigured = (): boolean => Boolean(process.env.ANTHROPIC_API_KEY)
+/**
+ * True when the AWS-hosted assistant is fully configured — IAM creds + endpoint URL.
+ * Otherwise Safety Chat stays inert (persists the turn, streams a configured-soon note).
+ */
+export const chatConfigured = (): boolean =>
+  Boolean(
+    process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY && process.env.SAFETY_CHAT_ENDPOINT,
+  )
 
 export const SYSTEM_PROMPT = `You are Safety Chat, the AI-augmented functional-safety assistant for Critical Systems Analysis (CSA), a functional-safety engineering consultancy.
 
@@ -146,12 +164,14 @@ export async function deleteThread(userId: string, threadId: number): Promise<bo
 const extOf = (n: string) => (n.split('.').pop() || '').toLowerCase()
 const imageMime: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp' }
 
-/** Build the Anthropic user-turn content from the typed text + uploaded files. */
-export async function buildUserContent(
-  text: string,
-  files: File[],
-): Promise<Array<Record<string, unknown>>> {
-  const blocks: Array<Record<string, unknown>> = []
+/**
+ * Build the OpenAI user-turn content as a single string: the typed text plus any
+ * readable file text. The custom assistant is reached through a TEXT chat-completions
+ * API, so binary image/PDF bytes are not forwarded — they're noted so the model can
+ * ask for a text version.
+ */
+export async function buildUserText(text: string, files: File[]): Promise<string> {
+  const parts: string[] = []
 
   for (const file of files) {
     const name = file.name || 'file'
@@ -159,32 +179,30 @@ export async function buildUserContent(
     if (!SAFE_EXT.includes(ext) || file.size > MAX_BYTES) continue
     const buf = Buffer.from(await file.arrayBuffer())
 
-    if (imageMime[ext]) {
-      blocks.push({ type: 'image', source: { type: 'base64', media_type: imageMime[ext], data: buf.toString('base64') } })
-    } else if (ext === 'pdf') {
-      // Claude reads PDFs natively as a document block.
-      blocks.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: buf.toString('base64') } })
-    } else if (ext === 'docx') {
+    if (ext === 'docx') {
       try {
         const { value } = await mammoth.extractRawText({ buffer: buf })
-        blocks.push({ type: 'text', text: `[Attached document: ${name}]\n${value.slice(0, MAX_TEXT_CHARS)}` })
+        parts.push(`[Attached document: ${name}]\n${value.slice(0, MAX_TEXT_CHARS)}`)
       } catch {
-        blocks.push({ type: 'text', text: `[Attached document: ${name} — could not extract text.]` })
+        parts.push(`[Attached document: ${name} — could not extract text.]`)
       }
     } else if (['txt', 'md', 'csv', 'rtf'].includes(ext)) {
-      blocks.push({ type: 'text', text: `[Attached file: ${name}]\n${buf.toString('utf8').slice(0, MAX_TEXT_CHARS)}` })
+      parts.push(`[Attached file: ${name}]\n${buf.toString('utf8').slice(0, MAX_TEXT_CHARS)}`)
+    } else if (imageMime[ext] || ext === 'pdf') {
+      // Not forwarded to a text-only chat-completions endpoint.
+      parts.push(
+        `[Attached ${ext.toUpperCase()} "${name}" — this assistant can't read images/PDFs directly. Please paste the relevant text, or attach a TXT/CSV/DOCX.]`,
+      )
     } else {
-      // doc / xls / xlsx — not extracted (no safe server-side parser); note it.
-      blocks.push({
-        type: 'text',
-        text: `[Attached file: ${name} (${ext.toUpperCase()}) — its contents could not be read automatically. Please paste the relevant rows/text, or attach a PDF or CSV export.]`,
-      })
+      // doc / xls / xlsx — no safe server-side parser.
+      parts.push(
+        `[Attached file: ${name} (${ext.toUpperCase()}) — its contents could not be read automatically. Please paste the relevant rows/text, or attach a CSV/DOCX export.]`,
+      )
     }
   }
 
-  if (text.trim()) blocks.push({ type: 'text', text: text.trim() })
-  if (blocks.length === 0) blocks.push({ type: 'text', text: '(no message)' })
-  return blocks
+  const all = [text.trim(), ...parts].filter(Boolean).join('\n\n')
+  return all || '(no message)'
 }
 
 /** Map persisted history to Anthropic messages (bot → assistant). */
