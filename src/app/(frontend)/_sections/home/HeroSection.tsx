@@ -352,7 +352,6 @@ export function HeroSection({ home }: { home: HomeDoc }) {
   // hero is scrolled off-screen or the tab is hidden — invisible to anyone looking at
   // it, but it stops the machine churning on a section nobody can see.
   const heroRef = useRef<HTMLElement>(null)
-  const bgRef = useRef<HTMLVideoElement>(null)
   const [active, setActive] = useState(true)
   const activeRef = useRef(true)
   activeRef.current = active
@@ -378,23 +377,6 @@ export function HeroSection({ home }: { home: HomeDoc }) {
       document.removeEventListener('visibilitychange', update)
     }
   }, [])
-
-  // Background hero video — play while the hero is active (on-screen, tab visible).
-  useEffect(() => {
-    const bg = bgRef.current
-    if (!bg) return
-    if (active) {
-      bg.muted = true // muted PROPERTY (not just the attribute) so autoplay isn't blocked
-      const p = bg.play()
-      if (p && p.catch) p.catch(() => {})
-    } else {
-      try {
-        bg.pause()
-      } catch {
-        /* noop */
-      }
-    }
-  }, [active])
 
   // Background wordmark marquee — rAF (auto-throttles on hidden tabs) gated on `active`;
   // `x` persists in a ref so re-entering the viewport resumes without a jump.
@@ -455,16 +437,10 @@ export function HeroSection({ home }: { home: HomeDoc }) {
         paused.current = false
       }}
     >
-      <video
-        ref={bgRef}
-        className="vhero__bg"
-        src="/csa/hero.mp4"
-        poster="/csa/hero-poster.jpg"
-        autoPlay
-        muted
-        loop
-        playsInline
-      ></video>
+      {/* Ambient backdrop is a STATIC poster (was an autoplaying hero.mp4). One
+          fewer always-on video decode on the hero; the centered slide video still
+          plays. */}
+      <img className="vhero__bg" src="/csa/hero-poster.jpg" alt="" aria-hidden="true" />
       <div className="vhero__scrim vhero__scrim--haze" />
       <div className="vhero__scrim vhero__scrim--v" />
       <div className="vhero__scrim vhero__scrim--h" />
