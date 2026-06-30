@@ -112,6 +112,14 @@ const s3ClientConfig = {
   endpoint: s3Env.endpoint || 'http://localhost:9000',
   region: process.env.SUPABASE_S3_REGION || 'us-east-1',
   forcePathStyle: true,
+  // Disable the AWS SDK v3 default request checksum (CRC32). Two reasons:
+  // (1) admin uploads arrive as a SharedArrayBuffer-backed body, and the SDK's
+  //     checksum hasher throws `The "input" argument must be ArrayBuffer` on it;
+  // (2) MinIO does not accept the new aws-chunked checksum trailers. WHEN_REQUIRED
+  //     only sends a checksum when the operation mandates one. Seeding (disk-read
+  //     Buffers) was unaffected; this fixes the multipart admin upload path.
+  requestChecksumCalculation: 'WHEN_REQUIRED' as const,
+  responseChecksumValidation: 'WHEN_REQUIRED' as const,
   credentials: {
     accessKeyId: s3Env.accessKeyId || 'build-placeholder',
     secretAccessKey: s3Env.secretAccessKey || 'build-placeholder',
