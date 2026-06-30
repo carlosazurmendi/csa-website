@@ -2,6 +2,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig, type Plugin } from 'payload'
@@ -163,7 +164,27 @@ const APP_DATA_SLUGS = new Set([
   'protected-media',
 ])
 
+// Transactional email (order confirmations). Configured ONLY when SMTP is set —
+// otherwise Payload falls back to its console logger, so the app still runs and
+// orders still fulfil without mail. May reuse the same SMTP provider as GoTrue.
+const emailAdapter = process.env.SMTP_HOST
+  ? nodemailerAdapter({
+      defaultFromAddress: process.env.SMTP_FROM_ADDRESS || 'no-reply@criticalsystemsanalysis.com',
+      defaultFromName: process.env.SMTP_FROM_NAME || 'Critical Systems Analysis',
+      transportOptions: {
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: Number(process.env.SMTP_PORT || 587) === 465,
+        auth:
+          process.env.SMTP_USER || process.env.SMTP_PASS
+            ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            : undefined,
+      },
+    })
+  : undefined
+
 export default buildConfig({
+  email: emailAdapter,
   admin: {
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },

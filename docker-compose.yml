@@ -54,6 +54,14 @@ x-csa-env: &csa-env
   CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
   CLOUDFLARE_ZONE_ID: ${CLOUDFLARE_ZONE_ID:-}
   CLOUDFLARE_PURGE_FILES: ${CLOUDFLARE_PURGE_FILES:-}
+  # Transactional email (order confirmations). All empty = Payload logs instead of
+  # sending (orders still fulfil). Can reuse the same provider as GOTRUE_SMTP_*.
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASS: ${SMTP_PASS:-}
+  SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDRESS:-}
+  SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Critical Systems Analysis}
 
 services:
   # ---- Bundled Postgres (system of record — persistent volume) -----------------

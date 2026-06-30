@@ -3,7 +3,7 @@ import type Stripe from 'stripe'
 
 import { getPayloadClient } from '@/lib/cms'
 import { getStripe, stripeConfigured } from '@/lib/stripe'
-import { grantPurchase } from '@/lib/orders'
+import { grantPurchase, revokePurchase } from '@/lib/orders'
 import type { CompactItem } from '@/lib/commerce'
 
 /**
@@ -92,10 +92,31 @@ export async function POST(req: NextRequest) {
               currency: session.currency,
               paymentIntentId,
               receiptUrl,
+              email: session.customer_details?.email ?? session.customer_email ?? null,
             })
           }
         }
       }
+    } else if (event.type === 'charge.refunded') {
+      // Revoke access ONLY on a full refund; a partial refund is left for manual
+      // review (ambiguous for digital goods).
+      const charge = event.data.object as Stripe.Charge
+      const fullyRefunded =
+        charge.refunded === true ||
+        (typeof charge.amount === 'number' && charge.amount_refunded >= charge.amount)
+      const pi =
+        typeof charge.payment_intent === 'string'
+          ? charge.payment_intent
+          : (charge.payment_intent?.id ?? null)
+      if (fullyRefunded && pi) await revokePurchase({ paymentIntentId: pi, reason: 'refund' })
+    } else if (event.type === 'charge.dispute.created') {
+      // A chargeback — revoke immediately (the buyer reversed the payment).
+      const dispute = event.data.object as Stripe.Dispute
+      const pi =
+        typeof dispute.payment_intent === 'string'
+          ? dispute.payment_intent
+          : (dispute.payment_intent?.id ?? null)
+      if (pi) await revokePurchase({ paymentIntentId: pi, reason: 'dispute' })
     }
 
     // Record AFTER successful handling so a thrown error → 500 → Stripe retry.

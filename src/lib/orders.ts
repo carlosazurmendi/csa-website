@@ -4,6 +4,7 @@ import type { Payload } from 'payload'
 
 import { getPayloadClient } from '@/lib/cms'
 import { resolveForFulfilment, linesSubtotal, type ResolvedLine, type CompactItem } from '@/lib/commerce'
+import { sendOrderConfirmation } from '@/lib/email/orderConfirmation'
 
 /**
  * Fulfilment (M7) — the ONLY path that grants access. Called exclusively from the
@@ -27,7 +28,7 @@ function isUniqueViolation(err: unknown): boolean {
   return /duplicate key value|unique constraint|already exists/i.test(msg)
 }
 
-type OrderRow = { id: number | string }
+type OrderRow = { id: number | string; orderNumber?: string; status?: string }
 
 /** Create an Enrollment for a course unless the user already has one. */
 async function grantEnrollment(
@@ -199,6 +200,8 @@ type CheckoutSessionLike = {
   currency?: string | null
   paymentIntentId?: string | null
   receiptUrl?: string | null
+  /** Buyer email (Stripe customer_details.email) — for the order confirmation. */
+  email?: string | null
 }
 
 /**
@@ -224,8 +227,101 @@ export async function grantPurchase(session: CheckoutSessionLike): Promise<void>
     })
   ).docs[0] as OrderRow | undefined
 
+  const isNewOrder = !existing
   const order = existing ?? (await createOrder(payload, session, lines))
 
   // Always (re-)run grants — dedupe-guarded, so completing a partial prior attempt.
   await grantAccess(payload, session.userId, order.id, lines)
+
+  // Confirmation email — only on the FIRST fulfilment (a retried/duplicate
+  // delivery finds the existing order and skips it, so no double-send). Strictly
+  // best-effort: a mail failure must never fail the webhook (→ no Stripe retry,
+  // → no re-grant). No SMTP configured → Payload logs instead of sending.
+  if (isNewOrder && session.email) {
+    try {
+      await sendOrderConfirmation(payload, {
+        to: session.email,
+        orderNumber: order.orderNumber ?? '',
+        lines,
+        amountTotal: session.amountTotal ?? null,
+        currency: session.currency ?? 'usd',
+        receiptUrl: session.receiptUrl ?? null,
+        serverUrl: process.env.NEXT_PUBLIC_SERVER_URL || '',
+      })
+    } catch (err) {
+      console.error('[order email] send failed (non-fatal):', err)
+    }
+  }
+}
+
+/**
+ * Revoke access after a FULL refund or a dispute/chargeback. The inverse of
+ * grantPurchase, and likewise the ONLY path that revokes (driven only by the
+ * verified webhook). Finds the order by its Stripe PaymentIntent, deactivates its
+ * entitlements (active=false + revokedAt — the download gate denies inactive) and
+ * expires its enrollments (the player gate denies non-active), then marks the
+ * order refunded. Idempotent: a refund for an order we never recorded, or one
+ * already revoked, is a no-op.
+ */
+export async function revokePurchase(args: {
+  paymentIntentId: string
+  reason?: 'refund' | 'dispute'
+}): Promise<void> {
+  const { paymentIntentId } = args
+  if (!paymentIntentId) return
+  const payload = await getPayloadClient()
+
+  const order = (
+    await payload.find({
+      collection: 'orders',
+      where: { stripePaymentIntentId: { equals: paymentIntentId } },
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
+  ).docs[0] as (OrderRow & { status?: string }) | undefined
+  if (!order) return // refund for an order we never recorded — nothing to revoke
+
+  const nowIso = new Date().toISOString()
+
+  const ents = await payload.find({
+    collection: 'entitlements',
+    where: { and: [{ order: { equals: order.id } }, { active: { equals: true } }] },
+    limit: 1000,
+    depth: 0,
+    overrideAccess: true,
+  })
+  for (const e of ents.docs as Array<{ id: number | string }>) {
+    await payload.update({
+      collection: 'entitlements',
+      id: e.id,
+      overrideAccess: true,
+      data: { active: false, revokedAt: nowIso },
+    })
+  }
+
+  const enrs = await payload.find({
+    collection: 'enrollments',
+    where: { and: [{ order: { equals: order.id } }, { status: { not_equals: 'expired' } }] },
+    limit: 1000,
+    depth: 0,
+    overrideAccess: true,
+  })
+  for (const en of enrs.docs as Array<{ id: number | string }>) {
+    await payload.update({
+      collection: 'enrollments',
+      id: en.id,
+      overrideAccess: true,
+      data: { status: 'expired' },
+    })
+  }
+
+  if (order.status !== 'refunded') {
+    await payload.update({
+      collection: 'orders',
+      id: order.id,
+      overrideAccess: true,
+      data: { status: 'refunded' },
+    })
+  }
 }

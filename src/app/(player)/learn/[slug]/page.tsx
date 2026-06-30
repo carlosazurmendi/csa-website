@@ -93,7 +93,15 @@ export default async function CoursePlayerPage({
   const payload = await getPayloadClient()
   const enr = await payload.find({
     collection: 'enrollments',
-    where: { and: [{ userId: { equals: customer.userId } }, { course: { equals: course.id } }] },
+    // An 'expired' enrollment (access lapsed OR revoked after a refund/chargeback)
+    // no longer grants entry — only active/completed do.
+    where: {
+      and: [
+        { userId: { equals: customer.userId } },
+        { course: { equals: course.id } },
+        { status: { not_equals: 'expired' } },
+      ],
+    },
     limit: 1,
     overrideAccess: true,
   })
