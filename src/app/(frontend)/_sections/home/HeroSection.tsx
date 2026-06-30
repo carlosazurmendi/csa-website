@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { lexicalToText } from '@/lib/lexical'
+import { va } from '@/lib/assetVersion'
 import { ChevronLeft, ChevronRight } from '../../_components/Chevron'
 import type { HeroSystem, HomeDoc } from './types'
 
@@ -58,6 +59,11 @@ const buildSlides = (systems: HeroSystem[]): Slide[] =>
       metricVal: s.metricVal ?? '',
     }
   })
+
+// Cache-bust hero media: /csa/*.webm|.webp are fixed-name assets (browser/CDN cached
+// by max-age, NOT hash-busted), so a changed file can serve stale bytes. va() appends
+// the per-build ?v= so each deploy ships fresh URLs. (See src/lib/assetVersion.ts.)
+const vurl = (p?: string) => (p ? va(p) : undefined)
 
 /* ---------- Carousel stage ---------- */
 function Stage({
@@ -165,8 +171,8 @@ function Stage({
                 ref={(el) => {
                   vids.current[sys.id] = el
                 }}
-                src={sys.video}
-                poster={sys.poster}
+                src={vurl(sys.video)}
+                poster={vurl(sys.poster)}
                 autoPlay
                 muted
                 loop
@@ -180,7 +186,7 @@ function Stage({
               // position. eslint-disable-next-line keeps the plain <img> (next/image
               // would lazy-load + reframe this hero art).
               // eslint-disable-next-line @next/next/no-img-element
-              <img className="char__img" src={sys.poster || sys.gif || sys.video} alt={sys.name} />
+              <img className="char__img" src={vurl(sys.poster || sys.gif || sys.video)} alt={sys.name} />
             )}
           </div>
         )
