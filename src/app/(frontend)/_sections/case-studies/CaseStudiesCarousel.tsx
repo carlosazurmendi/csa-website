@@ -180,9 +180,12 @@ function Card({
   )
 }
 
-function Quote({ data, index, isMobile }: { data: CaseCard; index: number; isMobile: boolean }) {
+function Quote({ data, active, isMobile }: { data: CaseCard; active: boolean; isMobile: boolean }) {
   return (
-    <div className="cs-quote csa-glass cs-anim" key={'q' + index}>
+    <div
+      className={'cs-quote csa-glass' + (active ? ' cs-anim is-active' : '')}
+      aria-hidden={!active}
+    >
       {!isMobile && <MetalRing kind="silver" />}
       <span className="cs-quote__mark">&ldquo;</span>
       <p className="cs-quote__text">{data.quote}</p>
@@ -272,7 +275,22 @@ export function CaseStudiesCarousel({
             />
           )
         })}
-        <Quote data={active} index={index} isMobile={isMobile} />
+        {/* ALL quotes stay mounted (inactive ones hidden) so the quote region
+            keeps ONE height — the tallest quote — on every slide. On mobile the
+            stage is height:auto, so a single swapped quote used to resize the
+            stage and shift the nav row mid-interaction: repeat clicks landed on
+            the arrows' OLD position and died. The active quote alone is keyed
+            by index so its entrance animation replays per swap, as before. */}
+        <div className="cs-quotes">
+          {cards.map((c, i) => (
+            <Quote
+              key={i === index ? c.id + '.' + index : c.id}
+              data={c}
+              active={i === index}
+              isMobile={isMobile}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="cs__nav">

@@ -316,6 +316,14 @@
 @media (prefers-reduced-motion: reduce) {
   .cs-quote.csa-glass:hover::before { animation-duration: 0s; }
 }
+/* Quote stack: all quotes render mounted, overlapped; only .is-active shows.
+   Desktop: display:contents is box-less, so each quote stays an absolutely
+   positioned child of the stage exactly as before. Mobile (media block below):
+   the wrapper becomes a grid and every quote shares cell 1/1, so the in-flow
+   quote region always measures the TALLEST quote — the nav row below never
+   shifts between slides (a moving arrow made repeat clicks miss it). */
+.cs-quotes { display: contents; }
+.cs-quote:not(.is-active) { visibility: hidden; pointer-events: none; }
 .cs-quote__mark {
   font-family: var(--font-display);
   font-weight: 700;
@@ -442,6 +450,10 @@
     padding: 22px 24px;
   }
   .cs-quote.cs-anim { animation-name: cs-fade; }
+  /* Overlap stack (see .cs-quotes above): every quote occupies the same grid
+     cell, so the region's height is the tallest quote's — stable nav position. */
+  .cs-quotes { display: grid; }
+  .cs-quotes > .cs-quote { grid-area: 1 / 1; }
   .cs__nav { margin-top: 28px; }
   .cs__cta-row { margin-top: 28px; }
 }
