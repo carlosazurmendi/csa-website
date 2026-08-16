@@ -43,8 +43,12 @@ services:
       NEXT_PUBLIC_SERVER_URL: http://localhost:3000
       DATABASE_SSL: "false"
 
-  # db: the base already binds 127.0.0.1:5432 (loopback) — reachable on the host for a
-  # local GUI without an override here.
+  # db: the base binds 127.0.0.1:5432, but on a dev box another project's Postgres
+  # may already own that port — publish on 5433 instead (containers still reach it
+  # at db:5432 over the compose network; a host GUI uses localhost:5433).
+  db:
+    ports: !override
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
 
   minio:
     ports:
