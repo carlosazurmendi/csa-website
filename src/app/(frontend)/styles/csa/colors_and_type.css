@@ -465,6 +465,38 @@ html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0; height: 0; display:
 [data-metal]:not([data-metal-mode="always"]):hover::before,
 [data-metal]:not([data-metal-mode="always"]):focus-visible::before { animation-play-state: running !important; }
 
+/* ---------- static-foil policy: liquid metal gated to the header nav CTA ----------
+   csa-shaders.js (metalAllowed) mounts a liquid-metal WebGL ring ONLY on the header
+   nav CTA (.navx__cta). The formerly ALWAYS-ON metal CTAs — data-metal-mode="always"
+   hosts and book-a-consultation links (the old href auto-promotion) — would otherwise
+   drop to their plain solid borders, so they get a static foil-gradient hairline here
+   instead: same bracketing look, zero WebGL. Hover-only metal hosts need nothing —
+   their resting edge was always the CSS foil / designed fallback border. */
+[data-metal][data-metal-mode="always"]:not(.navx__cta)::before,
+a[data-metal][href*="book-a-consultation"]:not(.navx__cta)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background-image: var(--gold-foil); background-size: 200% 100%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  animation: csa-gold-sheen 8s linear infinite; pointer-events: none; z-index: 4;
+}
+/* The foil hairline is the ONLY edge: these hosts otherwise stack their own
+   1px solid gold border (kit .btn--gold-pill / .rv-glass-btn) around it, which
+   doubles the outline thickness that silver-foil elements don't have.
+   !important so state rules (e.g. .btn--gold-pill:hover border-color) can't
+   reintroduce the solid line regardless of stylesheet load order. */
+[data-metal][data-metal-mode="always"]:not(.navx__cta),
+a[data-metal][href*="book-a-consultation"]:not(.navx__cta) {
+  border-color: transparent !important;
+}
+[data-metal="silver"][data-metal-mode="always"]:not(.navx__cta)::before,
+a[data-metal="silver"][href*="book-a-consultation"]:not(.navx__cta)::before {
+  background-image: var(--silver-foil);
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-csa-motion]) :is([data-metal][data-metal-mode="always"], a[data-metal][href*="book-a-consultation"])::before { animation: none; }
+}
+
 /* ---------- off-screen sections: pause continuous CSS animation ----------
    interactions.js adds .csa-anim-off to a major block once it scrolls well out
    of view. Freeze every infinite sheen/pulse inside it so it stops driving the

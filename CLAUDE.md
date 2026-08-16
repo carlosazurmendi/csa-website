@@ -54,11 +54,18 @@ Authoritative instructions for any AI agent working in this project. Read fully 
   multi-megapixel canvas. Measured idle home page: ~8 contexts, ~31 Mpx/frame. This is the
   "freezes my whole computer" symptom. Shrinking the square / clamping resolution is the
   highest perf-per-effort fix.
-- Metal modes: hover-activated is the **default** for `data-metal` edges; opt back into
-  always-on with `data-metal-mode="always"` OR a `book-a-consultation` link (href rule).
-  React-owned `data-no-lazy` rings hover-gate themselves inside the element.
-- **Keep continuously animated (do not gate):** the named CTAs marked `data-metal-mode="always"`,
-  the header nav CTA, and every "Book a Consultation" CTA.
+- **METAL GATE (2026-08 product decision — supersedes the old keep-animated list):** liquid
+  metal runs ONLY on the header nav CTA (`.navx__cta`). `metalAllowed()` in `csa-shaders.js`
+  enforces it at `MetalEl.connectedCallback`, `wireMetal`, and `revealMetalRing`, so no other
+  host — authored `data-metal` edges, auto-wired gold buttons, JSX `<csa-liquid-metal>` rings,
+  book-a-consultation CTAs — ever mounts a metal WebGL context. Do NOT re-enable metal
+  elsewhere, and do NOT "clean up" the now-inert `data-metal` attributes or JSX ring elements:
+  CSS keys off them (`[data-metal]` positioning/stacking rules, `:has(> csa-liquid-metal[ring])`
+  foil lifts) and the gate is the intended single switch.
+- Formerly always-on CTAs (`data-metal-mode="always"` hosts + book-a-consultation links) show a
+  static foil-gradient hairline instead — see the "static-foil policy" block in
+  `colors_and_type.css`. All other hosts rest on their existing CSS foil / fallback border.
+- `csa-grain` and `csa-pulsing-border` are untouched: still lazy-loaded, still live.
 
 ## Global product rules (non-negotiable)
 

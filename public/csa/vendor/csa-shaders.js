@@ -197,6 +197,17 @@
       disconnectedCallback() { if (this._root) try { this._root.unmount(); } catch (e) {} this._m = false; }
     }
 
+    /* ---- METAL GATE ----
+       Liquid metal is restricted to the header nav CTA (.navx__cta): the ONLY
+       element on the site allowed to run a liquid-metal WebGL context. Every
+       other metal host — authored data-metal edges, auto-wired gold buttons,
+       JSX-declared rings, book-a-consultation CTAs — keeps its static CSS
+       foil-gradient edge (see colors_and_type.css). The gate is enforced at
+       the element itself (connectedCallback) so every creation path is covered. */
+    function metalAllowed(host) {
+      return !!(host && host.classList && host.classList.contains('navx__cta'));
+    }
+
     /* ---- <csa-liquid-metal> (fill, or ring outline) ----
        LiquidMetal renders a centered metal SHAPE on colorBack — it does
        not fill a rectangle on its own. We render it into an oversized,
@@ -206,6 +217,9 @@
        or a ring band (masked to the border). */
     class MetalEl extends HTMLElement {
       connectedCallback() {
+        // METAL GATE: never mount unless the host is the nav CTA. _sq is never
+        // created, so any later resume() (lazy-loader, hover handlers) is a no-op.
+        if (!metalAllowed(this.parentElement)) return;
         if (this._m) return; this._m = true; this._suspended = false;
         var cs = getComputedStyle(this);
         if (cs.position === 'static') this.style.position = 'relative';
@@ -427,6 +441,7 @@
     }
     function revealMetalRing(ring, host) {
       host = host || ring.parentElement; if (!host) return;
+      if (!metalAllowed(host)) return; // METAL GATE: no canvas will ever paint here
       var t = 0;
       (function poll() {
         if (ring._suspended || !ring.isConnected) return;
@@ -530,6 +545,10 @@
         if (!isNaN(mtn) && mtn > 2) mt = '2px';
         el.__metalThick = mt;
         if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+        // METAL GATE: only the header nav CTA is registered for a live ring.
+        // Other data-metal hosts stop here — CSS foil edge only; no hover
+        // handlers, no metalHosts entry, no ring injection.
+        if (!metalAllowed(el)) return;
         if (metalForcedAlways(el)) metalHosts.push(el);
         else wireMetalHoverHandlers(el);
       });
