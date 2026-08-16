@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import { smoothScrollTo } from '../../../_components/SmoothScroll'
+
 /**
  * Client-only chrome for the article reading page — faithful port of the Toc
  * (scroll-spy) and ShareRail components in design-reference/project/assets/
@@ -33,7 +35,7 @@ export function ArticleToc({ sections }: { sections: TocSection[] }) {
   const go = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
     const el = document.getElementById(id)
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 96, behavior: 'smooth' })
+    if (el) smoothScrollTo(el.getBoundingClientRect().top + window.scrollY - 96)
   }
   return (
     <nav className="ad-toc" aria-label="On this page">

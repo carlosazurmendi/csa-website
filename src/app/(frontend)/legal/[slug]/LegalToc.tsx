@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import { smoothScrollTo } from '../../_components/SmoothScroll'
+
 /**
  * Client-only table of contents with scroll-spy — faithful port of the `Toc`
  * component in design-reference/project/assets/legal.jsx. The legal body is
@@ -43,7 +45,7 @@ export function LegalToc({ sections }: { sections: LegalSection[] }) {
     const el = document.getElementById(id)
     if (!el) return
     const y = el.getBoundingClientRect().top + window.scrollY - 104
-    window.scrollTo({ top: y, behavior: 'smooth' })
+    smoothScrollTo(y)
     if (history.replaceState) history.replaceState(null, '', '#' + id)
   }
 

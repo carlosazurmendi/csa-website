@@ -14,6 +14,7 @@ import { SiteFooter, type FooterData } from './_components/SiteFooter'
 import { CsaIcons } from './_components/CsaIcons'
 import { Shell } from './_components/Shell'
 import { ExpressBuy } from './_components/commerce/ExpressBuy'
+import { SmoothScroll } from './_components/SmoothScroll'
 
 export const metadata: Metadata = {
   // No title.template — the seeded page metaTitles already carry their own branding
@@ -85,6 +86,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
         <ExpressBuy signedIn={Boolean(initialUser)} />
 
         <CsaIcons />
+        <SmoothScroll />
       </body>
     </html>
   )

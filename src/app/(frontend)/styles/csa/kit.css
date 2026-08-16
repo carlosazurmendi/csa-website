@@ -4,6 +4,13 @@ html, body { margin: 0; padding: 0; }
 body { background: var(--bg-base); color: var(--fg-2); font-family: var(--font-body); }
 .site-scroll { height: 100vh; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
 img { display: block; }
+/* Lenis (SmoothScroll.tsx) — recommended reset. CSS scroll-behavior must stay
+   `auto` while Lenis drives the scroll position each frame: a UA-animated
+   smooth scroll on top of Lenis's per-frame writes rubber-bands. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
 button { font-family: inherit; cursor: pointer; }
 a { text-decoration: none; }
 

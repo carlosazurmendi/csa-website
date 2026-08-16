@@ -2,6 +2,8 @@
 
 import type { MouseEvent } from 'react'
 
+import { smoothScrollTo } from '../../_components/SmoothScroll'
+
 /**
  * ScrollToRolesButton — the only interactive bit of the Careers page. Faithful
  * port of the `toRoles` handler in design-reference/project/assets/company.jsx
@@ -23,10 +25,7 @@ export function ScrollToRolesButton({
     e.preventDefault()
     const el = document.getElementById('roles')
     if (el) {
-      window.scrollTo({
-        top: el.getBoundingClientRect().top + window.pageYOffset - 80,
-        behavior: 'smooth',
-      })
+      smoothScrollTo(el.getBoundingClientRect().top + window.pageYOffset - 80)
     }
   }
   return (
