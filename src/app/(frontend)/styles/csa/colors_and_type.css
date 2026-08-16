@@ -543,7 +543,14 @@ a[data-metal="silver"][href*="book-a-consultation"]:not(.navx__cta)::before {
 [data-reveal="right"] { transform: translateX(-34px); }
 [data-reveal="scale"] { transform: scale(0.94); }
 [data-reveal="clip"]  { clip-path: inset(0 100% 0 0); opacity: 1; }
-[data-reveal].is-in { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+/* End-state must fully CLEAR the reveal props: a retained clip-path or
+   will-change:opacity makes the revealed wrapper a backdrop-root boundary,
+   which silently kills backdrop-filter frost on any glass element inside it
+   (same failure the hero CTA had with a retained animation fill). Only the
+   "clip" variant keeps its inset() — its transition needs an interpolable
+   end value. */
+[data-reveal].is-in { opacity: 1; transform: none; clip-path: none; will-change: auto; }
+[data-reveal="clip"].is-in { clip-path: inset(0 0 0 0); }
 @media (prefers-reduced-motion: reduce) {
   html:not([data-csa-motion]) [data-reveal] { opacity: 1 !important; transform: none !important; clip-path: none !important; }
 }

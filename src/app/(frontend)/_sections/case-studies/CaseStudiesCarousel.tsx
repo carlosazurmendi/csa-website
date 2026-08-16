@@ -166,7 +166,7 @@ function Card({
           <h3 className="cs-card__name">{data.name}</h3>
           <p className="cs-card__desc">{data.desc}</p>
           <Link
-            className="btn btn--gold-pill cs-card__cta"
+            className="btn rv-glass-btn cs-card__cta"
             href={`/case-studies/${data.slug}`}
             data-metal="gold"
             data-metal-mode="always"
@@ -313,7 +313,7 @@ export function CaseStudiesCarousel({
       </div>
 
       <div className="cs__cta-row">
-        <Link className="btn btn--gold-pill btn--lg" href={ctaHref} data-metal="gold" data-metal-mode="always">
+        <Link className="btn btn--lg rv-glass-btn" href={ctaHref} data-metal="gold" data-metal-mode="always">
           {ctaLabel} <i data-lucide="arrow-right"></i>
         </Link>
       </div>

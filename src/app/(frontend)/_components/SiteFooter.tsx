@@ -126,7 +126,7 @@ export function SiteFooter({ data }: { data: FooterData }) {
           {subtext}
         </p>
         <div className="ft-cta__actions" data-reveal="up" data-reveal-delay="240">
-          <Link className="btn btn--gold-pill btn--lg csa-glass" href={primaryHref} data-metal="gold">
+          <Link className="btn btn--lg rv-glass-btn" href={primaryHref} data-metal="gold">
             {primaryLabel} <i data-lucide="arrow-right"></i>
           </Link>
           <Link className="btn btn--link" href={secondaryHref}>

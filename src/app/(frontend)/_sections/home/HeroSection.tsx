@@ -497,7 +497,7 @@ export function HeroSection({ home }: { home: HomeDoc }) {
           )}
           {subText && <p className="vhero__sub vhero__reveal vhero__reveal--2">{subText}</p>}
           <div className="vhero__cta vhero__reveal vhero__reveal--3">
-            <Link className="btn btn--gold-pill btn--lg csa-glass" href="/book-a-consultation">
+            <Link className="btn btn--lg rv-glass-btn" data-metal="gold" data-metal-mode="always" href="/book-a-consultation">
               {home.heroCtaPrimary || 'Book a Consultation'}
             </Link>
             <Link className="btn btn--link" href="/company/services">

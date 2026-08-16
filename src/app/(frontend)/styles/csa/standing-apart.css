@@ -56,7 +56,9 @@
   padding: 8px 16px;
   border-radius: var(--r-pill);
   border: 1px solid var(--border-gold);
-  background: rgba(var(--gold-rgb), 0.06);
+  /* frosted glass with a light gold tint (kept from the old flat fill) */
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)), rgba(var(--gold-rgb), 0.05);
+  backdrop-filter: blur(14px) saturate(140%);
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.14em;
@@ -189,7 +191,8 @@
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--border-1);
-  background: var(--bg-glass);
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+  backdrop-filter: blur(14px) saturate(140%);
   color: var(--fg-3);
   transition: color 0.4s var(--ease-out), border-color 0.4s var(--ease-out), transform 0.45s var(--ease-out), box-shadow 0.4s var(--ease-out);
 }
@@ -236,7 +239,7 @@
   padding: 13px 20px;
   border-radius: var(--r-lg);
   border: 1px solid var(--border-1);
-  background: var(--bg-glass);
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
   transition: border-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), transform 0.4s var(--ease-out);
 }
 .sa-badge:hover,
@@ -264,7 +267,12 @@
 
 /* ---------- Entrance ---------- */
 @media (prefers-reduced-motion: no-preference) {
-  .sa-row { opacity: 0; animation: sa-rise 0.6s var(--ease-out) forwards; }
+  /* backwards (not forwards) + no base opacity: a retained forwards fill keeps
+     the row composited as a backdrop-root boundary forever, which kills the
+     backdrop-filter frost on the glass cells/arrows inside (same failure as
+     the hero reveal). backwards covers the pre-start state; after the run the
+     row must compute opacity:1/transform:none. */
+  .sa-row { animation: sa-rise 0.6s var(--ease-out) backwards; }
   .sa-row:nth-child(1) { animation-delay: 0.05s; }
   .sa-row:nth-child(2) { animation-delay: 0.14s; }
   .sa-row:nth-child(3) { animation-delay: 0.23s; }
@@ -304,7 +312,10 @@
   transform: translateY(-3px);
 }
 .sa-cell.csa-glass {
-  background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(10,14,20,0.58) !important;
+  /* True frosted glass: translucent gradient only (rv-glass strength) — the
+     old near-opaque rgba(10,14,20,0.58) base read as a solid card and hid the
+     backdrop blur. */
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)) !important;
   border-color: rgba(174,183,196,0.20) !important;
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
   transition: background 0.4s var(--ease-out), border-color 0.4s var(--ease-out) !important;
@@ -314,7 +325,7 @@
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
 }
 .sa-row:hover .sa-cell.csa-glass {
-  background: linear-gradient(155deg, rgba(255,255,255,0.11), rgba(255,255,255,0.04)), rgba(10,14,20,0.50) !important;
+  background: linear-gradient(155deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)) !important;
   border-color: rgba(214,222,232,0.50) !important;
   transform: none !important;
 }

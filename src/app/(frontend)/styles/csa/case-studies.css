@@ -274,7 +274,9 @@
   padding: 5px 11px;
   white-space: nowrap;
 }
-.cs-card__cta { pointer-events: auto; }
+/* Padding restored here: the CTA used .btn--gold-pill's 10px 20px before its
+   swap to the frosted rv-glass-btn face (which sets no padding of its own). */
+.cs-card__cta { pointer-events: auto; padding: 10px 20px; }
 
 /* Hide body text on side cards (keep it clean; brightness dims them anyway) */
 .cs-card.is-side .cs-card__body { opacity: 0; transition: opacity 360ms var(--ease-out); }

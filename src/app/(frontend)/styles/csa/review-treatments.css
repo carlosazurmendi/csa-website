@@ -110,7 +110,10 @@
    simply BRIGHTEN and a live silver liquid-metal ring mounts (SaCell renders
    <csa-liquid-metal> only while hovered). No lift, no coloured glow. */
 .sa-cell.csa-glass {
-  background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(10,14,20,0.58) !important;
+  /* True frosted glass: translucent gradient only (rv-glass strength) — the
+     old near-opaque rgba(10,14,20,0.58) base read as a solid card and hid the
+     backdrop blur. */
+  background: linear-gradient(155deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03)) !important;
   border-color: rgba(174,183,196,0.20) !important;
   box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.10) !important;
   transition: background 0.4s var(--ease-out), border-color 0.4s var(--ease-out) !important;
@@ -125,7 +128,7 @@
    highlight), no transform, no coloured glow. SaRow mounts the silver
    liquid-metal ring on both cells while the row is hovered. */
 .sa-row:hover .sa-cell.csa-glass {
-  background: linear-gradient(155deg, rgba(255,255,255,0.11), rgba(255,255,255,0.04)), rgba(10,14,20,0.50) !important;
+  background: linear-gradient(155deg, rgba(255,255,255,0.14), rgba(255,255,255,0.05)) !important;
   border-color: rgba(214,222,232,0.50) !important;
   transform: none !important;
 }

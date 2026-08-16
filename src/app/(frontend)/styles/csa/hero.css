@@ -524,7 +524,13 @@
 
 /* ---------- Entrance ---------- */
 @media (prefers-reduced-motion: no-preference) {
-  .vhero__reveal { opacity: 0; transform: translateY(16px); animation: vswap 700ms var(--ease-out) both; }
+  /* backwards (not both): a forwards fill would retain the composited
+     opacity/transform state forever, making each reveal wrapper a backdrop-root
+     boundary — descendants with backdrop-filter (the glass CTA) then can't
+     sample the page behind them and lose their frost. Base opacity/transform
+     are omitted for the same reason: the backwards fill covers the pre-start
+     state, and after the run the wrapper must compute opacity:1/transform:none. */
+  .vhero__reveal { animation: vswap 700ms var(--ease-out) backwards; }
   .vhero__reveal--1 { animation-delay: 120ms; }
   .vhero__reveal--2 { animation-delay: 240ms; }
   .vhero__reveal--3 { animation-delay: 360ms; }
@@ -578,7 +584,7 @@
   .vhero__sub { margin: 9px 0 14px; font-size: 13px; line-height: 1.45; max-width: none; }   /* sub text restored on mobile */
   .vhero__copy { margin-bottom: -11dvh; }   /* pull the carousel block up */
   .vhero__cta { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .vhero__cta .btn--gold-pill { width: auto; }
+  .vhero__cta .rv-glass-btn { width: auto; }
   .vhero__cta .btn--link { align-self: flex-start; padding-left: 2px; }
 
   /* --- Subject badge (left column) — compact rounded-square 01/05 · category.
