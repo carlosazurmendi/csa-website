@@ -16,6 +16,14 @@ export function CsaIcons() {
     const run = () => {
       try {
         window.lucide?.createIcons()
+        // lucide's generated <svg> KEEPS the data-lucide attribute, so without
+        // this strip it (a) re-triggers the observer below — an endless ~180ms
+        // replace-all loop — and (b) is torn out and rebuilt by every later
+        // run. Detaching an icon between pointerdown and pointerup swallows
+        // the click entirely (no click event fires — the "dead" carousel
+        // arrows). Stripping the marker makes each run convert only fresh
+        // <i> placeholders and never touch already-rendered icons.
+        document.querySelectorAll('svg[data-lucide]').forEach((s) => s.removeAttribute('data-lucide'))
       } catch {
         /* UMD not ready yet */
       }
@@ -38,8 +46,10 @@ export function CsaIcons() {
         for (const node of m.addedNodes) {
           if (node.nodeType !== 1) continue // skip text nodes (counters, etc.)
           const el = node as Element
-          // Only redraw when a NEW lucide placeholder appears. lucide's own <svg>
-          // output has no [data-lucide], so its insertions never re-trigger us.
+          // Only redraw when a NEW lucide placeholder appears. lucide's own
+          // <svg> output DOES carry [data-lucide] — run() strips it above so
+          // its insertions never re-trigger us (that retrigger was an infinite
+          // replace-all loop that also ate clicks on icon buttons).
           if (el.matches?.('[data-lucide]') || el.querySelector?.('[data-lucide]')) {
             schedule()
             return
