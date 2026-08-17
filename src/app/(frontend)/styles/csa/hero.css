@@ -501,18 +501,31 @@
 .selbar__counter { color: var(--gold-400); }
 .selbar__sep { color: var(--fg-4); }
 .selbar__controls { display: flex; align-items: center; gap: 24px; }
-.selbar__dots { display: flex; align-items: center; gap: 10px; }
+.selbar__dots { display: flex; align-items: center; gap: 0; }
+/* WCAG 2.2 §2.5.8: each dot is a 24×24 hit target; the visible 9px dot is the
+   ::before so the visual stays the small dot it always was. */
 .seldot {
+  position: relative;
+  width: 24px; height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.seldot::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
   width: 9px; height: 9px;
   border-radius: 50%;
   background: rgba(255,255,255,0.16);
   border: 1px solid var(--border-1);
-  cursor: pointer;
-  padding: 0;
   transition: all var(--dur) var(--ease-out);
 }
-.seldot:hover { background: rgba(255,255,255,0.30); }
-.seldot.is-on {
+.seldot:hover::before { background: rgba(255,255,255,0.30); }
+.seldot.is-on { width: 45px; }
+.seldot.is-on::before {
   width: 30px;
   border-radius: var(--r-pill);
   background-image: var(--gold-foil);
@@ -520,7 +533,7 @@
   border-color: transparent;
   animation: csa-gold-sheen 5.5s linear infinite;
 }
-@media (prefers-reduced-motion: reduce) { .seldot.is-on { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .seldot.is-on::before { animation: none; } }
 
 /* ---------- Entrance ---------- */
 @media (prefers-reduced-motion: no-preference) {

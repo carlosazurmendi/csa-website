@@ -385,18 +385,31 @@
 .cs-arrow:active { transform: scale(0.95); }
 .cs-arrow i { width: 21px; height: 21px; position: relative; z-index: 1; }
 
-.cs-dots { display: flex; align-items: center; gap: 10px; }
+.cs-dots { display: flex; align-items: center; gap: 0; }
+/* WCAG 2.2 §2.5.8: 24×24 hit target, visible 9px dot on the ::before (same
+   pattern as the hero .seldot). */
 .cs-dot {
+  position: relative;
+  width: 24px; height: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.cs-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
   width: 9px; height: 9px;
   border-radius: 50%;
   background: rgba(255,255,255,0.16);
   border: 1px solid var(--border-1);
-  cursor: pointer;
-  padding: 0;
   transition: all var(--dur) var(--ease-out);
 }
-.cs-dot:hover { background: rgba(255,255,255,0.30); }
-.cs-dot.is-on {
+.cs-dot:hover::before { background: rgba(255,255,255,0.30); }
+.cs-dot.is-on { width: 45px; }
+.cs-dot.is-on::before {
   width: 30px;
   border-radius: var(--r-pill);
   background-image: var(--gold-foil);
@@ -404,7 +417,7 @@
   border-color: transparent;
   animation: csa-gold-sheen 5.5s linear infinite;
 }
-@media (prefers-reduced-motion: reduce) { .cs-dot.is-on { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cs-dot.is-on::before { animation: none; } }
 
 /* ---------- Swap-in animation ---------- */
 @keyframes cs-swap {

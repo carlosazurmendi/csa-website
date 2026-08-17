@@ -21,7 +21,7 @@ a.tpl-shot { display: block; text-decoration: none; cursor: pointer; }
 .tpl-pricev { display: flex; flex-direction: column; line-height: 1.05; }
 .tpl-pricev__amt { font-family: var(--font-display); font-weight: 600; font-size: 21px; letter-spacing: -0.01em; color: var(--fg-1); }
 .tpl-bundle .tpl-pricev__amt { font-size: 24px; }
-.tpl-pricev__per { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg-4); margin-top: 4px; }
+.tpl-pricev__per { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg-3); margin-top: 4px; } /* fg-4 fails AA */
 
 .tpl-card__foot { flex-wrap: wrap; }
 .tpl-card__cta { display: flex; align-items: center; gap: 8px; }
@@ -46,7 +46,7 @@ button.tpl-add { cursor: pointer; font-family: var(--font-body); }
   display: flex; align-items: center; justify-content: center; color: var(--gold-400);
 }
 .tpl-cat-tile__icon i { width: 25px; height: 25px; }
-.tpl-cat-tile__count { position: absolute; top: 26px; right: 26px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); }
+.tpl-cat-tile__count { position: absolute; top: 26px; right: 26px; font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); } /* fg-4 fails AA */
 .tpl-cat-tile__name { margin: 0 0 10px; font-family: var(--font-display); font-weight: 700; font-size: 24px; letter-spacing: -0.01em; color: var(--fg-1); }
 .tpl-cat-tile__desc { margin: 0 0 22px; font-size: 14px; line-height: 1.58; color: var(--fg-3); }
 .tpl-cat-tile__link { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; color: var(--gold-400); font-weight: 600; font-size: 14px; }
@@ -96,7 +96,7 @@ button.tpl-add { cursor: pointer; font-family: var(--font-body); }
 
 .tlist-filters { display: flex; flex-wrap: wrap; gap: 22px 30px; margin-bottom: 26px; padding: 0 4px; }
 .tlist-fgroup { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.tlist-fgroup__label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-4); }
+.tlist-fgroup__label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-3); } /* fg-4 fails AA */
 .tlist-count { font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); margin: 0 0 22px; padding: 0 4px; }
 .tlist-count b { color: var(--gold-400); font-weight: 600; }
 .tlist-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -140,7 +140,7 @@ button.tpl-add { cursor: pointer; font-family: var(--font-body); }
   border: 1px solid var(--border-1); background: var(--bg-glass); color: var(--gold-400);
   display: flex; align-items: center; justify-content: center; }
 .td-meta__icon i { width: 16px; height: 16px; }
-.td-meta__k { display: block; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-4); }
+.td-meta__k { display: block; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-3); } /* fg-4 fails AA */
 .td-meta__v { display: block; font-size: 13.5px; font-weight: 600; color: var(--fg-1); margin-top: 2px; }
 
 /* Buy card (sticky) */
@@ -232,7 +232,7 @@ button.tpl-add { cursor: pointer; font-family: var(--font-body); }
 /* Specs row */
 .td-specs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 920px; }
 .td-spec { padding: 22px 22px; background: var(--bg-base-2); border: 1px solid var(--border-1); border-radius: var(--r-lg); }
-.td-spec__k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-4); margin: 0 0 12px; }
+.td-spec__k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-3); margin: 0 0 12px; } /* fg-4 fails AA */
 .td-spec__v { font-size: 16px; font-weight: 600; color: var(--fg-1); display: flex; align-items: center; gap: 9px; }
 .td-spec__v i { width: 18px; height: 18px; color: var(--gold-400); }
 .td-spec__chips { display: flex; flex-wrap: wrap; gap: 7px; }

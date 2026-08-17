@@ -130,7 +130,7 @@
   transition: color 0.25s var(--ease-out), border-color 0.25s var(--ease-out);
 }
 .lg-toc__link:hover { color: var(--fg-1); border-left-color: var(--border-strong); }
-.lg-toc__num { font-family: var(--font-mono); font-size: 11px; color: var(--fg-4); flex: none; padding-top: 1px; transition: color 0.25s var(--ease-out); }
+.lg-toc__num { font-family: var(--font-mono); font-size: 11px; color: var(--fg-3); flex: none; padding-top: 1px; transition: color 0.25s var(--ease-out); } /* fg-4 fails AA */
 .lg-toc__link.is-active { color: var(--gold-400); border-left-color: var(--gold-500); }
 .lg-toc__link.is-active .lg-toc__num { color: var(--gold-500); }
 
@@ -189,7 +189,7 @@
   font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--fg-4);
+  color: var(--fg-3); /* fg-4 fails AA 4.5:1 for small text */
 }
 .lg-ph .d { width: 5px; height: 5px; border-radius: 50%; background: var(--fg-4); }
 
