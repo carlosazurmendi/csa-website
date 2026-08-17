@@ -23,6 +23,10 @@ export type NavChild = { label: string; href: string; isCta?: boolean }
 export type NavItem = { label: string; href: string; children?: NavChild[] }
 export type HeaderData = {
   navItems?: NavItem[]
+  /** Derived from the `consulting` collection by the layout (src/lib/nav.ts);
+   *  when present it replaces the Consulting item's authored dropdown children
+   *  so publishing a consulting page surfaces it in the nav automatically. */
+  consultingNav?: NavChild[]
   utility?: {
     login?: { label?: string; href?: string }
     cart?: { label?: string; href?: string }
@@ -298,7 +302,17 @@ export function SiteHeader({ data, initialUser = null }: { data: HeaderData; ini
   const pathname = usePathname() || '/'
   const router = useRouter()
 
-  const NAV = data?.navItems && data.navItems.length > 0 ? data.navItems : DEFAULT_NAV
+  const baseNav = data?.navItems && data.navItems.length > 0 ? data.navItems : DEFAULT_NAV
+  // Consulting dropdown is collection-driven: overlay the derived children onto
+  // whichever nav tree renders (CMS-authored or fallback). Empty overlay (CMS
+  // unreachable) keeps the authored children.
+  const consultingNav = data?.consultingNav
+  const NAV =
+    consultingNav && consultingNav.length > 0
+      ? baseNav.map((item) =>
+          item.href === '/consulting' ? { ...item, children: consultingNav } : item,
+        )
+      : baseNav
   const login = {
     label: data?.utility?.login?.label || 'Login',
     href: data?.utility?.login?.href || '/login',

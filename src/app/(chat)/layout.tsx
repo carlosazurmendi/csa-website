@@ -6,6 +6,7 @@ import { va } from '@/lib/assetVersion'
 import type { Metadata } from 'next'
 
 import { getGlobalSafe } from '@/lib/cms'
+import { getConsultingNav } from '@/lib/nav'
 import { createClient } from '@/lib/supabase/server'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
 import { SiteHeader, type HeaderData } from '../(frontend)/_components/SiteHeader'
@@ -26,7 +27,12 @@ export const metadata: Metadata = {
  * root, so this route group has its own root layout.
  */
 export default async function ChatLayout({ children }: { children: React.ReactNode }) {
-  const header = await getGlobalSafe<HeaderData>('header')
+  const [headerGlobal, consultingNav] = await Promise.all([
+    getGlobalSafe<HeaderData>('header'),
+    getConsultingNav(),
+  ])
+  // Same collection-derived Consulting dropdown as the (frontend) layout.
+  const header: HeaderData = { ...headerGlobal, consultingNav }
 
   let initialUser: AuthUser = null
   try {

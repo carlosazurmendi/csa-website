@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import Link from 'next/link'
 
 import { findBySlug } from '@/lib/cms'
+import { getConsultingRows } from '@/lib/nav'
 import { lexicalToParagraphs } from '@/lib/lexical'
 import {
   ConsultingReveal,
@@ -123,7 +124,22 @@ export default async function ConsultingOverviewPage() {
   const creds = row.aboutCreds ?? []
   const options = row.optsItems ?? []
   const capabilities = row.capsItems ?? []
-  const industries = row.indItems ?? []
+
+  // Industries grid: the authored indItems keep their design captions, and any
+  // published consulting page NOT already covered (a newly added industry) is
+  // appended with a card derived from its own hero fields — so publishing a
+  // page surfaces it here without also editing the Overview row.
+  const authored = row.indItems ?? []
+  const covered = new Set(authored.map((it) => industryRoute(it.href)))
+  const derived: Industry[] = (await getConsultingRows())
+    .filter((r) => r.slug && r.slug !== 'overview' && !covered.has('/consulting/' + r.slug))
+    .map((r) => ({
+      icon: r.heroIcon,
+      title: r.navLabel ?? r.title,
+      standards: (r.heroStandards ?? []).map((s) => s.code).filter(Boolean).join(' · '),
+      href: r.slug,
+    }))
+  const industries = [...authored, ...derived]
   const faqItems: FaqItem[] = (row.faqItems ?? []).map((q) => ({ q: q.q ?? '', a: q.a ?? '' }))
 
   return (

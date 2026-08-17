@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 
 import { fontVariables } from '@/lib/fonts'
 import { getGlobalSafe } from '@/lib/cms'
+import { getConsultingNav } from '@/lib/nav'
 import { createClient } from '@/lib/supabase/server'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
 import { SiteHeader, type HeaderData } from './_components/SiteHeader'
@@ -32,10 +33,14 @@ export const metadata: Metadata = {
  * the motion engine on (mirrors design-reference Home.html).
  */
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
-  const [header, footer] = await Promise.all([
+  const [headerGlobal, footer, consultingNav] = await Promise.all([
     getGlobalSafe<HeaderData>('header'),
     getGlobalSafe<FooterData>('footer'),
+    getConsultingNav(),
   ])
+  // The Consulting dropdown is derived from the consulting collection so a
+  // newly published industry page shows up in the nav without a Header edit.
+  const header: HeaderData = { ...headerGlobal, consultingNav }
 
   // Server-side session so the nav renders the correct logged-in/out chrome on
   // first paint (the client header then stays live via Supabase auth events).
