@@ -28,9 +28,13 @@ Authoritative instructions for any AI agent working in this project. Read fully 
 
 ## Deploy + cache trap (this has masked multiple correct deploys)
 
-- Deploy flow: push to `main` → GitHub Actions builds images to **GHCR** → redeploy in
-  **dockhand** (pull `latest` or pin `IMAGE_TAG=sha-<sha>`). There is **no local runtime**
-  (the bundled Postgres/GoTrue/MinIO stack is the system of record; the old Supabase is gone).
+- Deploy flow: push to `main` → GitHub Actions builds images to **GHCR** → the workflow's
+  `deploy` job POSTs the **dockhand stack webhook** (HMAC-signed; `DOCKHAND_WEBHOOK_URL` /
+  `DOCKHAND_WEBHOOK_SECRET` repo secrets), which redeploys the stack pulling `latest`.
+  Main-branch pushes ship automatically once CI is green; `v*` tag builds do NOT deploy
+  (they exist for manual `IMAGE_TAG=sha-<sha>` pinning in dockhand). There is **no local
+  runtime** (the bundled Postgres/GoTrue/MinIO stack is the system of record; the old
+  Supabase is gone).
 - **`/csa/*` static assets are fixed-name and cached `max-age` (hours, browser) + Cloudflare
   (~24h).** They are NOT hash-busted like `_next/static/*`, so historically a changed file
   did not reach users until the cache expired — this masked multiple deploys.
