@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/server'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
 import { SiteHeader, type HeaderData } from './_components/SiteHeader'
 import { SiteFooter, type FooterData } from './_components/SiteFooter'
+import { GoogleTagManager } from './_components/GoogleTagManager'
 import { CsaIcons } from './_components/CsaIcons'
 import { Shell } from './_components/Shell'
 import { ExpressBuy } from './_components/commerce/ExpressBuy'
@@ -33,10 +34,11 @@ export const metadata: Metadata = {
  * the motion engine on (mirrors design-reference Home.html).
  */
 export default async function FrontendLayout({ children }: { children: React.ReactNode }) {
-  const [headerGlobal, footer, consultingNav] = await Promise.all([
+  const [headerGlobal, footer, consultingNav, siteSettings] = await Promise.all([
     getGlobalSafe<HeaderData>('header'),
     getGlobalSafe<FooterData>('footer'),
     getConsultingNav(),
+    getGlobalSafe<{ analytics?: { gtmContainerId?: string | null } }>('site-settings'),
   ])
   // The Consulting dropdown is derived from the consulting collection so a
   // newly published industry page shows up in the nav without a Header edit.
@@ -58,6 +60,10 @@ export default async function FrontendLayout({ children }: { children: React.Rea
   return (
     <html lang="en" className={fontVariables} data-csa-motion>
       <body className="csa-root">
+        {/* GTM (noscript iframe must sit at the top of body per Google's docs;
+            the loader script mounts afterInteractive). CMS-driven: Site
+            Settings → Analytics; absent ID renders nothing. */}
+        <GoogleTagManager containerId={siteSettings?.analytics?.gtmContainerId} />
         {/* Runtime public config for client components (Supabase). Read from
             server-side env at request time and set before hydration, so the
             production image carries no baked NEXT_PUBLIC_* values. */}

@@ -6048,6 +6048,15 @@ export interface SiteSetting {
     linkHref?: string | null;
   };
   /**
+   * Marketing / analytics tags. Individual pixels are managed inside Google Tag Manager, not here.
+   */
+  analytics?: {
+    /**
+     * e.g. "GTM-ABC1234". Loads GTM on every marketing page. Leave empty to disable Google Tag Manager site-wide.
+     */
+    gtmContainerId?: string | null;
+  };
+  /**
    * Search-engine and social-sharing metadata for this page.
    */
   seo?: {
@@ -6756,6 +6765,11 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         message?: T;
         linkLabel?: T;
         linkHref?: T;
+      };
+  analytics?:
+    | T
+    | {
+        gtmContainerId?: T;
       };
   seo?:
     | T

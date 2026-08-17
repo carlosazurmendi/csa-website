@@ -139,6 +139,28 @@ export const SiteSettings: GlobalConfig = {
         },
       ],
     },
+    {
+      type: 'group',
+      name: 'analytics',
+      label: 'Analytics',
+      admin: {
+        description:
+          'Marketing / analytics tags. Individual pixels are managed inside Google Tag Manager, not here.',
+      },
+      fields: [
+        {
+          name: 'gtmContainerId',
+          type: 'text',
+          label: 'Google Tag Manager container ID',
+          admin: {
+            description:
+              'e.g. "GTM-ABC1234". Loads GTM on every marketing page. Leave empty to disable Google Tag Manager site-wide.',
+          },
+          validate: (val: string | null | undefined) =>
+            !val || /^GTM-[A-Z0-9]+$/.test(val) || 'Must look like "GTM-XXXXXXX" (or be empty).',
+        },
+      ],
+    },
     // Site-wide SEO defaults that individual pages inherit unless they override them.
     seoField,
   ],
