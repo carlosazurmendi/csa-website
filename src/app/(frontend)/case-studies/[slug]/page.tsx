@@ -5,7 +5,9 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { mediaUrl, type MediaLike } from '@/lib/media'
 import { lexicalToParagraphs } from '@/lib/lexical'
+import { articleSchema, breadcrumbSchema } from '@/lib/schema'
 import { CmsImage } from '@/app/(frontend)/_components/CmsImage'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 
 export const dynamic = 'force-dynamic'
 
@@ -219,8 +221,27 @@ export default async function CaseStudyDetailPage({ params }: { params: Promise<
   const logoUrl = mediaUrl(data.client?.logo)
   const heroUrl = mediaUrl(data.heroImage)
 
+  const path = '/case-studies/' + slug
+
   return (
     <main className="csd">
+      <JsonLd
+        data={[
+          articleSchema({
+            title: data.title,
+            description: data.lead,
+            path,
+            image: heroUrl,
+            section: sector,
+            keywords: standards,
+          }),
+          breadcrumbSchema([
+            { name: 'Company', path: '/company' },
+            { name: 'Experience', path: '/company/experience' },
+            { name: data.title ?? '', path },
+          ]),
+        ]}
+      />
       {/* 1 · Hero */}
       <header className="csd-hero">
         <div className="csd-hero__haze" aria-hidden="true"></div>

@@ -5,7 +5,9 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
+import { articleSchema, breadcrumbSchema } from '@/lib/schema'
 import { CmsImage } from '@/app/(frontend)/_components/CmsImage'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 import { ArticleShare, ArticleToc, type TocSection } from './ArticleInteractive'
 
 export const dynamic = 'force-dynamic'
@@ -287,8 +289,29 @@ export default async function ArticleDetailPage({ params }: { params: Promise<{ 
     (r): r is RelatedArticle => typeof r === 'object' && r !== null,
   )
 
+  const path = '/resources/articles/' + slug
+
   return (
     <main className="ad">
+      <JsonLd
+        data={[
+          articleSchema({
+            title: article.title,
+            description: article.excerpt,
+            path,
+            datePublished: article.date,
+            image: heroUrl,
+            authorName,
+            section: category,
+            keywords: topics,
+          }),
+          breadcrumbSchema([
+            { name: 'Resources', path: '/resources' },
+            { name: 'Articles', path: '/resources/articles' },
+            { name: article.title ?? '', path },
+          ]),
+        ]}
+      />
       {/* 1 · Header */}
       <header className="ad-head">
         <div className="ad-head__haze" aria-hidden="true"></div>

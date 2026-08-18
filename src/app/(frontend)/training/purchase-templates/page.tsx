@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { findBySlug, findDocs } from '@/lib/cms'
+import { itemListSchema, productSchema } from '@/lib/schema'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 import { TemplatesStorefront, type TemplateProduct } from '../../_sections/training/TemplatesStorefront'
 
 export const dynamic = 'force-dynamic'
@@ -139,6 +141,22 @@ export default async function PurchaseTemplatesPage() {
 
   return (
     <main>
+      {/* Products have no detail route yet (M7) — each Product's url/offer
+          points at this storefront, where it is buyable. */}
+      <JsonLd
+        data={itemListSchema(
+          products.map((p) =>
+            productSchema({
+              title: p.title,
+              summary: p.summary,
+              code: p.code,
+              category: p.category,
+              price: p.price,
+              path: '/training/purchase-templates',
+            }),
+          ),
+        )}
+      />
       {/* Hero */}
       <section className="tt-hero">
         <div className="tt-hero__haze"></div>

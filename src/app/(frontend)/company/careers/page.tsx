@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-import { findBySlug, findDocs } from '@/lib/cms'
+import { findBySlug, findDocs, getGlobalSafe } from '@/lib/cms'
+import { jobPostingSchema, type SiteSettingsDoc } from '@/lib/schema'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 import { ScrollToRolesButton } from '../../_sections/company/ScrollToRolesButton'
 
 export const dynamic = 'force-dynamic'
@@ -63,6 +65,7 @@ type JobPosting = {
   type?: 'full-time' | 'part-time' | 'contract' | 'internship'
   summary?: string
   applyUrl?: string
+  postedAt?: string
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -130,11 +133,16 @@ function ActionButtons({ actions, scrollIcon }: { actions: Action[]; scrollIcon:
 }
 
 export default async function CompanyCareersPage() {
-  const row = (await findBySlug<CareersRow>('company', 'careers')) ?? {}
-  const roles = await findDocs<JobPosting>('job-postings', {
-    where: { active: { equals: true } },
-    sort: '-postedAt',
-  })
+  const [row, roles, siteSettings] = await Promise.all([
+    findBySlug<CareersRow>('company', 'careers').then((r): CareersRow => r ?? {}),
+    findDocs<JobPosting>('job-postings', {
+      where: { active: { equals: true } },
+      sort: '-postedAt',
+    }),
+    // Hiring-organization name for the JobPosting structured data (request-cached
+    // — the layout fetches the same global).
+    getGlobalSafe<SiteSettingsDoc>('site-settings'),
+  ])
 
   const standards = (row.heroStandards ?? []).map((s) => s.code ?? '').filter(Boolean)
   const heroActions = row.heroActions ?? []
@@ -144,6 +152,25 @@ export default async function CompanyCareersPage() {
 
   return (
     <main className="ip">
+      {roles.length > 0 && (
+        <JsonLd
+          data={roles
+            .filter((r) => r.title)
+            .map((r) =>
+              jobPostingSchema({
+                title: r.title,
+                summary: r.summary,
+                department: r.department,
+                location: r.location,
+                type: r.type,
+                postedAt: r.postedAt,
+                applyUrl: r.applyUrl,
+                orgName: siteSettings?.brand?.name,
+                path: '/company/careers',
+              }),
+            )}
+        />
+      )}
       {/* ---------- Hero ---------- */}
       <header className="ip-hero">
         <div className="ip-hero__ghost" aria-hidden="true">{row.heroGhost}</div>

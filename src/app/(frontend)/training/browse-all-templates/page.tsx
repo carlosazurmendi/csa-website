@@ -4,6 +4,8 @@ import Link from 'next/link'
 
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToText } from '@/lib/lexical'
+import { itemListSchema, productSchema } from '@/lib/schema'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 import { TemplatesListing, type TemplateProduct } from '../../_sections/training/TemplatesListing'
 
 export const dynamic = 'force-dynamic'
@@ -100,6 +102,22 @@ export default async function BrowseAllTemplatesPage() {
 
   return (
     <main>
+      {/* Products have no detail route yet (M7) — each Product's url/offer
+          points at the storefront, where it is buyable. */}
+      <JsonLd
+        data={itemListSchema(
+          products.map((p) =>
+            productSchema({
+              title: p.title,
+              summary: p.summary,
+              code: p.code,
+              category: p.category,
+              price: p.price,
+              path: '/training/purchase-templates',
+            }),
+          ),
+        )}
+      />
       {/* Hero */}
       <section className="tlist-hero">
         <div className="tlist-hero__haze"></div>

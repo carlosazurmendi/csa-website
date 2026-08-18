@@ -8,6 +8,9 @@ import type { Metadata } from 'next'
 import { fontVariables } from '@/lib/fonts'
 import { getGlobalSafe } from '@/lib/cms'
 import { getConsultingNav } from '@/lib/nav'
+import { primaryOrigin } from '@/lib/origin'
+import { orgSchema, webSiteSchema, type SiteSettingsDoc } from '@/lib/schema'
+import { JsonLd } from './_components/JsonLd'
 import { createClient } from '@/lib/supabase/server'
 import { toAuthUser, type AuthUser } from '@/lib/auth-user'
 import { SiteHeader, type HeaderData } from './_components/SiteHeader'
@@ -20,6 +23,10 @@ import { SmoothScroll } from './_components/SmoothScroll'
 import { ScrollIndicator } from './_components/ScrollIndicator'
 
 export const metadata: Metadata = {
+  // Absolute base for relative OG/canonical URLs. Guarded: primaryOrigin() is ''
+  // when NEXT_PUBLIC_SERVER_URL is unset (never in production) and new URL('')
+  // would throw at module load.
+  ...(primaryOrigin() ? { metadataBase: new URL(primaryOrigin()) } : {}),
   // No title.template — the seeded page metaTitles already carry their own branding
   // (e.g. "… | CSA"); a template would double the suffix. Pages set their full title.
   title: 'Functional Safety Engineering Consulting | CSA',
@@ -39,7 +46,9 @@ export default async function FrontendLayout({ children }: { children: React.Rea
     getGlobalSafe<HeaderData>('header'),
     getGlobalSafe<FooterData>('footer'),
     getConsultingNav(),
-    getGlobalSafe<{ analytics?: { gtmContainerId?: string | null } }>('site-settings'),
+    getGlobalSafe<SiteSettingsDoc & { analytics?: { gtmContainerId?: string | null } }>(
+      'site-settings',
+    ),
   ])
   // The Consulting dropdown is derived from the consulting collection so a
   // newly published industry page shows up in the nav without a Header edit.
@@ -65,6 +74,10 @@ export default async function FrontendLayout({ children }: { children: React.Rea
             the loader script mounts afterInteractive). CMS-driven: Site
             Settings → Analytics; absent ID renders nothing. */}
         <GoogleTagManager containerId={siteSettings?.analytics?.gtmContainerId} />
+        {/* Site-wide structured data — the Organization node every page-level
+            JSON-LD blob references by @id, plus the WebSite node. CMS-driven
+            from Site Settings. */}
+        <JsonLd data={[orgSchema(siteSettings), webSiteSchema(siteSettings)]} />
         {/* Runtime public config for client components (Supabase). Read from
             server-side env at request time and set before hydration, so the
             production image carries no baked NEXT_PUBLIC_* values. */}

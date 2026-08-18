@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { findBySlug, findDocs } from '@/lib/cms'
+import { courseSchema, itemListSchema } from '@/lib/schema'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 import { CourseCatalog, type CatalogCourse } from '../../_sections/training/CourseCatalog'
 
 export const dynamic = 'force-dynamic'
@@ -118,6 +120,20 @@ export default async function CourseCatalogPage() {
 
   return (
     <main>
+      <JsonLd
+        data={itemListSchema(
+          courses.map((c) =>
+            courseSchema({
+              title: c.title,
+              summary: c.summary,
+              code: c.code,
+              level: c.level,
+              price: c.price,
+              path: `/training/courses/${c.slug}`,
+            }),
+          ),
+        )}
+      />
       {/* Hero */}
       <section className="tt-hero">
         <div className="tt-hero__haze"></div>

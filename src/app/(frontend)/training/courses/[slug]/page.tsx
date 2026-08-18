@@ -5,7 +5,9 @@ import { notFound } from 'next/navigation'
 import { findBySlug, findDocs } from '@/lib/cms'
 import { lexicalToParagraphs, lexicalToText } from '@/lib/lexical'
 import { mediaUrl } from '@/lib/media'
+import { breadcrumbSchema, courseSchema } from '@/lib/schema'
 import { CmsImage } from '@/app/(frontend)/_components/CmsImage'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 import { isEnrolled } from '@/lib/lms'
 import { CourseCurriculum, type CurriculumModule } from '../../../_sections/training/CourseCurriculum'
 import { CourseEnroll } from '../../../_components/commerce/CourseEnroll'
@@ -163,8 +165,29 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
     'Standards reference & worked examples',
   ]
 
+  const path = courseHref(slug)
+
   return (
     <main className="cl-main">
+      <JsonLd
+        data={[
+          courseSchema({
+            title: c.title,
+            summary: c.summary || lexicalToText(c.blurb),
+            code: c.code,
+            level: c.level,
+            price: c.price,
+            outcomes: c.outcomes,
+            instructorName: instructor.name,
+            path,
+          }),
+          breadcrumbSchema([
+            { name: 'Training', path: '/training' },
+            { name: 'Course Catalog', path: '/training/course-catalog' },
+            { name: c.title, path },
+          ]),
+        ]}
+      />
       {/* Hero */}
       <section className="cl-hero">
         <div className="cl-hero__haze"></div>

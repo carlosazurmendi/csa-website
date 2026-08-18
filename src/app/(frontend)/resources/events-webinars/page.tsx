@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { findBySlug, findDocs, lexicalToText } from '@/lib/cms'
+import { eventSchema } from '@/lib/schema'
+import { JsonLd } from '@/app/(frontend)/_components/JsonLd'
 import { ResourcesReveal } from '../../_sections/resources/ResourcesOverviewClient'
 import { EventsListing, type EventCard } from '../../_sections/resources/EventsListing'
 
@@ -74,6 +76,10 @@ type EventDoc = {
   title?: string
   type?: 'upcoming-event' | 'past-keynote' | 'technical-webinar'
   description?: unknown
+  startDate?: string
+  endDate?: string
+  location?: string
+  registerUrl?: string
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -123,6 +129,21 @@ export default async function EventsWebinarsPage() {
     <>
       <ResourcesReveal />
       <main className="res">
+        <JsonLd
+          data={events
+            .filter((e) => e.title)
+            .map((e) =>
+              eventSchema({
+                title: e.title,
+                description: lexicalToText(e.description) || undefined,
+                startDate: e.startDate,
+                endDate: e.endDate,
+                location: e.location,
+                registerUrl: e.registerUrl,
+                path: '/resources/events-webinars',
+              }),
+            )}
+        />
         {/* ---------- Hero ---------- */}
         <header className="res-hero res-hero--listing">
           <div className="res-hero__ghost" aria-hidden="true">
