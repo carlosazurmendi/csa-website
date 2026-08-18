@@ -1,0 +1,81 @@
+/* ============================================================
+   CSA — custom scroll indicator (ScrollIndicator.tsx)
+   The UA scrollbar is hidden site-wide (colors_and_type.css), so
+   this floating thumb is the page's scroll affordance: a thin
+   translucent hairline at rest that thickens into opaque gold
+   foil when hovered or grabbed. Pointer-fine devices only —
+   touch scrolling needs no grab handle.
+   ============================================================ */
+
+.scrollx {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 24px; /* ≥24px hit zone (WCAG 2.5.8) — the visual bar is drawn thinner */
+  z-index: 225; /* above the nav bar (220), below the mini-cart scrim (.mc-scrim, 230); ExpressBuy sits far above (1200/1201, inline) */
+  cursor: grab;
+  touch-action: none; /* touchscreen laptops: a touch drag on the track must not pan the page */
+}
+.scrollx[data-hidden] { display: none; }
+.scrollx:not([data-ready]) { visibility: hidden; } /* no unmeasured flash pre-hydration */
+.scrollx[data-drag] { cursor: grabbing; }
+/* Defensive: nothing calls lenis.stop() today, but if a future modal does
+   (Lenis adds .lenis-stopped + overflow:hidden), a live grab handle over a
+   frozen page would be a lie — hide it. */
+html.lenis-stopped .scrollx { display: none; }
+
+.scrollx__thumb {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  will-change: transform;
+}
+/* Visual bar. One gold-foil gradient for both states: at rest it is drawn
+   desaturated + translucent (thin silver hairline), on hover/grab the filter
+   and opacity lift so the same bar cross-fades into opaque gold — a smooth
+   transition a background-image swap could not animate. */
+.scrollx__thumb::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 6px;
+  width: 4px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, var(--gold-300), var(--gold-500) 55%, var(--gold-600));
+  opacity: 0.35;
+  filter: saturate(0) brightness(1.15);
+  transition:
+    width var(--dur) var(--ease-out),
+    right var(--dur) var(--ease-out),
+    opacity var(--dur) var(--ease-out),
+    filter var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
+}
+.scrollx:hover .scrollx__thumb::before,
+.scrollx[data-drag] .scrollx__thumb::before {
+  width: 10px;
+  right: 3px;
+  opacity: 1;
+  filter: none;
+  box-shadow: var(--glow-gold);
+}
+
+/* Keep the grabbing cursor + kill text selection while a drag is live, even
+   when the captured pointer sweeps across the page. */
+html.scrollx-dragging * { cursor: grabbing !important; }
+html.scrollx-dragging body { user-select: none; }
+
+/* Touch devices scroll natively with OS inertia — no grab handle. */
+@media (hover: none), (pointer: coarse) {
+  .scrollx { display: none; }
+}
+/* Mobile-chrome breakpoint (nav.css): ≤1080px the hamburger lives ~33px from
+   the right edge — inside the 24px hit strip — and the drawer (z 210) slides
+   under the track (z 225). The indicator is desktop chrome; retire it with
+   the desktop nav. */
+@media (max-width: 1080px) {
+  .scrollx { display: none; }
+}

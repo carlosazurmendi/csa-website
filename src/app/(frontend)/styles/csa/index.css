@@ -16,6 +16,7 @@
 /* Global chrome */
 @import './nav.css';
 @import './footer.css';
+@import './scroll-indicator.css';
 
 /* Home sections */
 @import './hero.css';

@@ -17,6 +17,7 @@ import { CsaIcons } from './_components/CsaIcons'
 import { Shell } from './_components/Shell'
 import { ExpressBuy } from './_components/commerce/ExpressBuy'
 import { SmoothScroll } from './_components/SmoothScroll'
+import { ScrollIndicator } from './_components/ScrollIndicator'
 
 export const metadata: Metadata = {
   // No title.template — the seeded page metaTitles already carry their own branding
@@ -98,6 +99,7 @@ export default async function FrontendLayout({ children }: { children: React.Rea
 
         <CsaIcons />
         <SmoothScroll />
+        <ScrollIndicator />
       </body>
     </html>
   )
